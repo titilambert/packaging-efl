@@ -1,0 +1,4 @@
+abstract Eo.Abstract_Class ()
+{
+    data: null;
+}

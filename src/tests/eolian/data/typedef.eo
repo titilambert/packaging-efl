@@ -1,0 +1,13 @@
+type Evas.Coord: int; /* Simple type definition */
+type List_Objects: own(list<Eo *>*); /* A little more complex */
+
+class Typedef {
+   methods {
+      foo {
+         params {
+            int idx;
+         }
+         return: own(char*); /*@ comment for method return */
+      }
+   }
+}

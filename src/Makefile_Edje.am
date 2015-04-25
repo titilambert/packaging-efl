@@ -1,0 +1,295 @@
+
+### Library
+
+edje_eolian_files = \
+	lib/edje/edje_object.eo \
+	lib/edje/edje_edit.eo
+
+edje_eolian_c = $(edje_eolian_files:%.eo=%.eo.c)
+edje_eolian_h = $(edje_eolian_files:%.eo=%.eo.h) \
+                $(edje_eolian_files:%.eo=%.eo.legacy.h)
+
+BUILT_SOURCES += \
+                 $(edje_eolian_c) \
+                 $(edje_eolian_h)
+
+CLEANFILES += \
+              $(edje_eolian_c) \
+              $(edje_eolian_h)
+
+edjeeolianfilesdir = $(datadir)/eolian/include/edje-@VMAJ@
+edjeeolianfiles_DATA = \
+                       $(edje_eolian_files)
+
+EXTRA_DIST += \
+              ${edjeeolianfiles_DATA}
+
+lib_LTLIBRARIES += lib/edje/libedje.la
+
+EDJE_COMMON_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
+-I$(top_builddir) \
+-I$(top_srcdir)/src/lib/edje \
+-I$(top_builddir)/src/lib/edje \
+-DPACKAGE_BIN_DIR=\"$(bindir)\" \
+-DPACKAGE_LIB_DIR=\"$(libdir)\" \
+-DPACKAGE_DATA_DIR=\"$(datadir)/edje\" \
+-DPACKAGE_BUILD_DIR=\"$(abs_top_builddir)\" \
+-DPACKAGE_SRC_DIR=\"$(abs_top_srcdir)\" \
+@EDJE_CFLAGS@
+
+installed_edjemainheadersdir = $(includedir)/edje-@VMAJ@
+dist_installed_edjemainheaders_DATA = \
+lib/edje/Edje.h \
+lib/edje/Edje_Common.h \
+lib/edje/Edje_Eo.h \
+lib/edje/Edje_Legacy.h \
+lib/edje/Edje_Edit.h
+
+nodist_installed_edjemainheaders_DATA = \
+                                        $(edje_eolian_h)
+
+lib_edje_libedje_la_SOURCES = \
+lib/edje/edje_private.h \
+lib/edje/edje_container.h \
+lib/edje/edje_convert.h \
+lib/edje/edje_box_layout.c \
+lib/edje/edje_cache.c \
+lib/edje/edje_calc.c \
+lib/edje/edje_callbacks.c \
+lib/edje/edje_container.c \
+lib/edje/edje_data.c \
+lib/edje/edje_edit.c \
+lib/edje/edje_embryo.c \
+lib/edje/edje_entry.c \
+lib/edje/edje_external.c \
+lib/edje/edje_load.c \
+lib/edje/edje_lua.c \
+lib/edje/edje_lua2.c \
+lib/edje/edje_lua_script_only.c \
+lib/edje/edje_main.c \
+lib/edje/edje_match.c \
+lib/edje/edje_message_queue.c \
+lib/edje/edje_misc.c \
+lib/edje/edje_module.c \
+lib/edje/edje_multisense.c \
+lib/edje/edje_program.c \
+lib/edje/edje_smart.c \
+lib/edje/edje_text.c \
+lib/edje/edje_textblock_styles.c \
+lib/edje/edje_util.c \
+lib/edje/edje_var.c \
+lib/edje/edje_signal.c
+
+lib_edje_libedje_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl $(EDJE_COMMON_CPPFLAGS)
+lib_edje_libedje_la_LIBADD = @EDJE_LIBS@
+lib_edje_libedje_la_DEPENDENCIES = @EDJE_INTERNAL_LIBS@
+lib_edje_libedje_la_LDFLAGS = @EFL_LTLIBRARY_FLAGS@
+
+if ENABLE_MULTISENSE
+# edjemoduleXXXdir = $(libdir)/edje/modules/
+# edjemoduleXXX_LTLIBRARIES = modules/edje/XXX/module.la
+#
+# modules_edje_XXX_module_la_SOURCES = modules/edje/XXX/XXX.c
+# modules_edje_XXX_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl $(EDJE_COMMON_CPPFLAGS) @XXX_LIBS@
+# modules_edje_XXX_module_la_LIBADD = $(EDJE_COMMON_USER_LIBADD)
+# modules_edje_XXX_module_la_LDFLAGS = -module @EFL_LTMODULE_FLAGS@
+# modules_edje_XXX_module_la_LIBTOOLFLAGS = --tag=disable-static
+
+# edjemodulemultisensefactorydir = $(libdir)/edje/modules/multisense_factory/$(MODULE_ARCH)
+# edjemodulemultisensefactory_LTLIBRARIES = modules/edje/multisense_factory/module.la
+#
+# modules_edje_multisense_factory_module_la_SOURCES = \
+# modules/edje/multisense_factory/multisense_factory.c
+# modules_edje_multisense_factory_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
+# $(EDJE_COMMON_CPPFLAGS) \
+# @REMIX_CFLAGS@
+# modules_edje_multisense_factory_module_la_LIBADD = \
+# $(EDJE_COMMON_USER_LIBADD) \
+# @REMIX_LIBS@
+# modules_edje_multisense_factory_module_la_LDFLAGS = -module @EFL_LTMODULE_FLAGS@
+# modules_edje_multisense_factory_module_la_LIBTOOLFLAGS = --tag=disable-static
+
+endif
+
+### Binary
+
+if HAVE_WIN32
+USE_EDJE_BIN_LIBS = -L$(top_builddir)/src/lib/evil @USE_EDJE_LIBS@
+else
+USE_EDJE_BIN_LIBS = @USE_EDJE_LIBS@
+endif         
+
+bin_PROGRAMS += \
+bin/edje/edje_cc \
+bin/edje/edje_decc \
+bin/edje/edje_player \
+bin/edje/edje_inspector \
+bin/edje/edje_external_inspector \
+bin/edje/edje_codegen \
+bin/edje/edje_pick \
+bin/edje/edje_watch
+
+bin_edje_edje_cc_SOURCES = \
+bin/edje/edje_multisense_convert.h \
+bin/edje/edje_cc.h \
+bin/edje/edje_cc.c \
+bin/edje/edje_cc_out.c \
+bin/edje/edje_cc_parse.c \
+bin/edje/edje_cc_mem.c \
+bin/edje/edje_cc_handlers.c \
+bin/edje/edje_cc_sources.c \
+bin/edje/edje_multisense_convert.c
+bin_edje_edje_cc_CPPFLAGS = -I$(top_builddir)/src/lib/efl $(EDJE_COMMON_CPPFLAGS)
+bin_edje_edje_cc_LDADD =  $(USE_EDJE_BIN_LIBS)
+bin_edje_edje_cc_DEPENDENCIES = \
+@USE_EDJE_INTERNAL_LIBS@ \
+bin/edje/epp/epp$(EXEEXT) # epp is an artificial dependency because edje_cc will use it at runtime, so we be sure if we depend on edje_cc we get epp.
+
+bin_edje_edje_decc_SOURCES = \
+bin/edje/edje_decc.c \
+bin/edje/edje_decc.h \
+bin/edje/edje_cc_mem.c \
+bin/edje/edje_cc_sources.c
+bin_edje_edje_decc_CPPFLAGS = -I$(top_builddir)/src/lib/efl $(EDJE_COMMON_CPPFLAGS)
+bin_edje_edje_decc_LDADD =  $(USE_EDJE_BIN_LIBS)
+bin_edje_edje_decc_DEPENDENCIES = @USE_EDJE_INTERNAL_LIBS@
+
+bin_edje_edje_player_SOURCES = bin/edje/edje_player.c
+bin_edje_edje_player_CPPFLAGS = -I$(top_builddir)/src/lib/efl $(EDJE_COMMON_CPPFLAGS)
+bin_edje_edje_player_LDADD =  $(USE_EDJE_BIN_LIBS)
+bin_edje_edje_player_DEPENDENCIES = @USE_EDJE_INTERNAL_LIBS@
+
+bin_edje_edje_inspector_SOURCES = bin/edje/edje_inspector.c
+bin_edje_edje_inspector_CPPFLAGS = -I$(top_builddir)/src/lib/efl $(EDJE_COMMON_CPPFLAGS)
+bin_edje_edje_inspector_LDADD =  $(USE_EDJE_BIN_LIBS)
+bin_edje_edje_inspector_DEPENDENCIES = @USE_EDJE_INTERNAL_LIBS@
+
+bin_edje_edje_external_inspector_SOURCES = bin/edje/edje_external_inspector.c
+bin_edje_edje_external_inspector_CPPFLAGS = -I$(top_builddir)/src/lib/efl $(EDJE_COMMON_CPPFLAGS)
+bin_edje_edje_external_inspector_LDADD =  $(USE_EDJE_BIN_LIBS)
+bin_edje_edje_external_inspector_DEPENDENCIES = @USE_EDJE_INTERNAL_LIBS@
+
+bin_edje_edje_codegen_SOURCES = bin/edje/edje_codegen.c
+bin_edje_edje_codegen_CPPFLAGS = -I$(top_builddir)/src/lib/efl $(EDJE_COMMON_CPPFLAGS)
+bin_edje_edje_codegen_LDADD =  $(USE_EDJE_BIN_LIBS)
+bin_edje_edje_codegen_DEPENDENCIES = @USE_EDJE_INTERNAL_LIBS@
+
+bin_edje_edje_pick_SOURCES = bin/edje/edje_pick.c
+bin_edje_edje_pick_CPPFLAGS = -I$(top_builddir)/src/lib/efl $(EDJE_COMMON_CPPFLAGS)
+bin_edje_edje_pick_LDADD =  $(USE_EDJE_BIN_LIBS)
+bin_edje_edje_pick_DEPENDENCIES = @USE_EDJE_INTERNAL_LIBS@
+
+bin_edje_edje_watch_SOURCES = bin/edje/edje_watch.c
+bin_edje_edje_watch_CPPFLAGS = -I$(top_builddir)/src/lib/efl $(EDJE_COMMON_CPPFLAGS)
+bin_edje_edje_watch_LDADD =  $(USE_EDJE_BIN_LIBS)
+bin_edje_edje_watch_DEPENDENCIES = @USE_EDJE_INTERNAL_LIBS@
+
+# EPP (Edje's CPP)
+eppdir = $(libdir)/edje/utils/$(MODULE_ARCH)
+epp_PROGRAMS = bin/edje/epp/epp
+bin_edje_epp_epp_SOURCES = \
+bin/edje/epp/cpplib.h \
+bin/edje/epp/cpphash.h \
+bin/edje/epp/cppalloc.c \
+bin/edje/epp/cpperror.c \
+bin/edje/epp/cppexp.c \
+bin/edje/epp/cpphash.c \
+bin/edje/epp/cpplib.c \
+bin/edje/epp/cppmain.c
+
+# Note: eina is included only because of EINA_UNUSED
+bin_edje_epp_epp_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
+-I$(top_builddir) \
+-I$(top_srcdir)/src/lib/eina \
+-I$(top_builddir)/src/lib/eina \
+$(CWARNFLAGS) \
+-DHAVE_CONFIG_H \
+-DHAVE_STRERROR \
+-DFATAL_EXIT_CODE=1 \
+-DSUCCESS_EXIT_CODE=0 \
+-DGCC_INCLUDE_DIR=\"/usr/include\" \
+-DGPLUSPLUS_INCLUDE_DIR=\"/usr/include\" \
+-DTOOL_INCLUDE_DIR=\"/usr/bin\" \
+-DHOST_BITS_PER_LONG=32 \
+-DBITS_PER_UNIT=8 \
+-DHOST_BITS_PER_INT=32 \
+-DBITS_PER_WORD=16 \
+-DTARGET_BELL=7 \
+-DTARGET_BS=8 \
+-DTARGET_FF=12 \
+-DTARGET_NEWLINE=10 \
+-DTARGET_CR=13 \
+-DTARGET_TAB=9 \
+-DTARGET_VT=11
+if HAVE_WIN32
+bin_edje_epp_epp_CPPFLAGS += \
+-I$(top_srcdir)/src/lib/evil \
+-I$(top_builddir)/src/lib/evil
+bin_edje_epp_epp_LDADD = lib/evil/libevil.la
+endif
+
+# TODO: why keep these?
+EXTRA_DIST += \
+bin/edje/edje_convert.h \
+bin/edje/edje_convert.c \
+bin/edje/edje_data_convert.c \
+bin/edje/edje_convert_main.c \
+lib/edje/edje_convert.c \
+tests/edje/edje_tests_helpers.h \
+tests/edje/data/complex_layout.edc \
+tests/edje/data/test_layout.edc
+
+
+bin_SCRIPTS += bin/edje/edje_recc
+
+# Useful to other modules that generate EDJ
+include Makefile_Edje_Helper.am
+
+### Unit tests
+
+if EFL_ENABLE_TESTS
+
+check_PROGRAMS += tests/edje/edje_suite
+TESTS += tests/edje/edje_suite
+
+tests_edje_edje_suite_SOURCES = \
+tests/edje/edje_suite.c \
+tests/edje/edje_test_edje.c \
+tests/edje/edje_suite.h
+
+tests_edje_edje_suite_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
+$(EDJE_COMMON_CPPFLAGS) \
+-DTESTS_BUILD_DIR=\"$(top_builddir)/src/tests/edje\" \
+@CHECK_CFLAGS@
+tests_edje_edje_suite_LDADD = @CHECK_LIBS@  $(USE_EDJE_BIN_LIBS)
+tests_edje_edje_suite_DEPENDENCIES = @USE_EDJE_INTERNAL_LIBS@
+
+tests/edje/data/%.edj: tests/edje/data/%.edc bin/edje/edje_cc${EXEEXT}
+	@$(mkdir_p) tests/edje/data
+	$(AM_V_EDJ)$(EDJE_CC) $(EDJE_CC_FLAGS) -id $(srcdir)/tests/edje/data $< $@
+
+EDJE_DATA_FILES = tests/edje/data/test_layout.edc \
+                  tests/edje/data/complex_layout.edc
+
+edjedatafilesdir = $(datadir)/edje/data
+edjedatafiles_DATA = tests/edje/data/test_layout.edj \
+                     tests/edje/data/complex_layout.edj
+CLEANFILES += tests/edje/data/test_layout.edj \
+              tests/edje/data/complex_layout.edj
+
+endif
+
+EXTRA_DIST += $(EDJE_DATA_FILES)
+
+if HAVE_ELUA
+
+edje_eolian_lua = $(edje_eolian_files:%.eo=%.eo.lua)
+
+generated_edje_lua_all = $(edje_eolian_lua)
+
+CLEANFILES += $(generated_edje_lua_all)
+
+installed_edjeluadir = $(datadir)/elua/modules/edje
+nodist_installed_edjelua_DATA = $(generated_edje_lua_all)
+
+endif

@@ -1,0 +1,13 @@
+interface Evas.Draggable_Interface (Evas.Signal_Interface)
+{
+   events {
+      drag;
+      drag,start;
+      drag,stop;
+      drag,end;
+      drag,start,up;
+      drag,start,down;
+      drag,start,right;
+      drag,start,left;
+   }
+}

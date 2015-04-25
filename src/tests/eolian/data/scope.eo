@@ -1,0 +1,24 @@
+class Scope {
+   properties {
+      a @protected {
+         get {
+         }
+      }
+      b {
+         get {
+         }
+      }
+      c {
+         get {
+         }
+      }
+   }
+   methods {
+      foo {
+      }
+      bar @protected {
+      }
+      foobar {
+      }
+   }
+}

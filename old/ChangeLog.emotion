@@ -1,0 +1,72 @@
+2012-04-26  Carsten Haitzler (The Rasterman)
+
+	* 1.0.0 release
+
+2012-04-30  Jérôme Pinot
+
+	* Fix build out of tree.
+
+2012-05-16  Carsten Haitzler (The Rasterman)
+
+	* Fix emotion video overlay support to detect correct engine name.
+
+2012-06-07  Cedric Bail
+
+	* Fix stride for all YUV video stream.
+
+2012-06-08  Pierre Le Magourou
+
+	* Add support for "playback_started" callback to generic player.
+
+2012-06-08  Hugo Camboulive
+
+	* Implement SPU switch for generic/vlc.
+
+2012-06-19  Cedric Bail
+
+	* Sync rendering with Ecore_Animator.
+
+2012-07-03  Cedric Bail
+
+	* Track pending object for proper shutdown.
+
+2012-06-05  Sohyun Kim
+
+	* Add fimcconvert element to resize and convert color using fimc on device.
+
+2012-08-01  Cedric Bail
+
+	* Fix race condition in gstreamer render function.
+
+2012-08-10  Sohyun Kim
+
+	* Fix priority set/get for gstreamer.
+
+2012-08-28  Cedric Bail
+
+	* Reset VLC pipeline on EOS.
+	* Fix a race condition on shutdown when still saving a file position.
+
+2012-08-30  Carsten Haitzler (The Rasterman)
+
+        1.7.0 release
+
+2012-09-06  Sohyun Kim
+
+	* Add capsfilter to limit format and size for fimc on device.
+
+2012-10-11  Sohyun Kim
+
+	* Fix to call correct render function based on the format.
+
+2013-01-02  Leandro Dorileo (dorileo)
+
+	* Add subtitle file API.
+
+2013-01-05   Jérémy Zurcher
+
+        * fix type in emotion_suspend_get()
+
+2013-01-05   Gustavo Sverzut Barbieri (k-s)
+
+        * xine module exports 22 (VIDEO_OUT_XINE_API_VERSION) as well.

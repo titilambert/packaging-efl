@@ -1,0 +1,22 @@
+class Complex_Type {
+   properties {
+      a {
+         set {
+            return: own(list<array<own(Eo**)>*>*);
+         }
+         get {
+         }
+         values {
+            own(list<int>*) value;
+         }
+      }
+   }
+   methods {
+      foo {
+         params {
+            own(char*) buf;
+         }
+         return: own(list<Eina.Stringshare*>*); /*@ comment for method return */
+      }
+   }
+}

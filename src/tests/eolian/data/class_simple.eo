@@ -1,0 +1,44 @@
+class Class_Simple {
+   /*@ Class Desc Simple */
+   legacy_prefix: evas_object_simple;
+   eo_prefix: evas_obj_simple;
+   data: Evas_Simple_Data;
+   properties {
+      a {
+         /*@ Common desc for a */
+         set {
+            /*@
+            comment a.set */
+            return: bool (true); /*@ comment for property set return */
+         }
+         get {
+         }
+         values {
+            int value (100); /*@ Value description */
+         }
+      }
+      b @c_only {
+        set {
+           eo: null;
+        }
+      }
+   }
+   methods {
+      foo {
+         /*@ comment foo */
+         params {
+            @in int a; /*@ a */
+            @inout char b;
+            @out double c (1337.6);
+         }
+         return: char * (null); /*@ comment for method return */
+      }
+      bar @c_only {
+         eo: null;
+         params {
+            int x;
+         }
+         return: int;
+      }
+   }
+}

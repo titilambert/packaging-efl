@@ -1,0 +1,237 @@
+2012-09-05  Vincent Torri  <doursse at users dot sf dot net>
+
+	* src/lib/gdtoa/arithchk.c:
+	add missing fclose().
+
+2012-08-30  Vincent Torri  <doursse at users dot sf dot net>
+
+	Release Version 1.7.0.
+
+2012-08-28  Vincent Torri  <doursse at users dot sf dot net>
+
+	* src/lib/evil_util.c:
+	fix evil_format_message(): free the message to display
+	at the end of the function. Hence the message is displayed,
+	now.
+
+2012-08-20  Vincent Torri  <doursse at users dot sf dot net>
+
+	* configure.ac:
+	quoting.
+
+	* Makefile.am:
+	* src/lib/Makefile.am:
+	fix distcheck
+
+2012-08-19  Vincent Torri  <doursse at users dot sf dot net>
+
+	* configure.ac:
+	* src/bin/Makefile.am:
+	* src/lib/Makefile.am:
+	* src/lib/dlfcn/:
+	Less automake stuff.
+
+	* src/lib/gdtoa/gdtoaimp.h:
+	fix redundant declarations.
+
+2012-07-21  Vincent Torri  <doursse at users dot sf dot net>
+
+	* src/lib/Makefile.am:
+	* src/lib/dlfcn/Makefile.am:
+	work around a problem with libtool and the creation
+	of the DLL. libtool developpers should be impaled.
+
+2012-07-20  Vincent Torri  <doursse at users dot sf dot net>
+
+	* configure.ac:
+	* src/bin/Makefile.am:
+	* src/lib/Makefile.am:
+	Fix compilation with mingw-w64 gcc 4.8
+
+2012-07-03  Vincent Torri  <doursse at users dot sf dot net>
+
+	* AUTHORS:
+	* src/lib/evil_stdlib.c:
+	* src/lib/evil_stdlib.h:
+	Update realpath() code, based on Keith Marshall's implementation.
+
+2012-04-26  Vincent Torri  <doursse at users dot sf dot net>
+
+	* NEWS:
+	* src/lib/evil_langinfo.c:
+	Release Version 1.1.0.
+	Fix nl_langinfo(RADIXCHAR).
+
+2012-04-20  Vincent Torri  <doursse at users dot sf dot net>
+
+	* NEWS:
+	* src/lib/evil_string.c:
+	* src/lib/evil_string.h:
+	Add strcasestr() API.
+
+2012-04-12  Vincent Torri  <doursse at users dot sf dot net>
+
+	* NEWS:
+	* src/lib/evil_time.c:
+	* src/lib/evil_time.h:
+	Do not declare and define localtime_r() if it's already defined.
+
+2012-03-30  Vincent Torri  <doursse at users dot sf dot net>
+
+	* NEWS:
+	* configure.ac:
+	Prepare 1.1 release.
+
+	* src/lib/Evil.h:
+	Add S_ISLNK macro (always set to 0).
+
+2012-02-23  Vincent Torri  <doursse at users dot sf dot net>
+
+	* configure.ac:
+	* src/lib/Makefile.am:
+	* src/lib/evil_pformata.c:
+	* src/lib/evil_printa.c:
+	* src/lib/gdtoa (added):
+	* src/lib/gdtoa/gdtoa.c (added):
+	* src/lib/gdtoa/dmisc.c (added):
+	* src/lib/gdtoa/gdtoa_fltrnds.h (added):
+	* src/lib/gdtoa/ulp.c (added):
+	* src/lib/gdtoa/g_dfmt.c (added):
+	* src/lib/gdtoa/gmisc.c (added):
+	* src/lib/gdtoa/g_ffmt.c (added):
+	* src/lib/gdtoa/gdtoa.h (added):
+	* src/lib/gdtoa/sum.c (added):
+	* src/lib/gdtoa/gdtoaimp.h (added):
+	* src/lib/gdtoa/README (added):
+	* src/lib/gdtoa/gd_qnan.h (added):
+	* src/lib/gdtoa/hd_init.c (added):
+	* src/lib/gdtoa/smisc.c (added):
+	* src/lib/gdtoa/strtof.c (added):
+	* src/lib/gdtoa/hexnan.c (added):
+	* src/lib/gdtoa/strtopx.c (added):
+	* src/lib/gdtoa/gethex.c (added):
+	* src/lib/gdtoa/g_xfmt.c (added):
+	* src/lib/gdtoa/gd_arith.h (added):
+	* src/lib/gdtoa/strtodg.c (added):
+	* src/lib/gdtoa/dtoa.c (added):
+	* src/lib/gdtoa/Makefile.am (added):
+	* src/lib/gdtoa/misc.c (added):
+	* src/lib/gdtoa/g__fmt.c (added):
+	* src/lib/gdtoa/README.mingw (added):
+	* src/lib/gdtoa/qnan.c (added):
+	* src/lib/gdtoa/arithchk.c (added):
+	Define some missing functions, so that Evil also
+	compile with MinGW, vc++ and later with Cedric
+	compatibility layer
+
+	* src/lib/evil_util.c:
+	Include limits.h for ULONG_MAX definition
+
+2012-02-21  Vincent Torri  <doursse at users dot sf dot net>
+
+	* src/bin/evil_test_gettimeofday.c:
+	Include sys/time.h
+
+	* src/lib/evil_inet.c:
+	EMSGSIZE and EAFNOSUPPORT could not be defined on
+	some MinGW compilers.
+
+2012-02-18  Vincent Torri  <doursse at users dot sf dot net>
+
+	* src/lib/Evil.h:
+	* src/lib/Makefile.am:
+	* src/lib/evil_macro.h:
+	* src/lib/evil_print.h:
+	* src/lib/evil_macro_pop.h (added):
+	Undef __cdecl if it has been defined by Evil and
+	move some defined macro to evil_macro_pop.h
+
+	* src/lib/evil_unistd.c:
+	* src/lib/evil_unistd.h:
+	Define gettimeofday() only for vc++ as MinGW-w64
+	already defines it.
+
+2012-02-17  Vincent Torri  <doursse at users dot sf dot net>
+
+	* AUTHORS:
+	* NEWS:
+	* src/lib/Evil.h:
+	* src/lib/Makefile.am:
+	* src/lib/evil_inet.c:
+	* src/lib/evil_mman.c:
+	* src/lib/evil_stdio.c:
+	* src/lib/evil_stdio.h:
+	* src/lib/evil_stdlib.c:
+	* src/lib/evil_util.c:
+	* src/lib/sys/mman.h:
+	* src/lib/evil_printa.c (added):
+	* src/lib/evil_pformatw.c (added):
+	* src/lib/evil_pformat.h (added):
+	* src/lib/evil_printw.c (added):
+	* src/lib/evil_print.h (added):
+	* src/lib/evil_macro.h (added):
+	* src/lib/evil_pformata.c (added):
+	Add POSIX printf family. Code taken from the MinGW-w64
+	project and modified to be integrated into Evil.
+
+	* src/bin/Makefile.am:
+	* src/bin/evil_suite.c:
+	* src/bin/evil_test_util.h (added):
+	* src/bin/evil_test_print.c (added):
+	* src/bin/evil_test_print.h (added):
+	* src/bin/evil_test_util.c (added):
+	Add util and printf unit tests
+
+	* src/lib/evil_errno.c:
+	* src/lib/errno.h (deleted):
+	* src/lib/mingw32ce (added):
+	* src/lib/mingw32ce/errno.h (added):
+	Move errno.h for Windows CE in its own directory to
+	suppress conflicts with standard errno.h when compiling
+	for Windows XP.
+
+	* src/lib/dlfcn/dlfcn.c:
+	* src/lib/evil_link_ce.c:
+	* src/lib/evil_main.c:
+	* src/lib/evil_unistd.c:
+	Define WIN32_LEAN_AND_MEAN only if it's not defined.
+
+	* src/lib/evil_fcntl.c:
+	Remove debug.
+
+	* src/bin/evil_test_dlfcn.c:
+	* src/bin/evil_test_environment.c:
+	* src/bin/evil_test_gettimeofday.c:
+	* src/bin/evil_test_link.c:
+	* src/bin/evil_test_mkstemp.c:
+	* src/bin/evil_test_pipe.c:
+	* src/bin/evil_test_realpath.c:
+	Remove warnings.
+
+	* src/lib/evil_link_xp.cpp:
+	Formatting.
+
+2012-01-20  Vincent Torri  <doursse at users dot sf dot net>
+
+	* Makefile.am:
+	Fix EXTRA_DIST variable
+
+	* src/bin/Makefile.am:
+	* src/bin/evil_suite.c:
+	* src/lib/evil_libgen.c:
+	* src/lib/evil_util.c:
+	* src/lib/evil_util.h:
+	Add evil_path_is_absolute() API and use it.
+
+	* src/bin/evil_test_dlfcn.c:
+	* src/bin/evil_test_realpath.c:
+	clean up.
+
+2011-12-02  Vincent Torri  <doursse at users dot sf dot net>
+
+	Release Version 1.0.0.
+	* NEWS: Mention the release.
+
+2012-08-30  Carsten Haitzler (The Rasterman)
+
+        1.7.0 release

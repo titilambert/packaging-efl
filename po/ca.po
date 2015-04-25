@@ -1,0 +1,240 @@
+# Catalan translation for Efl.
+# Copyright (C) 2012 Enlightenment development team
+# This file is put in the public domain.
+# Marc Furtià i Puig <marc.furtia@gmail.com>, 2013.
+# Joan Coll <jcoll2@gmail.com>, 2013.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Efl\n"
+"Report-Msgid-Bugs-To: enlightenment-devel@lists.sourceforge.net\n"
+"POT-Creation-Date: 2015-04-01 16:41+0200\n"
+"PO-Revision-Date: 2014-05-26 21:11+0000\n"
+"Last-Translator: joancoll <Unknown>\n"
+"Language-Team: Catalan\n"
+"Language: ca\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Launchpad-Export-Date: 2014-05-27 05:40+0000\n"
+"X-Generator: Launchpad (build 17017)\n"
+
+#: src/lib/ecore/ecore_getopt.c:89
+msgid "Version:"
+msgstr "Versió:"
+
+#: src/lib/ecore/ecore_getopt.c:98
+msgid "Usage:"
+msgstr "Ús:"
+
+#: src/lib/ecore/ecore_getopt.c:105
+#, c-format
+msgid "%s [options]"
+msgstr "%s [opcions]"
+
+#: src/lib/ecore/ecore_getopt.c:305
+msgid "Copyright:"
+msgstr "Copyright:"
+
+#: src/lib/ecore/ecore_getopt.c:317
+msgid "License:"
+msgstr "Llicència:"
+
+#: src/lib/ecore/ecore_getopt.c:503
+msgid "Type: "
+msgstr "Tipus: "
+
+#: src/lib/ecore/ecore_getopt.c:579
+msgid "Default: "
+msgstr "Per defecte: "
+
+#: src/lib/ecore/ecore_getopt.c:606
+msgid "Choices: "
+msgstr "Eleccions: "
+
+#: src/lib/ecore/ecore_getopt.c:644 src/lib/ecore/ecore_getopt.c:645
+msgid "No categories available."
+msgstr "No hi ha categories disponibles."
+
+#: src/lib/ecore/ecore_getopt.c:649
+msgid "Categories: "
+msgstr "Categories: "
+
+#: src/lib/ecore/ecore_getopt.c:771
+msgid "Options:\n"
+msgstr "Opcions:\n"
+
+#: src/lib/ecore/ecore_getopt.c:780
+msgid "Positional arguments:\n"
+msgstr "Arguments posicionals:\n"
+
+#: src/lib/ecore/ecore_getopt.c:847
+#, c-format
+msgid "ERROR: unknown category '%s'.\n"
+msgstr "ERROR: categoria desconeguda '%s'.\n"
+
+#: src/lib/ecore/ecore_getopt.c:951
+#, c-format
+msgid "ERROR: unknown option --%s.\n"
+msgstr "ERROR: opció desconeguda --%s.\n"
+
+#: src/lib/ecore/ecore_getopt.c:953
+#, c-format
+msgid "ERROR: unknown option -%c.\n"
+msgstr "ERROR: opció desconeguda -%c.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1016
+msgid "ERROR: "
+msgstr "ERROR: "
+
+#: src/lib/ecore/ecore_getopt.c:1112 src/lib/ecore/ecore_getopt.c:1249
+#: src/lib/ecore/ecore_getopt.c:1265 src/lib/ecore/ecore_getopt.c:1280
+#: src/lib/ecore/ecore_getopt.c:1300 src/lib/ecore/ecore_getopt.c:1347
+#: src/lib/ecore/ecore_getopt.c:1467 src/lib/ecore/ecore_getopt.c:1508
+msgid "value has no pointer set.\n"
+msgstr "no s'ha definit el valor.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1144 src/lib/ecore/ecore_getopt.c:1367
+#, c-format
+msgid "unknown boolean value %s.\n"
+msgstr "valor booleà desconegut %s.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1195 src/lib/ecore/ecore_getopt.c:1455
+#, c-format
+msgid "invalid number format %s\n"
+msgstr "format numèric invàlid %s\n"
+
+#: src/lib/ecore/ecore_getopt.c:1313
+#, c-format
+msgid "invalid choice \"%s\". Valid values are: "
+msgstr "elecció invàlida \"%s\". Els valors vàlids són: "
+
+#: src/lib/ecore/ecore_getopt.c:1341
+msgid "missing parameter to append.\n"
+msgstr "falta paràmetre per afegir.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1445
+msgid "could not parse value.\n"
+msgstr "impossible analitzar el valor.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1502
+msgid "missing parameter.\n"
+msgstr "manca paràmetre.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1515
+msgid "missing callback function!\n"
+msgstr "manca funció d'invocació!\n"
+
+#: src/lib/ecore/ecore_getopt.c:1546
+msgid "no version was defined.\n"
+msgstr "no s'ha definit la versió.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1563
+msgid "no copyright was defined.\n"
+msgstr "no s'ha definit el copyright.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1580
+msgid "no license was defined.\n"
+msgstr "no s'ha definit la llicència.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1670
+#, c-format
+msgid "ERROR: unknown option --%s, ignored.\n"
+msgstr "ERROR: opció desconeguda --%s, s'ha ignorat.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1703
+#, c-format
+msgid "ERROR: option --%s requires an argument!\n"
+msgstr "ERROR: l'opció --%s requereix un argument!\n"
+
+#: src/lib/ecore/ecore_getopt.c:1745
+#, c-format
+msgid "ERROR: unknown option -%c, ignored.\n"
+msgstr "ERROR: opció desconeguda -%c, s'ha ignorat.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1783
+#, c-format
+msgid "ERROR: option -%c requires an argument!\n"
+msgstr "ERROR: L'opció -%c requereix un argument!\n"
+
+#: src/lib/ecore/ecore_getopt.c:1878
+#, c-format
+msgid "ERROR: missing required positional argument %s.\n"
+msgstr "ERROR: es requereix argument posicional %s.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1910
+#, c-format
+msgid "ERROR: unsupported action type %d for positional argument %s\n"
+msgstr "ERROR: acció no permesa %d per argument posicional %s\n"
+
+#: src/lib/ecore/ecore_getopt.c:2031 src/lib/ecore/ecore_getopt.c:2097
+msgid "ERROR: no parser provided.\n"
+msgstr "ERROR: no s'ha proporcionat cap analitzador.\n"
+
+#: src/lib/ecore/ecore_getopt.c:2036 src/lib/ecore/ecore_getopt.c:2102
+msgid "ERROR: no values provided.\n"
+msgstr "ERROR: no s'ha proporcionat cap valor.\n"
+
+#: src/lib/ecore/ecore_getopt.c:2045 src/lib/ecore/ecore_getopt.c:2111
+msgid "ERROR: no arguments provided.\n"
+msgstr "ERROR: no s'ha proporcionat cap argument.\n"
+
+#: src/lib/ecore/ecore_getopt.c:2071
+msgid "ERROR: invalid options found."
+msgstr "ERROR: s'han trobat opcions no vàlides."
+
+#: src/lib/ecore/ecore_getopt.c:2077 src/lib/ecore/ecore_getopt.c:2143
+#, c-format
+msgid " See --%s.\n"
+msgstr " Miri --%s.\n"
+
+#: src/lib/ecore/ecore_getopt.c:2079 src/lib/ecore/ecore_getopt.c:2145
+#, c-format
+msgid " See -%c.\n"
+msgstr " Miri -%c.\n"
+
+#: src/lib/ecore/ecore_getopt.c:2137
+msgid "ERROR: invalid positional arguments found."
+msgstr "ERROR: arguments posicionals no vàlids."
+
+#: src/lib/ecore/ecore_getopt.c:2172
+#, c-format
+msgid "ERROR: incorrect geometry value '%s'\n"
+msgstr "ERROR: valor geomètric incorrecte '%s'\n"
+
+#: src/lib/ecore/ecore_getopt.c:2190
+#, c-format
+msgid "ERROR: incorrect size value '%s'\n"
+msgstr "ERROR: tamany incorrecte '%s'\n"
+
+#: src/lib/efreet/efreet_base.c:123
+msgid "Desktop"
+msgstr "Escriptori"
+
+#: src/lib/efreet/efreet_base.c:131
+msgid "Downloads"
+msgstr "Descàrregues"
+
+#: src/lib/efreet/efreet_base.c:140
+msgid "Templates"
+msgstr "Plantilles"
+
+#: src/lib/efreet/efreet_base.c:149
+msgid "Public"
+msgstr "Públic"
+
+#: src/lib/efreet/efreet_base.c:158
+msgid "Documents"
+msgstr "Documents"
+
+#: src/lib/efreet/efreet_base.c:166
+msgid "Music"
+msgstr "Música"
+
+#: src/lib/efreet/efreet_base.c:174
+msgid "Pictures"
+msgstr "Imatges"
+
+#: src/lib/efreet/efreet_base.c:182
+msgid "Videos"
+msgstr "Vídeos"

@@ -1,0 +1,69 @@
+#!/bin/sh
+
+set -e
+
+usage () {
+  echo "Usage:"
+  echo "        edje_recc [OPTIONS] input_file.edj"
+  echo ""
+  echo "Where OPTIONS is one or more of:"
+  echo ""
+  echo "-v                       Verbose output"
+  echo "-no-lossy                Do NOT allow images to be lossy"
+  echo "-no-comp                 Do NOT allow images to be lossless compression"
+  echo "-no-raw                  Do NOT allow images to be zero compression"
+  echo "-min-quality VAL         Do NOT allow lossy images with quality < VAL (0-100)"
+  echo "-max-quality VAL         Do NOT allow lossy images with quality > VAL (0-100)"
+  exit -1
+}
+
+if [ $# -lt 1 ]; then
+  usage
+fi
+
+OPT=""
+if [ $# -ge 1 ]; then
+  for I in $@; do
+    case "$I" in
+      -h)
+        usage
+      ;;
+
+      -help)
+        usage
+      ;;
+
+      --help)
+        usage
+      ;;
+
+      *.edj)
+        IN=$I
+      ;;
+
+      *)
+        OPT=$OPT" "$I
+      ;;
+    esac
+  done
+fi
+
+if [ -z "$IN" ]; then
+  echo "ERROR: NO input file.edj provided!"
+  echo ""
+  usage;
+fi
+
+F=`basename $IN`
+B=`basename $F .edj`
+T="./...edje_tmp"
+rm -rf $T
+mkdir -p $T
+cp $IN $T
+cd $T
+edje_decc $F
+cd $B
+./build.sh $OPT
+cd ../..
+mv $T/$B/$F $IN
+rm -rf $T

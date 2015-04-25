@@ -1,0 +1,240 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Enlightenment development team
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: efl 1.8.3\n"
+"Report-Msgid-Bugs-To: enlightenment-devel@lists.sourceforge.net\n"
+"POT-Creation-Date: 2015-04-01 16:41+0200\n"
+"PO-Revision-Date: 2014-01-29 15:08+0100\n"
+"Last-Translator: rezso <rezso@rezso.net>\n"
+"Language-Team: Enlightenment Team\n"
+"Language: hu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.5.7\n"
+
+#: src/lib/ecore/ecore_getopt.c:89
+msgid "Version:"
+msgstr "Verzió:"
+
+#: src/lib/ecore/ecore_getopt.c:98
+msgid "Usage:"
+msgstr "Használat:"
+
+#: src/lib/ecore/ecore_getopt.c:105
+#, fuzzy, c-format
+msgid "%s [options]"
+msgstr "%s [opciók]\n"
+
+#: src/lib/ecore/ecore_getopt.c:305
+msgid "Copyright:"
+msgstr "Copyright:"
+
+#: src/lib/ecore/ecore_getopt.c:317
+msgid "License:"
+msgstr "Licenc:"
+
+#: src/lib/ecore/ecore_getopt.c:503
+msgid "Type: "
+msgstr "Típus: "
+
+#: src/lib/ecore/ecore_getopt.c:579
+msgid "Default: "
+msgstr "Alapértelmezett: "
+
+#: src/lib/ecore/ecore_getopt.c:606
+msgid "Choices: "
+msgstr "Lehetőségek:"
+
+#: src/lib/ecore/ecore_getopt.c:644 src/lib/ecore/ecore_getopt.c:645
+msgid "No categories available."
+msgstr ""
+
+#: src/lib/ecore/ecore_getopt.c:649
+#, fuzzy
+msgid "Categories: "
+msgstr "Lehetőségek:"
+
+#: src/lib/ecore/ecore_getopt.c:771
+msgid "Options:\n"
+msgstr "Opciók:\n"
+
+#: src/lib/ecore/ecore_getopt.c:780
+msgid "Positional arguments:\n"
+msgstr ""
+
+#: src/lib/ecore/ecore_getopt.c:847
+#, fuzzy, c-format
+msgid "ERROR: unknown category '%s'.\n"
+msgstr "HIBA: ismeretlen opció --%s.\n"
+
+#: src/lib/ecore/ecore_getopt.c:951
+#, c-format
+msgid "ERROR: unknown option --%s.\n"
+msgstr "HIBA: ismeretlen opció --%s.\n"
+
+#: src/lib/ecore/ecore_getopt.c:953
+#, c-format
+msgid "ERROR: unknown option -%c.\n"
+msgstr "HIBA: ismeretlen opció -%c.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1016
+msgid "ERROR: "
+msgstr "HIBA: "
+
+#: src/lib/ecore/ecore_getopt.c:1112 src/lib/ecore/ecore_getopt.c:1249
+#: src/lib/ecore/ecore_getopt.c:1265 src/lib/ecore/ecore_getopt.c:1280
+#: src/lib/ecore/ecore_getopt.c:1300 src/lib/ecore/ecore_getopt.c:1347
+#: src/lib/ecore/ecore_getopt.c:1467 src/lib/ecore/ecore_getopt.c:1508
+msgid "value has no pointer set.\n"
+msgstr "érték nem határoz meg mutatót.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1144 src/lib/ecore/ecore_getopt.c:1367
+#, c-format
+msgid "unknown boolean value %s.\n"
+msgstr "ismeretlen logikai érték: %s\n"
+
+#: src/lib/ecore/ecore_getopt.c:1195 src/lib/ecore/ecore_getopt.c:1455
+#, c-format
+msgid "invalid number format %s\n"
+msgstr "érvénytelen számformátum: %s\n"
+
+#: src/lib/ecore/ecore_getopt.c:1313
+#, c-format
+msgid "invalid choice \"%s\". Valid values are: "
+msgstr "érvénytelen érték: \"%s\", az érvényes értékek:"
+
+#: src/lib/ecore/ecore_getopt.c:1341
+msgid "missing parameter to append.\n"
+msgstr "hiányzó hozzáadandó paraméter.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1445
+msgid "could not parse value.\n"
+msgstr "nem sikerült feldolgozni az értéket.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1502
+msgid "missing parameter.\n"
+msgstr "hiányzó paraméter.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1515
+msgid "missing callback function!\n"
+msgstr "hiányzó callback funkció!\n"
+
+#: src/lib/ecore/ecore_getopt.c:1546
+msgid "no version was defined.\n"
+msgstr "Nincs definiált verzió.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1563
+msgid "no copyright was defined.\n"
+msgstr "Nincs definiált copyright.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1580
+msgid "no license was defined.\n"
+msgstr "Nincs definiált licenc.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1670
+#, c-format
+msgid "ERROR: unknown option --%s, ignored.\n"
+msgstr "HIBA: ismeretlen opció: --%s, figyelmen kívül hagyva.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1703
+#, c-format
+msgid "ERROR: option --%s requires an argument!\n"
+msgstr "HIBA: --%s opció argumentumot igényel.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1745
+#, c-format
+msgid "ERROR: unknown option -%c, ignored.\n"
+msgstr "HIBA: ismeretlen opció: -%c, figyelmen kívül hagyva.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1783
+#, c-format
+msgid "ERROR: option -%c requires an argument!\n"
+msgstr "HIBA: -%c opció argumentumot igényel.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1878
+#, fuzzy, c-format
+msgid "ERROR: missing required positional argument %s.\n"
+msgstr "HIBA: -%c opció argumentumot igényel.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1910
+#, c-format
+msgid "ERROR: unsupported action type %d for positional argument %s\n"
+msgstr ""
+
+#: src/lib/ecore/ecore_getopt.c:2031 src/lib/ecore/ecore_getopt.c:2097
+msgid "ERROR: no parser provided.\n"
+msgstr "HIBA: hiányzó parser.\n"
+
+#: src/lib/ecore/ecore_getopt.c:2036 src/lib/ecore/ecore_getopt.c:2102
+msgid "ERROR: no values provided.\n"
+msgstr "HIBA: hiányzó értékek.\n"
+
+#: src/lib/ecore/ecore_getopt.c:2045 src/lib/ecore/ecore_getopt.c:2111
+msgid "ERROR: no arguments provided.\n"
+msgstr "HIBA: hiányzó argumentumok.\n"
+
+#: src/lib/ecore/ecore_getopt.c:2071
+msgid "ERROR: invalid options found."
+msgstr "HIBA: érvénytelen opciók találhatók."
+
+#: src/lib/ecore/ecore_getopt.c:2077 src/lib/ecore/ecore_getopt.c:2143
+#, c-format
+msgid " See --%s.\n"
+msgstr " Lásd --%s.\n"
+
+#: src/lib/ecore/ecore_getopt.c:2079 src/lib/ecore/ecore_getopt.c:2145
+#, c-format
+msgid " See -%c.\n"
+msgstr " Lásd -%c.\n"
+
+#: src/lib/ecore/ecore_getopt.c:2137
+#, fuzzy
+msgid "ERROR: invalid positional arguments found."
+msgstr "HIBA: érvénytelen opciók találhatók."
+
+#: src/lib/ecore/ecore_getopt.c:2172
+#, c-format
+msgid "ERROR: incorrect geometry value '%s'\n"
+msgstr "HIBA: helytelen geometria érték: '%s'\n"
+
+#: src/lib/ecore/ecore_getopt.c:2190
+#, c-format
+msgid "ERROR: incorrect size value '%s'\n"
+msgstr "HIBA: helytelen méret érték: '%s'\n"
+
+#: src/lib/efreet/efreet_base.c:123
+msgid "Desktop"
+msgstr "Asztal"
+
+#: src/lib/efreet/efreet_base.c:131
+msgid "Downloads"
+msgstr "Letöltések"
+
+#: src/lib/efreet/efreet_base.c:140
+msgid "Templates"
+msgstr "Sablonok"
+
+#: src/lib/efreet/efreet_base.c:149
+msgid "Public"
+msgstr "Publikus"
+
+#: src/lib/efreet/efreet_base.c:158
+msgid "Documents"
+msgstr "Dokumentumok"
+
+#: src/lib/efreet/efreet_base.c:166
+msgid "Music"
+msgstr "Zene"
+
+#: src/lib/efreet/efreet_base.c:174
+msgid "Pictures"
+msgstr "Képek"
+
+#: src/lib/efreet/efreet_base.c:182
+msgid "Videos"
+msgstr "Videók"

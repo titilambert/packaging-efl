@@ -1,0 +1,11 @@
+interface Evas.Scrollable_Interface (Evas.Signal_Interface)
+{
+   events {
+      scroll;
+      scroll,anim,start;
+      scroll,anim,stop;
+      scroll,drag,start;
+      scroll,drag,stop;
+   }
+}
+

@@ -1,0 +1,132 @@
+
+### Library
+
+if HAVE_CXX11
+installed_eoliancxxmainheadersdir = $(includedir)/eolian-cxx-@VMAJ@/
+dist_installed_eoliancxxmainheaders_DATA = \
+lib/eolian_cxx/Eolian_Cxx.hh
+
+installed_eoliancxxheadersdir = $(includedir)/eolian-cxx-@VMAJ@/
+dist_installed_eoliancxxheaders_DATA = \
+lib/eolian_cxx/eo_generate.hh \
+lib/eolian_cxx/eo_types.hh \
+lib/eolian_cxx/eo_validate.hh
+
+installed_eoliancxxgrammarheadersdir = $(includedir)/eolian-cxx-@VMAJ@/grammar/
+dist_installed_eoliancxxgrammarheaders_DATA = \
+lib/eolian_cxx/grammar/comment.hh \
+lib/eolian_cxx/grammar/eo_class_constructors_generator.hh \
+lib/eolian_cxx/grammar/eo_class_events_generator.hh \
+lib/eolian_cxx/grammar/eo_class_functions_generator.hh \
+lib/eolian_cxx/grammar/namespace_generator.hh \
+lib/eolian_cxx/grammar/eo_class_generator.hh \
+lib/eolian_cxx/grammar/eo_header_generator.hh \
+lib/eolian_cxx/grammar/inheritance_base_generator.hh \
+lib/eolian_cxx/grammar/parameters_generator.hh \
+lib/eolian_cxx/grammar/type_generator.hh \
+lib/eolian_cxx/grammar/tab.hh
+
+### Binary
+
+bin_PROGRAMS += bin/eolian_cxx/eolian_cxx
+
+bin_eolian_cxx_eolian_cxx_SOURCES = \
+    bin/eolian_cxx/convert_comments.cc \
+    bin/eolian_cxx/convert_comments.hh \
+    bin/eolian_cxx/convert.cc \
+    bin/eolian_cxx/convert.hh \
+    bin/eolian_cxx/eolian_wrappers.hh \
+    bin/eolian_cxx/safe_strings.hh \
+    bin/eolian_cxx/type_lookup.hh \
+    bin/eolian_cxx/type_lookup_table.cc \
+    bin/eolian_cxx/eolian_cxx.cc
+
+bin_eolian_cxx_eolian_cxx_CXXFLAGS = -I$(top_builddir)/src/lib/efl \
+-I$(top_srcdir)/src/lib/eolian_cxx/ \
+@CHECK_CFLAGS@ @EINA_CFLAGS@ @EINA_CXX_CFLAGS@ @EO_CFLAGS@ \
+@EOLIAN_CXX_CFLAGS@ @EOLIAN_CFLAGS@
+
+bin_eolian_cxx_eolian_cxx_LDADD = @CHECK_LIBS@ @USE_EOLIAN_LIBS@
+
+bin_eolian_cxx_eolian_cxx_DEPENDENCIES = @USE_EOLIAN_INTERNAL_LIBS@
+
+
+### Unit tests
+
+if EFL_ENABLE_TESTS
+
+EOLIAN_FLAGS += \
+  -I$(srcdir)
+
+check_PROGRAMS += tests/eolian_cxx/eolian_cxx_suite
+TESTS += tests/eolian_cxx/eolian_cxx_suite
+
+tests_eolian_cxx_eolian_cxx_suite_SOURCES = \
+tests/eolian_cxx/eolian_cxx_suite.cc \
+tests/eolian_cxx/eolian_cxx_test_parse.cc \
+tests/eolian_cxx/callback.c \
+tests/eolian_cxx/a.c \
+tests/eolian_cxx/b.c \
+tests/eolian_cxx/c.c \
+tests/eolian_cxx/d.c \
+tests/eolian_cxx/eolian_cxx_test_callback.cc \
+tests/eolian_cxx/eolian_cxx_test_address_of.cc \
+tests/eolian_cxx/eolian_cxx_test_wrapper.cc \
+tests/eolian_cxx/simple.c \
+tests/eolian_cxx/eolian_cxx_test_inheritance.cc \
+tests/eolian_cxx/eolian_cxx_test_generate.cc
+
+tests/eolian_cxx/tests_eolian_cxx_eolian_cxx_suite-eolian_cxx_test_callback.$(OBJEXT): tests/eolian_cxx/callback.eo.hh
+tests/eolian_cxx/tests_eolian_cxx_eolian_cxx_suite-eolian_cxx_test_address_of.$(OBJEXT): tests/eolian_cxx/a.eo.hh tests/eolian_cxx/b.eo.hh tests/eolian_cxx/c.eo.hh tests/eolian_cxx/d.eo.hh
+
+tests/eolian_cxx/tests_eolian_cxx_eolian_cxx_suite-callback.$(OBJEXT): tests/eolian_cxx/callback.eo.c tests/eolian_cxx/callback.eo.h
+tests/eolian_cxx/tests_eolian_cxx_eolian_cxx_suite-a.$(OBJEXT): tests/eolian_cxx/a.eo.c tests/eolian_cxx/a.eo.h
+tests/eolian_cxx/tests_eolian_cxx_eolian_cxx_suite-b.$(OBJEXT): tests/eolian_cxx/b.eo.c tests/eolian_cxx/b.eo.h
+tests/eolian_cxx/tests_eolian_cxx_eolian_cxx_suite-c.$(OBJEXT): tests/eolian_cxx/c.eo.c tests/eolian_cxx/c.eo.h
+tests/eolian_cxx/tests_eolian_cxx_eolian_cxx_suite-d.$(OBJEXT): tests/eolian_cxx/d.eo.c tests/eolian_cxx/d.eo.h
+
+tests/eolian_cxx/tests_eolian_cxx_eolian_cxx_suite-eolian_cxx_test_inheritance.$(OBJEXT): tests/eolian_cxx/simple.eo.hh
+
+tests/eolian_cxx/tests_eolian_cxx_eolian_cxx_suite-simple.$(OBJEXT): tests/eolian_cxx/simple.eo.c tests/eolian_cxx/simple.eo.h
+
+CLEANFILES += tests/eolian_cxx/callback.eo.hh tests/eolian_cxx/callback.eo.c \
+tests/eolian_cxx/callback.eo.h \
+tests/eolian_cxx/simple.eo.c \
+tests/eolian_cxx/simple.eo.h \
+tests/eolian_cxx/simple.eo.hh \
+tests/eolian_cxx/a.eo.hh tests/eolian_cxx/a.eo.c tests/eolian_cxx/a.eo.h \
+tests/eolian_cxx/b.eo.hh tests/eolian_cxx/b.eo.c tests/eolian_cxx/b.eo.h \
+tests/eolian_cxx/c.eo.hh tests/eolian_cxx/c.eo.c tests/eolian_cxx/c.eo.h \
+tests/eolian_cxx/d.eo.hh tests/eolian_cxx/d.eo.c tests/eolian_cxx/d.eo.h
+
+tests_eolian_cxx_eolian_cxx_suite_CXXFLAGS = \
+-I$(top_builddir)/src/lib/efl \
+-I$(top_srcdir)/src/bin/eolian_cxx \
+-I$(top_builddir)/src/tests/eolian_cxx \
+-DTESTS_WD=\"`pwd`\" \
+-DTESTS_SRC_DIR=\"$(top_srcdir)/src/tests/eolian_cxx\" \
+-DPACKAGE_BUILD_DIR=\"$(abs_top_builddir)/src/tests/eolian_cxx\" \
+-DPACKAGE_DATA_DIR=\"$(datadir)/eolian_cxx\" \
+-DTESTS_BUILD_DIR=\"$(top_builddir)/src/tests/eolian_cxx\" \
+@CHECK_CFLAGS@ @EOLIAN_CXX_CFLAGS@ @EINA_CXX_CFLAGS@ \
+@EOLIAN_CFLAGS@ @EINA_CFLAGS@ @EO_CFLAGS@ @ECORE_CFLAGS@ \
+@EO_CXX_CFLAGS@
+
+tests_eolian_cxx_eolian_cxx_suite_CFLAGS = ${tests_eolian_cxx_eolian_cxx_suite_CXXFLAGS}
+tests_eolian_cxx_eolian_cxx_suite_CPPFLAGS = ${tests_eolian_cxx_eolian_cxx_suite_CXXFLAGS}
+tests_eolian_cxx_eolian_cxx_suite_LDADD = \
+@CHECK_LIBS@ @USE_EO_LIBS@ @USE_EINA_LIBS@ @USE_EOLIAN_LIBS@
+tests_eolian_cxx_eolian_cxx_suite_DEPENDENCIES = @USE_EOLIAN_INTERNAL_LIBS@
+
+endif
+
+EXTRA_DIST += tests/eolian_cxx/callback.eo \
+tests/eolian_cxx/simple.eo \
+tests/eolian_cxx/a.eo \
+tests/eolian_cxx/b.eo \
+tests/eolian_cxx/c.eo \
+tests/eolian_cxx/d.eo
+
+include Makefile_Eolian_Cxx_Helper.am
+
+endif

@@ -1,0 +1,35 @@
+Emotion 1.8.0
+
+Changes since Emotion 1.7.0:
+-------------------------
+
+Additions:
+	- Add fimcconvert and capsfilter element for device
+	- Add video subtitle file API.
+
+Fixes:
+	- fix to call correct render function.
+
+Changes since Emotion 1.0.1:
+-------------------------
+
+Additions:
+	- Add support for "playback_started" callback to generic player.
+	- Implement SPU switch for generic/vlc.
+	- Sync rendering with Ecore_Animator.
+	- Track pending object for proper shutdown.
+	- Start handling embedded hardware customization.
+
+Fixes:
+	- build out of tree.
+	- stride of all YUV video
+	- fix race condition in gstreamer render function on shutdown and file set.
+	- fix priority set/get for gstreamer.
+	- reset VLC pipeline on EOS.
+	- fix race condition on shutdown when still saving a file position.
+        - xine module exports VIDEO_OUT_XINE_API_VERSION (22).
+
+Improvements:
+
+Removal:
+

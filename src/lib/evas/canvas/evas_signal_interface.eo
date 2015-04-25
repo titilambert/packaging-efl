@@ -1,0 +1,7 @@
+interface Evas.Signal_Interface ()
+{
+   implements {
+        class.constructor;
+        class.destructor;
+   }
+}

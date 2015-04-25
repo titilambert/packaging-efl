@@ -1,0 +1,34 @@
+struct Named {
+    field: int;
+    something: const(char)*;
+}
+
+struct Another {
+    field: struct Named;
+}
+
+/* named typedef'd */
+type Foo: struct _Foo {
+    field: int;
+    another: float;
+};
+
+/* anonymous */
+type Bar: struct {
+    a: Foo;
+    b: struct _Foo;
+};
+
+/* opaque struct */
+struct Opaque;
+
+class Struct {
+   methods {
+      foo {
+         params {
+            int idx;
+         }
+         return: own(char*);
+      }
+   }
+}

@@ -1,0 +1,25 @@
+class Evas.Polygon (Evas.Object)
+{
+   legacy_prefix: evas_object_polygon;
+   eo_prefix: evas_obj_polygon;
+   methods {
+      point_add {
+         /*@
+         Adds the given point to the given evas polygon object.
+         @ingroup Evas_Polygon_Group */
+         params {
+            @in Evas_Coord x; /*@ The X coordinate of the given point. */
+            @in Evas_Coord y; /*@ The Y coordinate of the given point. */
+         }
+      }
+      points_clear {
+         /*@
+         Removes all of the points from the given evas polygon object. */
+      }
+   }
+   implements {
+      Eo.Base.constructor;
+      Eo.Base.destructor;
+   }
+
+}

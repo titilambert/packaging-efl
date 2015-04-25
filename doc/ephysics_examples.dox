@@ -1,0 +1,1790 @@
+/**
+ * @page ephysics_examples EPhysics Examples
+ *
+ * Examples:
+ * @li @ref tutorial_ephysics_bouncing_ball
+ * @li @ref tutorial_ephysics_bouncing_text
+ * @li @ref tutorial_ephysics_camera
+ * @li @ref tutorial_ephysics_camera_track
+ * @li @ref tutorial_ephysics_collision_detection
+ * @li @ref tutorial_ephysics_collision_filter
+ * @li @ref tutorial_ephysics_delete_body
+ * @li @ref tutorial_ephysics_constraint
+ * @li @ref tutorial_ephysics_forces
+ * @li @ref tutorial_ephysics_growing_balls
+ * @li @ref tutorial_ephysics_gravity
+ * @li @ref tutorial_ephysics_logo
+ * @li @ref tutorial_ephysics_rotating_forever
+ * @li @ref tutorial_ephysics_velocity
+ * @li @ref tutorial_ephysics_shapes
+ * @li @ref tutorial_ephysics_sleeping_threshold
+ * @li @ref tutorial_ephysics_slider
+ */
+
+/**
+ * @page tutorial_ephysics_bouncing_ball EPhysics - Bouncing Ball
+ *
+ * The purpose of this example is to show how to write an simple application -
+ * as the name suggests - with a small ball bouncing on the ground and
+ * responding to users events by making it jump - applying a central impulse on
+ * it.
+ *
+ * @image html bouncing_ball.png
+ * @image latex bouncing_ball.eps
+ *
+ * We'll guide you on defining a EPhysics world, defining its render geometry
+ * and the physics limiting boundaries, you'll learn how to add EPhysics bodies
+ * and how to associate it to evas objects.  We also explain how to change
+ * restitution and friction properties. We see how to apply central impulse on
+ * a EPhysics_Body by implementing an elementary input event callback and
+ * calling the proper function.
+ *
+ * @section test-structure A test struct
+ * @dontinclude ephysics_test.h
+ *
+ * While in this example we'll be working with a struct to hold some objects in
+ * our code. For clarity sake we present you the struct declaration in the
+ * following block.
+ *
+ *
+ * @skip struct _Test_Data
+ * @until };
+ *
+ * @section world-new World Initialization
+ * @dontinclude test_bouncing_ball.c
+ *
+ * Calling ephysics_world_new()
+ * will create a new physics world with its collision configuration, constraint
+ * solver, broadphase interface and dispatcher.
+ *
+ * The default gravity is set to -9.81. It's possible to stop a running world
+ * but its default status is running. Take a look at
+ * ephysics_world_running_set() for further informations about world running
+ * status.
+ *
+ * @skipline ephysics_world_new
+ *
+ * @section render-geometry Render geometry
+ *
+ * By setting the render geometry you tell ephysics the dimensions of rendered
+ * area to be take on account by default updates.
+ *
+ * By default it starts with null x, y, z, width, height and depth. Initially 
+ * there's no physics limits but - as we'll see later in this example -
+ * boundaries can be added by issuing either ephysics_body_top_boundary_add(),
+ * ephysics_body_bottom_boundary_add(), ephysics_body_left_boundary_add() and
+ * ephysics_body_right_boundary_add().
+ *
+ * While setting the worlds render geometry the first parameter is our just
+ * created world, the following parameters indicate the x, y, z, width, height
+ * and depth of our area of interest.
+ *
+ * @skip ephysics_world_render_geometry_set
+ * @until DEPTH);
+ *
+ * @section boundaries Adding boundaries
+ *
+ * Boundaries are physics limits added by EPhysics which you can use to limit
+ * the area where your objects can move around. Bear in mind that those
+ * boundaries are created by EPhysics taking in account the render geometry you
+ * have previously defined by calling ephysics_world_render_geometry_set().
+ *
+ * In our example we start by adding a bottom boundary. This EPhysics_Body
+ * represents a physics limit under the world render geometry.
+ *
+ * The second line states the restitution factor for that bottom boundary, and
+ * the third line its friction. These changes will make our ball to bounce
+ * whenever it hits the ground.
+ *
+ * @skip ephysics_body_bottom_boundary_add
+ * @until ephysics_body_friction_set
+ *
+ * Then we add a right boundary limiting the physics world on the left side, we
+ * also change its restitution and friction factors but with a smaller value,
+ * we don't want to make it bounce as much as it is when hits the ground.
+ *
+ * @skip ephysics_body_right_boundary_add
+ * @until ephysics_body_friction_set
+ *
+ * We also add a left boundary taking the same considerations for right
+ * boundary.
+ *
+ * @skip ephysics_body_left_boundary_add
+ * @until ephysics_body_friction_set
+ *
+ * One of this examples requirements is to make the ball jump after a specific
+ * user event, so the ball can suffer an impulse for any direction.
+ *
+ * With an upper impulse we don't want our ball to fly all over there, we want
+ * to limit its upper movements, it's intended to limit the ball movement
+ * within a box, it should not leave the render geometry area, for that purpose
+ * we must define a top boundary.
+ *
+ * @skipline ephysics_body_top_boundary_add
+ * @dontinclude test_bouncing_ball.c
+ *
+ * @section world-populate Adding a ball
+ *
+ * Since we have defined the physics limits with our boundaries it's time to
+ * add some fun. Here we add a ball as an elementary image widget and tell
+ * ephysics about it.
+ *
+ * After setting the file that will be used as the image's source of our elm
+ * image we move it to the center of render geometry and resize it to 70x70
+ * pixels and show it.
+ *
+ * @skip elm_image_add
+ * @until evas_object_show
+ *
+ * The evas object is just set and we must tell EPhysics about it, creating the
+ * EPhysics_Body representing our ball and associating it to the just created
+ * evas object.
+ *
+ * Once the ball has been moved to the center of render geometry it should
+ * start falling after associating it to the EPhysics_Body. By default its mass
+ * is initially set to 1 kilo, but it can be changed by calling
+ * ephysics_body_mass_set(). Bear in mind that if you change its mass to 0
+ * kilos it becomes a static body and will not move at all, the body will
+ * remain fixed in the initial position.
+ *
+ * In the following code the first line adds a circle body, then we associate
+ * the evas object to EPhysics_Body, EPhysics will map every changes on physics
+ * object simulation to its evas object. Some restitution and friction factors
+ * are added as well.
+ *
+ * @skip ephysics_body_cylinder_add
+ * @until ephysics_body_friction_set
+ *
+ * @section jumping-ball Making it jump
+ *
+ * The next step is to give us the ability to make our ball to jump - actually
+ * apply some impulse whenever a key has been pressed. Then we add a elementary
+ * input callback to the window widget.
+ *
+ * @skipline elm_object_event_callback_add
+ *
+ * @dontinclude test_bouncing_ball.c
+ *
+ * The jumping callback implementation consists on handling only key up events
+ * and discarding any other input event we get. We're interested on keyboard
+ * events only. All the operations done in the following lines are done on
+ * sphere EPhysics_Body previously created.
+ *
+ * We mainly use the ephysics_body_central_impulse_apply() function. This
+ * function applies an impulse on the center of a body.
+ *
+ * Once pressed \<Up> key it applies a central impulse of 0 kilos on X axis,
+ * 10 kilos on Y and 0 kilos on Z - so the ball is forced up.
+ *
+ * If \<Down> key has been pressed we apply an impulse of 0 kilos on X axis,
+ * -10 kilos on Y and 0 kilos on Z - here the ball is forced down.
+ *
+ * In the case of \<Right> key pressing it's applied an impulse of 10 kilos on X
+ * axis, 0 kilos on Y and 0 kilos on Z - which applies a force to the right side.
+ * But if the key being pressed is \<Left> the opposite is done, and an impulse
+ * of -10 kilos is applied on X, 0 kilos on Y and 0 kilos on Z - and the ball is
+ * forced to the left.
+ *
+ * @skip _on_keydown
+ * @until }
+ *
+ * Here we finish the very simple bouncing ball example. The full source code
+ * can be found at @ref test_bouncing_ball_c.
+ *
+ */
+
+/**
+ * @page test_bouncing_ball_c test_bouncing_ball.c
+ *
+ * @section ephysics-test-h ephysics_test.h
+ * @include ephysics_test.h
+ *
+ * @section test-bouncing-ball-c test_bouncing_ball.c
+ * @dontinclude test.c
+ * @skip test_clean
+ * @until }
+ *
+ * @skip test_data_new
+ * @until }
+ *
+ * @skip test_win_add
+ * @until }
+ *
+ * @include test_bouncing_ball.c
+ *
+ *
+ * @example test_bouncing_ball.c
+ */
+
+/**
+ * @page tutorial_ephysics_bouncing_text EPhysics - Bouncing Text
+ *
+ * The purpose of this example is to demonstrate the EPhysics_Body binding to
+ * a text (Evas_Object)
+ *
+ * @image html bouncing_text.png
+ * @image latex bouncing_text.eps
+ *
+ * For this example we'll have an EPhysics_World and one basic EPhysics_Body.
+ *
+ * The basic concepts like - initializing an EPhysics_World, render geometry,
+ * physics limiting boundaries, were already covered in
+ * @ref tutorial_ephysics_bouncing_ball
+ *
+ * @section add-text Creating the text
+ * @dontinclude test_bouncing_text.c
+ *
+ * Create a basic evas_object_text.
+ *
+ * @skipline Evas_Object *text;
+ *
+ * @skip text =
+ * @until text);
+ *
+ * @section add-textbody Creating the body
+ *
+ * Create a simple EPhysics_Body.
+ *
+ * Note that we use ephysics_body_geometry_set() to define its size because
+ * the evas_object has a different size that we want to represent physically.
+ * The text may have accent or letters like j and g.
+ *
+ * @skipline text_body =
+ * @skip ephysics_body_geometry_set(text_body
+ * @until 0.1);
+ *
+ * @section text-binding Binding
+ * @dontinclude test_bouncing_text.c
+ *
+ * After creating the body and the text, now we need to bind them.
+ *
+ * We set the last parameter as EINA_FALSE because in this example we don't
+ * want to set the physics body position to match evas object position.
+ *
+ * @skipline ephysics_body_evas_object_set
+ *
+ * Here we finish the example. The full source code can be found at
+ * @ref test_bouncing_text_c.
+ *
+ */
+
+ /**
+ * @page test_bouncing_text_c test_bouncing_text.c
+ *
+ * @section ephysics-test-h ephysics_test.h
+ * @include ephysics_test.h
+ *
+ * @section test-bouncing_text-c test_bouncing_text.c
+ * @dontinclude test.c
+ *
+ * @skip test_clean
+ * @until }
+ *
+ * @skip test_data_new
+ * @until }
+ *
+ * @skip test_win_add
+ * @until }
+ *
+ * @include test_bouncing_text.c
+ *
+ * @example test_bouncing_text.c
+ */
+
+/**
+ * @page tutorial_ephysics_camera EPhysics - Camera
+ *
+ * The purpose of this example is to demonstrate the EPhysics_Camera usage.
+ *
+ * The EPhysics_Camera facilitates the usage of scenarios bigger than the
+ * viewport, thats because the EPhysics handles the position of objects
+ * which has control.
+ *
+ * @image html camera.png
+ * @image latex camera.eps
+ *
+ * For this example we'll have an EPhysics_World, two distant EPhysics_Bodys,
+ * one with an impulse to collide each other and an EPhysics_Camera that
+ * follows the moving body using an animator.
+ *
+ * The basic concepts like - initializing an EPhysics_World, render geometry,
+ * physics limiting boundaries, add an Ephysics_Body, associate it to evas
+ * objects, change restitution, friction and impulse properties, were
+ * already covered in
+ * @ref tutorial_ephysics_bouncing_ball
+ *
+ * @section add-camstruct Camera Data Struct
+ * @dontinclude test_camera.c
+ *
+ * While in this example we'll be working with a struct to hold some objects
+ * in our code. For clarity sake we present you the struct declaration in the
+ * following block.
+ *
+ * @skip struct _Camera_Data {
+ * @until };
+ *
+ * @section add-camera Adding a Camera
+ *
+ * To move the camera in this example, we'll use an animator.
+ *
+ * @skipline camera_data->animator = ecore_animator_add
+ *
+ * In the animators function, we'll have to create a specific type of variable:
+ * @ref EPhysics_Camera
+ * And also get the worlds rendered area width to define a limit to the camera.
+ *
+ * @dontinclude test_camera.c
+ *
+ * @skip _camera_move_cb(void *data
+ * @until &w, NULL, NULL);
+ *
+ * Every world has a camera, so here we get this camera used by our
+ * EPhysics_World.
+ *
+ * @skipline camera = ephysics_world_camera_get
+ *
+ * Here we get the cameras position to after set the position based on previous.
+ *
+ * @skipline ephysics_camera_position_get(camera
+ *
+ * Here we check if the camera reached the end of scenario (define the limit
+ * to the camera) then we stop the animator, else we move the camera + 2
+ * pixel positions to the right.
+ *
+ * @skip if (x + w > WIDTH * 2)
+ * @until ephysics_camera_position_set(camera, x, y
+ * @skipline }
+ *
+ * @section add-uptfloor Updating the floor
+ *
+ * Here we'll use 2 floor images to give the impression of an infinite ground.
+ *
+ * Calling ephysics_world_event_callback_add()
+ * will register a callback to a type of physics world event.
+ *
+ * @ref EPHYSICS_CALLBACK_WORLD_CAMERA_MOVED : called if the camera position
+ * changed on physics simulation tick.
+ *
+ * @skip ephysics_world_event_callback_add(world,
+ * @until _camera_moved_cb, camera_data);
+ *
+ * In the function, we just get the cameras position to know how much
+ * the camera moved and move the same value to the floor passing it as
+ * delta_x to the function, note that we use an old_x variable to do this
+ * calculation.
+ * @dontinclude test_camera.c
+ *
+ * @skip _camera_moved_cb(void *data
+ * @until }
+ *
+ * Here we get the floors position and plus the delta_x value to move the
+ * floor in the same "velocity".
+ *
+ * @dontinclude test_camera.c
+ *
+ * @skip _update_floor
+ * @until fx = x + delta
+ *
+ * We use 2 floor images because whenever one exits the screen by the left
+ * side, another is being shown, when it happens the one which exit the screen
+ * is sent to the right side, entering into an infinite loop, giving the
+ * impression of an infinite ground image. Its important to note that we need
+ * to use the fx to don't gap the images.
+ *
+ * @skip if (fx < -FLOOR_WIDTH
+ * @until }
+ *
+ * Here we finish the example. The full source code can be found at
+ * @ref test_camera_c.
+ *
+ */
+
+ /**
+ * @page test_camera_c test_camera.c
+ *
+ * @section ephysics-test-h ephysics_test.h
+ * @include ephysics_test.h
+ *
+ * @section test-camera-c test_camera.c
+ * @dontinclude test.c
+ *
+ * @skip test_clean
+ * @until }
+ *
+ * @skip test_win_add
+ * @until }
+ *
+ * @include test_camera.c
+ *
+ * @example test_camera.c
+ */
+
+/**
+ * @page tutorial_ephysics_camera_track EPhysics - Camera Track
+ *
+ * The purpose of this example is to demonstrate the EPhysics_Camera Track
+ * usage.
+ *
+ * The EPhysics_Camera facilitates the usage of scenarios bigger than the
+ * viewport, thats because the EPhysics handles the position of objects
+ * which has control.
+ *
+ * @image html camera_track.png
+ * @image latex camera_track.eps
+ *
+ * For this example we'll have an EPhysics_World, one main EPhysics_Body that
+ * will be tracked by an EPhysics_Camera on three ways, horizontal, vertical
+ * and full tracking. Also nine EPhysics_Bodys with mass 0, that will be used
+ * as scenario in order to our main body change its position on x and y axes
+ * when passes through this scenario.
+ *
+ * The basic concepts like - initializing an EPhysics_World, render geometry,
+ * physics limiting boundaries, add an Ephysics_Body, associate it to evas
+ * objects, change restitution, friction and impulse properties, were
+ * already covered in
+ * @ref tutorial_ephysics_bouncing_ball
+ *
+ * @section add-trkstruct Track Data Struct
+ * @dontinclude test_camera_track.c
+ *
+ * While in this example we'll be working with a struct to hold some objects
+ * in our code. For clarity sake we present you the struct declaration in the
+ * following block.
+ *
+ * @skip struct _Track_Data {
+ * @until };
+ *
+ * @section add-camera Adding a Camera
+ *
+ * In this example we'll use 3 kinds of tracking, to change this values we'll
+ * have an Elementary spinner widget and handle it on this function.
+ *
+ * Every world has a camera, so here we get this camera used by our
+ * EPhysics_World.
+ *
+ * @skip _track_apply(Track_Data *track
+ * @until camera = ephysics_world_camera_get(track_data->base.world
+ *
+ * Here we'll get the elm_spinner value to the tracking base on this
+ * value
+ *
+ * @skip mode =
+ * @until }
+ *
+ * Here we'll set the camera to track the body, when a body is tracked,
+ * the camera will move automatically, following this body. It will keeps the
+ * body centralized on rendered area. If it will be centralized horizontally
+ * and / or vertically depends if parameters horizontal and vertical are set
+ * to EINA_TRUE, in this case we based these values on elm_spinner.
+ *
+ * @skip ephysics_camera_body_track(camera, body
+ * @until }
+ *
+ * @section add-uptfloor Updating the floor
+ *
+ * Here we'll use 2 floor images to give the impression of an infinite ground.
+ *
+ * Calling ephysics_world_event_callback_add()
+ * will register a callback to a type of physics world event.
+ *
+ * @ref EPHYSICS_CALLBACK_WORLD_CAMERA_MOVED : called if the camera position
+ * changed on physics simulation tick.
+ *
+ * @skip ephysics_world_event_callback_add(world,
+ * @until _camera_moved_cb, track_data);
+ *
+ * In the function, we'll get the cameras position to know how much the camera
+ * moved and move the same value to the floor passing it as delta_x to the
+ * function, note that we use an old_x variable to do this calculation.
+ *
+ * We'll get also if the body is being tracked on x and y axes. If the body
+ * isn't being tracked on x axis the floors x position won't change, delta_x
+ * will be zero.
+ *
+ * @dontinclude test_camera_track.c
+ *
+ * @skip _camera_moved_cb(void *data
+ * @until }
+ *
+ * Here we get the floors position and plus the delta_x value to move the
+ * floor in the same "velocity".
+ *
+ * @dontinclude test_camera_track.c
+ *
+ * @skip _update_floor
+ * @until fx = x + delta
+ *
+ * We use 2 floor images because whenever one exits the screen by the left
+ * side, another is being shown, when it happens the one which exit the screen
+ * is sent to the right side, entering into an infinite loop, giving the
+ * impression of an infinite ground image. Its important to note that we need
+ * to use the fx to don't gap the images.
+ *
+ * Note that the fy is being defined considering its offsets, -20 is to the
+ * floor image be above the floor, thus having an border above the collision
+ * point, +40 is the render area height, to offset the cameras y, basically
+ * to draw in the correct position in the canvas.
+ *
+ * @skip if (fx < -FLOOR_WIDTH
+ * @until }
+ *
+ * Here we finish the example. The full source code can be found at
+ * @ref test_camera_track_c.
+ *
+ */
+
+ /**
+ * @page test_camera_track_c test_camera_track.c
+ *
+ * @section ephysics-test-h ephysics_test.h
+ * @include ephysics_test.h
+ *
+ * @section test-camera-track-c test_camera_track.c
+ * @dontinclude test.c
+ *
+ * @skip test_clean
+ * @until }
+ *
+ * @skip test_win_add
+ * @until }
+ *
+ * @include test_camera_track.c
+ *
+ * @example test_camera_track.c
+ */
+
+/**
+ * @page tutorial_ephysics_collision_detection EPhysics - Collision Detection
+ *
+ * The purpose of this example is to demonstrate the EPhysics Collision
+ * Detection usage - The code adds two balls, one with impulse and the second
+ * with a collision detection callback, to show an effect.
+ *
+ * @image html collision_detection.png
+ * @image latex collision_detection.eps
+ *
+ * For this example we'll have an EPhysics_World, and two basic EPhysics_Bodys,
+ * we'll apply an impulse in one of then and the other will be stopped
+ * "waiting" for a collision.
+ *
+ * The basic concepts like - initializing an EPhysics_World, render geometry,
+ * physics limiting boundaries, add an Ephysics_Body, associate it to evas
+ * objects, change restitution, friction and impulse properties, were
+ * already covered in
+ * @ref tutorial_ephysics_bouncing_ball
+ *
+ * @section add-collstruct Collision Data Struct
+ * @dontinclude test_collision_detection.c
+ *
+ * While in this example we'll be working with a struct to hold some objects
+ * in our code. For clarity sake we present you the struct declaration in the
+ * following block.
+ *
+ * @skip struct _Collision_Data {
+ * @until };
+ *
+ * @section add-callbacks Adding the Callback
+ *
+ * Calling ephysics_body_event_callback_add()
+ * will register a callback to a type of physics body event.
+ *
+ * @ref EPHYSICS_CALLBACK_BODY_COLLISION : called just after the collision has
+ * been actually processed by the physics engine. In other words, to be
+ * notified about a collision between two physical bodies.
+ *
+ * @skip ephysics_body_event_callback_add(collision_data->sphere
+ * @until );
+ *
+ * See
+ * @ref _EPhysics_Callback_Body_Type
+ * for more event types.
+ *
+ * @section add-collcb Collision Function
+ *
+ * The callback function will filter the collision to be sure if that body is
+ * which we want and then show the effect.
+ *
+ * First we need to create a specific variable type to get collision infos:
+ * @ref EPhysics_Body_Collision
+ *
+ * @dontinclude test_collision_detection.c
+ *
+ * @skip _collision_cb
+ * @until int x, y, z;
+ *
+ * Now we want to know which body collides with and filter it.
+ *
+ * @skip contact_body =
+ * @until return;
+ *
+ * We just get the collision position, move the impact effect to this
+ * coordinate and send a signal to edje to show it.
+ *
+ * @skip ephysics_body_collision_position_get
+ * @until "ephysics_test");
+ * @skipline }
+ *
+ * Here we finish the example. The full source code can be found at
+ * @ref test_collision_detection_c.
+ *
+ */
+
+ /**
+ * @page test_collision_detection_c test_collision_detection.c
+ *
+ * @section ephysics-test-h ephysics_test.h
+ * @include ephysics_test.h
+ *
+ * @section test-collision_detection-c test_collision_detection.c
+ * @dontinclude test.c
+ *
+ * @skip test_clean
+ * @until }
+ *
+ * @skip test_win_add
+ * @until }
+ *
+ * @include test_collision_detection.c
+ *
+ * @example test_collision_detection.c
+ */
+
+/**
+ * @page tutorial_ephysics_collision_filter EPhysics - Collision Filter
+ *
+ * The purpose of this example is to demonstrate the EPhysics Collision Filter
+ * usage - The code adds four balls in 2 rows and 2 columns, two on each
+ * collision group, the collision only happens when the balls are in the
+ * same group (row),to make it easier, balls in the same group has the same
+ * color and size.
+ *
+ * @image html collision_filter.png
+ * @image latex collision_filter.eps
+ *
+ * For this example we'll have an EPhysics_World and four basic EPhysics_Bodys,
+ * we'll apply an impulse on then and see what happens when they're in other
+ * collision group.
+ *
+ * The basic concepts like - initializing an EPhysics_World, render geometry,
+ * physics limiting boundaries, add an Ephysics_Body, associate it to evas
+ * objects, change restitution, friction and impulse properties, were
+ * already covered in
+ * @ref tutorial_ephysics_bouncing_ball
+ *
+ * @section add-callbacks Adding the balls
+ * @dontinclude test_collision_filter.c
+ *
+ * We'll use two arrays (color and size) to distinguish the groups.
+ *
+ * @skip _world_populate
+ * @until row;
+ *
+ * The balls declaration was placed into a For loop, just to simplify the
+ * coding and divide them in two groups.
+ *
+ * @skip for (i = 0; i < 4
+ * @until 0.1);
+ *
+ * Note in this part we divide the balls in two groups by color (row).
+ *
+ * @skipline ephysics_body_collision_group_add(fall_body
+ *
+ * The impulse will be applied in only 1 ball per group, in this case:
+ *
+ * The 1st row 2nd column ball will be applied an impulse to the
+ * left (-300kg * p/s).
+ *
+ * The 2nd row 1st column ball will be applied an impulse to the
+ * right (300kg * p/s).
+ *
+ * And then saving the body into a list.
+ *
+ * @skip if (column + row == 1
+ * @until }
+ * @skipline }
+ *
+ * Here we finish the example. The full source code can be found at
+ * @ref test_collision_filter_c.
+ *
+ */
+
+ /**
+ * @page test_collision_filter_c test_collision_filter.c
+ *
+ * @section ephysics-test-h ephysics_test.h
+ * @include ephysics_test.h
+ *
+ * @section test-collision_filter-c test_collision_filter.c
+ * @dontinclude test.c
+ *
+ * @skip test_clean
+ * @until }
+ *
+ * @skip test_data_new
+ * @until }
+ *
+ * @skip test_win_add
+ * @until }
+ *
+ * @include test_collision_filter.c
+ *
+ * @example test_collision_filter.c
+ */
+
+/**
+ * @page tutorial_ephysics_delete_body EPhysics - Delete Body
+ *
+ * The purpose of this example is to demonstrate the EPhysics Callbacks usage -
+ * The code adds two balls, one with impulse and the second with a collision
+ * detection callback, to delete the body.
+ *
+ * For this example we'll have an EPhysics_World and two basic EPhysics_Bodys,
+ * we'll apply an impulse in one of then and the other will be stopped
+ * "waiting" for a collision.
+ *
+ * The basic concepts like - initializing an EPhysics_World, render geometry,
+ * physics limiting boundaries, add an EPhysics_Body, associate it to evas
+ * objects, change restitution, friction and impulse properties, were already
+ * covered in
+ * @ref tutorial_ephysics_bouncing_ball
+ *
+ * @section add-callbacks Adding Callbacks
+ * @dontinclude test_delete.c
+ *
+ * Calling ephysics_body_event_callback_add()
+ * registers a callback to a given EPhysics_Body event type.
+ *
+ * We'll use two types:
+ *
+ * @ref EPHYSICS_CALLBACK_BODY_DEL : called when a body deletion has been issued
+ * and just before the deletion actually happens. In other words, to know that
+ * body has been marked for
+ * deletion. Typically to free some data associated with the body.
+ *
+ * @skipline ephysics_body_event_callback_add(sphere_body1,
+ * @skip EPHYSICS_CALLBACK_BODY_DEL
+ * @until );
+ *
+ * The callback function will receive the collision_data and free some data
+ * associated with the body.
+ *
+ * @dontinclude test_delete.c
+ *
+ * @skip _del_cb(void *data,
+ * @until }
+ *
+ * @ref EPHYSICS_CALLBACK_BODY_COLLISION : called just after the collision has
+ * been actually processed by the physics engine. In other words, to be notified
+ * about a collision between two physical bodies.
+ *
+ * @skip ephysics_body_event_callback_add(collision_data->sphere,
+ * @until );
+ *
+ * The callback function will get the collision body and check if its body is
+ * equal to which we want to delete.
+ *
+ * @dontinclude test_delete.c
+ *
+ * @skip _collision_cb(void *data,
+ * @until }
+ *
+ * See
+ * @ref _EPhysics_Callback_Body_Type
+ * for more event types.
+ *
+ * Here we finish the example. The full source code can be found at
+ * @ref test_delete_c.
+ *
+ */
+
+ /**
+ * @page test_delete_c test_delete.c
+ *
+ * @section ephysics-test-h ephysics_test.h
+ * @include ephysics_test.h
+ *
+ * @section test-delete-c test_delete.c
+ * @dontinclude test.c
+ * @skip test_clean
+ * @until }
+ *
+ * @skip test_win_add
+ * @until }
+ *
+ * @include test_delete.c
+ *
+ * @example test_delete.c
+ */
+
+ /**
+ * @page tutorial_ephysics_constraint EPhysics - Constraint
+ *
+ * The purpose of this example is to demonstrate the EPhysics Constraint usage -
+ * The code apply a constraint between two cubes.
+ *
+ * For this example we'll have an EPhysics_World, and two basic EPhysics_Bodys.
+ *
+ * The basic concepts like - defining an EPhysics_World, render geometry,
+ * physics limiting boundaries, add an EPhysics_Body, associate it to evas
+ * objects, change restitution, friction and impulse properties, were
+ * already covered in
+ * @ref tutorial_ephysics_bouncing_ball
+ *
+ * You can use also a slider constraint:
+ * @ref tutorial_ephysics_slider
+ *
+ * @section add-constraint Adding a constraint
+ * @dontinclude test_constraint.c
+ *
+ * Constraint is a specific type of variable in EPhysics.
+ *
+ * @skipline EPhysics_Constraint
+ *
+ * Here we're working with a point-to-point constraint, its purpose is to join
+ * two bodies limiting their movements based on specified anchors.
+ *
+ * After we create our 2 EPhysics_Bodys, now we'll add a constraint between
+ * them and setting an anchor to first body's Y using a p2p constraint
+ * (point to point).
+ *
+ * @skip constraint = ephysics_constraint_p2p
+ * @until );
+ *
+ * Here we finish the example. The full source code can be found at
+ * @ref test_constraint_c.
+ *
+ */
+
+ /**
+ * @page test_constraint_c test_constraint.c
+ *
+ * @section ephysics-test-h ephysics_test.h
+ * @include ephysics_test.h
+ *
+ * @section test-constraint-c test_constraint.c
+ * @dontinclude test.c
+ *
+ * @skip test_clean
+ * @until }
+ *
+ * @skip test_data_new
+ * @until }
+ *
+ * @skip test_win_add
+ * @until }
+ *
+ * @include test_constraint.c
+ *
+ * @example test_constraint.c
+ */
+
+ /**
+ * @page tutorial_ephysics_forces EPhysics - Forces
+ *
+ * The purpose of this example is to demonstrate the EPhysics Force usage -
+ * The code applies force over two cubes.
+ *
+ * @image html forces.png
+ * @image latex forces.eps
+ *
+ * For this example we'll have an EPhysics_World with gravity setted to zero,
+ * and two basic EPhysics_Bodys.
+ *
+ * The basic concepts like - defining an EPhysics_World, render geometry,
+ * physics limiting boundaries, add an EPhysics_Body, associate it to evas
+ * objects, change restitution, friction and impulse properties, were
+ * already covered in
+ * @ref tutorial_ephysics_bouncing_ball
+ *
+ * @section add-force Adding a Force
+ * @dontinclude test_forces.c
+ *
+ * We apply a force over the first body to change its linear and angular
+ * accelerations. Applying a force to a body will lead it to change its
+ * velocity gradually.
+ *
+ * Note that in this blue cube we use an offset to apply the force, the two
+ * last parameters are responsible to set a relative position to apply the
+ * force.In other words, the force applied with an offset will make the body
+ * rotates. Otherwise (0, 0, 0) the force would be applied on the center of the
+ * body, in this case its recommended use the
+ * ephysics_body_central_force_apply();
+ *
+ * @skipline ephysics_body_force_apply(box_body1
+ *
+ * Here we apply a central force over the second body avoiding affect the
+ * angular acceleration (rotate).
+ *
+ * @skipline ephysics_body_central_force_apply(box_body2
+ *
+ * We can also get all the forces applied over a body, including gravity, but
+ * in this case we setted to zero.
+ *
+ * @dontinclude test_forces.c
+ *
+ * @skipline ephysics_body_forces_get(
+ *
+ * Here we finish the example. The full source code can be found at
+ * @ref test_forces_c.
+ *
+ */
+
+ /**
+ * @page test_forces_c test_forces.c
+ *
+ * @section ephysics-test-h ephysics_test.h
+ * @include ephysics_test.h
+ *
+ * @section test-forces-c test_forces.c
+ * @dontinclude test.c
+ *
+ * @skip test_clean
+ * @until }
+ *
+ * @skip test_data_new
+ * @until }
+ *
+ * @skip test_win_add
+ * @until }
+ *
+ * @include test_forces.c
+ *
+ * @example test_forces.c
+ */
+
+ /**
+ * @page tutorial_ephysics_growing_balls EPhysics - Growing Balls
+ *
+ * The purpose of this example is to demonstrate the dynamically growing
+ * and shrinking of an EPhysics_Body - The code applies the growth of a ball
+ * and the shrink of another.
+ *
+ * @image html growing_balls.png
+ * @image latex growing_balls.eps
+ *
+ * For this example we'll have an EPhysics_World and three EPhysics_Bodys
+ * with different sizes associated with an evas_object.
+ *
+ * The basic concepts like - defining an EPhysics_World, render geometry,
+ * physics limiting boundaries, add an EPhysics_Body, associate it to evas
+ * objects, change restitution, friction and impulse properties, were
+ * already covered in
+ * @ref tutorial_ephysics_bouncing_ball
+ *
+ * @section add-growshrink Adding the growing/shrinking
+ * @dontinclude test_growing_balls.c
+ *
+ * In this example we'll use a timer to handle the callback function.
+ *
+ * @skipline test_data->data = ecore_timer_add
+ *
+ * In this callback, we'll pass through a list with 3 balls and apply the
+ * growth and the shrink between the limit we'll set. Note that the variable
+ * i receives different values on each iteration (-1, 0, 1). For the first
+ * iteration it will decrease the size variable, the second will keep the
+ * same value, and the last one will increase the size variable.
+ *
+ * @dontinclude test_growing_balls.c
+ *
+ * @skip _grow_cb(void *data
+ * @until return EINA_TRUE;
+ * @skipline }
+ *
+ * Here we finish the example. The full source code can be found at
+ * @ref test_growing_balls_c.
+ *
+ */
+
+ /**
+ * @page test_growing_balls_c test_growing_balls.c
+ *
+ * @section ephysics-test-h ephysics_test.h
+ * @include ephysics_test.h
+ *
+ * @section test-growing-balls-c test_growing_balls.c
+ * @dontinclude test.c
+ *
+ * @skip test_clean
+ * @until }
+ *
+ * @skip test_data_new
+ * @until }
+ *
+ * @skip test_win_add
+ * @until }
+ *
+ * @include test_growing_balls.c
+ *
+ * @example test_growing_balls.c
+ */
+
+ /**
+ * @page tutorial_ephysics_gravity EPhysics - Gravity
+ *
+ * The purpose of this example is to demonstrate the EPhysics Gravity usage -
+ * The code apply gravity in an EPhysics_World with two cubes in movement.
+ *
+ * @image html no_gravity.png
+ * @image latex no_gravity.eps
+ *
+ * For this example we'll have an EPhysics_World, and two basic EPhysics_Bodys.
+ *
+ * The basic concepts like - defining an EPhysics_World, render geometry,
+ * physics limiting boundaries, add an EPhysics_Body, associate it to evas
+ * objects, change restitution, friction and impulse properties, were
+ * already covered in
+ * @ref tutorial_ephysics_bouncing_ball
+ *
+ * Concepts like velocity and sleeping threshold were already
+ * covered in:
+ * @li @ref tutorial_ephysics_velocity
+ * @li @ref tutorial_ephysics_sleeping_threshold
+ *
+ * @section add-gravity Setting Gravity
+ * @dontinclude test_no_gravity.c
+ *
+ * Here we set gravity on 3 axes (x, y, z) to (0, 0, 0). Gravity will act
+ * over bodies with mass over all the time.
+ *
+ * @skipline ephysics_world_gravity_set
+ *
+ * @section add-stopbody Stopping a Body
+ * @dontinclude test_no_gravity.c
+ *
+ * We're using a button to call this function that receives test_data to stop
+ * the chosen body.
+ *
+ * Stop angular and linear body movement, its equivalent to set linear velocity
+ * to 0 on both axis and angular velocity to 0 as well.
+ *
+ * @skip _stop(void *data
+ * @until body);
+ * @skipline }
+ *
+ * Here we finish the example. The full source code can be found at
+ * @ref test_no_gravity_c.
+ *
+ */
+
+ /**
+ * @page test_no_gravity_c test_no_gravity.c
+ *
+ * @section ephysics-test-h ephysics_test.h
+ * @include ephysics_test.h
+ *
+ * @section test-no-gravity-c test_no_gravity.c
+ * @dontinclude test.c
+ *
+ * @skip test_clean
+ * @until }
+ *
+ * @skip test_data_new
+ * @until }
+ *
+ * @skip test_win_add
+ * @until }
+ *
+ * @include test_no_gravity.c
+ *
+ * @example test_no_gravity.c
+ */
+
+/**
+ * @page tutorial_ephysics_logo EPhysics - Logo
+ *
+ * The purpose of this example is to demonstrate the EPhysics_Logo.
+ *
+ * For this example we'll have an EPhysics_World.
+ *
+ * The basic concepts like - initializing an EPhysics_World, render geometry,
+ * physics limiting boundaries, were already covered in
+ * @ref tutorial_ephysics_bouncing_ball
+ *
+ * @section add-logostruct Logo Data Struct
+ * @dontinclude ephysics_logo.c
+ *
+ * While in this example we'll be working with a struct to hold some objects
+ * in our code. For clarity sake we present you the struct declaration in the
+ * following block.
+ *
+ * @skip struct letter_desc {
+ * @until };
+ *
+ * @section add-lett Adding the letters
+ * @dontinclude ephysics_logo.c
+ *
+ * To add the letters we'll use this function that creates the shadow, light
+ * and letter images.
+ *
+ * @skip _letter_add(Evas *evas
+ * @until }
+ *
+ * In this loop we'll use the function letter_add using the falling_letters
+ * declared in logo data struct.
+ *
+ * @skip for (i = 0; i < EINA_C_ARRAY
+ * @until (image, &w, &h);
+ *
+ * Place image and light on top, above what the viewport can show, to fall
+ * later on.
+ *
+ * @skip evas_object_move(image, x,
+ * @until evas_object_move(light, x, -h * (i + 1) - 50);
+ *
+ * Place shadow below the hit-line: FLOOR_Y, centered at image.
+ *
+ * @skipline evas_object_move(shadow, x + CENTER(w, sh_w
+ *
+ * Here we set the letters padding and add letter body using the function
+ * below and setting its friction.
+ *
+ * @skip x += falling_letters[i].padd
+ * @until }
+ *
+ * Here we call another function that will be common to the circle body as
+ * well, note that we add a callback that will be explained later.
+ * @dontinclude ephysics_logo.c
+ *
+ * @skip _letter_body_box_add(EPhysics_World *world
+ * @until }
+ *
+ * This function is used to create the body setting its properties. Note that
+ * we disable its angular movement (rotation) on Z axis to this letters don't
+ * tilt or recline.
+ * @dontinclude ephysics_logo.c
+ *
+ * @skip _letter_body_setup_common(EPhysics_Body *body
+ * @until }
+ *
+ * In this callback function that we added to our letter body we'll update its
+ * light and shadow.
+ *
+ * First we'll update the body, get its image geometry and set the floor
+ * distance based on images height.
+ *
+ * @dontinclude ephysics_logo.c
+ *
+ * @skip _update_box_cb(void *data
+ * @until floor_distance = FLOOR_Y - h;
+ *
+ * As long as the letter approaches the floor, its shadow is darker, with bigger y.
+ *
+ * @skip if (y > SH_THRESHOLD)
+ * @until &sh_h);
+ * @skipline alpha = 255 * (y - SH_THRESHOLD)
+ *
+ * And with bigger x -- its proportional to x / WIDTH, but varies from 100 to
+ * 255
+ *
+ * @skip pos_x = (double) x /
+ * @until PROP_GET(pos_x, 100, 255);
+ *
+ * Note that the box shadow is not resized, just moved. And here set also the
+ * colors.
+ *
+ * @skip evas_object_move(shadow, x +
+ * @until alpha, alpha);
+ *
+ * As long as the letter approaches the floor, its lighter, with bigger x and y.
+ *
+ * @skipline evas_object_move(light, x
+ * @skipline alpha = (y <= 0) ? 0 : y * 255
+ * @skip alpha = alpha * (x - OFFSET_X + 80)
+ * @until }
+ *
+ * @section add-lettere Adding the letter E
+ *
+ * Here we'll add the last letter, "E" is a circle that comes rolling on
+ * the floor.
+ *
+ * First we use the letter_add function, set its shadow color and get
+ * its sizes.
+ *
+ * @skip _letter_add(evas, "E", &image
+ * @until evas_object_image_size_get(image, &w, &h);
+ *
+ * Place image and light above the floor and to the left of viewport, to comes
+ * rolling later on.
+ *
+ * @skip evas_object_move(image, -w - 1, FLOOR_Y
+ * @until evas_object_move(light, -w - 1, FLOOR_Y - h + 1);
+ *
+ * Place the shadow below the hit-line: FLOOR_Y centered at image.
+ *
+ * @skipline evas_object_move(shadow, -w - 1 + CENTER(w, sh_w)
+ *
+ * Here we create the body using body_circle function and enable its rotation
+ * on Z axis.
+ *
+ * @skip letter_body = _letter_body_circle_add
+ * @until letter_body, EINA_TRUE);
+ *
+ * Make the "E" logo get into the viewport by applying a horizontal force.
+ *
+ * @skipline ephysics_body_central_impulse_apply(letter_body
+ *
+ * Here we use the letter_body_setup_common to create the body and set its
+ * properties, note that we add a callback that will be explained below.
+ * @dontinclude ephysics_logo.c
+ *
+ * @skip _letter_body_circle_add(EPhysics_World *world
+ * @until }
+ *
+ * In this callback function that we added to our "E" letter body we'll update
+ * its light and shadow.
+ *
+ * First we'll update the body and get its image geometry.
+ *
+ * @dontinclude ephysics_logo.c
+ *
+ * @skip _update_circle_cb(void *data
+ * @until geometry_get(image, &x, &y, &w, &h);
+ *
+ * As long as the letter approaches the floor, its lighter, with bigger x.
+ *
+ * @skip evas_object_move(light, x
+ * @until alpha, alpha);
+ *
+ * Use the same map from image to the light (rotate it).
+ *
+ * @skip map = evas_object_map_get(image
+ * @until light, EINA_TRUE);
+ *
+ * As long as the letter approaches the floor, its shadow is darker, with
+ * bigger y.
+ *
+ * @skip evas_object_image_size_get(shadow,
+ * @until alpha, alpha);
+ *
+ * When the letter "E" passes the viewport, we send it to the begin again to
+ * collide with the other letters.
+ *
+ * @skip if (x > E_THRESHOLD)
+ * @until }
+ *
+ * Here we finish the example. The full source code can be found at
+ * @ref ephysics_logo_c.
+ *
+ */
+
+ /**
+ * @page ephysics_logo_c ephysics_logo.c
+ *
+ * @section ephysics-logo-c ephysics_logo.c
+ * @include ephysics_logo.c
+ *
+ * @example ephysics_logo.c
+ */
+
+ /**
+ * @page tutorial_ephysics_rotating_forever EPhysics - Rotating Forever
+ *
+ * The purpose of this example is to demonstrate the EPhysics Rotate usage -
+ * The code applies different ways to rotate an EPhysics_Body, such as torque,
+ * torque impulse and rotation set.
+ *
+ * For this example we'll have an EPhysics_World with gravity setted to zero,
+ * and four basic EPhysics_Bodys.
+ *
+ * The basic concepts like - defining an EPhysics_World, render geometry,
+ * physics limiting boundaries, add an EPhysics_Body, associate it to evas
+ * objects, change restitution, friction and impulse properties, were
+ * already covered in
+ * @ref tutorial_ephysics_bouncing_ball
+ *
+ * @section add-rotate Rotating
+ * @dontinclude test_rotating_forever.c
+ *
+ * For the first body we'll apply a torque impulse to make it rotate around Z
+ * axis (rotate on x-y plane). Will make the body rolls on clockwise rotation,
+ * if the value is negative, the impulse will be on counter clockwise.
+ *
+ * @skipline ephysics_body_torque_impulse_apply(body, 0, 0, 1);
+ *
+ * For the second body we'll use an offset to apply the force, the three
+ * last parameters are responsible to set a relative position to apply the
+ * force.In other words, the force applied with an offset will make the body
+ * rotates and move around the other cubes.
+ *
+ * @skipline ephysics_body_impulse_apply(body, 30, 0
+ *
+ * For the third body we'll use a timer to rotate the body and a callback to
+ * delete it.
+ *
+ * @skip timer = ecore_timer_add(1, _rotate_cb
+ * @until _del_cb, timer);
+ *
+ * @dontinclude test_rotating_forever.c
+ * @skip _del_cb(void *data
+ * @until }
+ *
+ * In the function we'll get the body rotation on z axis in degrees and handle
+ * it increasing 5 degrees on its position on z axis on each tick of the timer.
+ *
+ * @dontinclude test_rotating_forever.c
+ * @skip _rotate_cb(void *data
+ * @until }
+ *
+ * For the forth body we'll use 2 timers, but before that, we'll apply an
+ * initial torque, changing the body angular acceleration and a callback to
+ * delete the timers we'll add.
+ *
+ * @skipline ephysics_body_torque_apply(body, 0, 0, 2
+ * @skipline ephysics_body_event_callback_add(body,
+ * @skipline EPHYSICS_CALLBACK_BODY_DEL,
+ * @skipline _del_torque_cb, cube);
+ *
+ * Just the callback function to delete the timers.
+ *
+ * @dontinclude test_rotating_forever.c
+ * @skip _del_torque_cb(void *data
+ * @until }
+ *
+ * As we commented we'll use 2 timers, one to increase the torque and
+ * another to stop the torque, cleaning the forces related to the body.
+ *
+ * @skip timer = ecore_timer_add(3, _increase
+ * @until "stop_timer", timer);
+ *
+ * In the increase function we'll apply a torque over the body, changing
+ * its angular acceleration, it will leads to a change on angular velocity
+ * over time. We're using a timer to increase the angular acceleration on
+ * each tick of the timer.
+ *
+ * @dontinclude test_rotating_forever.c
+ * @skip _increase_torque_cb(void *data
+ * @until }
+ *
+ * In the stop function we'll clear all the forces applied to the body,
+ * setting its linear and angular acceleration to zero. We're using this
+ * timer to "control" the body velocity, since we are increasing it by
+ * another timer. Note that we set the acceleration to zero not the
+ * velocity.
+ *
+ * @skip _stop_torque_cb(void *data
+ * @until }
+ *
+ * Here we finish the example. The full source code can be found at
+ * @ref test_rotating_forever_c.
+ *
+ */
+
+ /**
+ * @page test_rotating_forever_c test_rotating_forever.c
+ *
+ * @section ephysics-test-h ephysics_test.h
+ * @include ephysics_test.h
+ *
+ * @section test-rotating-forever-c test_rotating_forever.c
+ * @dontinclude test.c
+ *
+ * @skip test_clean
+ * @until }
+ *
+ * @skip test_data_new
+ * @until }
+ *
+ * @skip test_win_add
+ * @until }
+ *
+ * @include test_rotating_forever.c
+ *
+ * @example test_rotating_forever.c
+ */
+
+/**
+ * @page tutorial_ephysics_velocity EPhysics - Velocity
+ *
+ * The purpose of this example is to demonstrate the EPhysics Velocity usage -
+ * The code adds a small bouncing ball on the ground and responding to users
+ * events by making it jump - applying a central impulse on it and showing its
+ * velocity and acceleration.
+ *
+ * We'll see in this example how to get EPhysics_Body Linear and Angular
+ * velocity and acceleration.
+ *
+ * For this example we'll have an EPhysics_World and one basic EPhysics_Body,
+ * we'll apply impulses that follows user events, it were already covered in
+ * @ref tutorial_ephysics_bouncing_ball
+ *
+ * @section add-velstruct Velocity Data Struct
+ * @dontinclude test_velocity.c
+ *
+ * While in this example we'll be working with a struct to hold some objects
+ * in our code. For clarity sake we present you the struct declaration in the
+ * following block.
+ *
+ * @skip struct _Velocity_Data {
+ * @until };
+ *
+ * @section add-callbacks Adding the Callbacks
+ *
+ * Calling ephysics_body_event_callback_add()
+ * will register a callback to a type of physics body event.
+ *
+ * @ref EPHYSICS_CALLBACK_BODY_UPDATE : called after every physics iteration.
+ * In other words, will be called after each world tick.
+ *
+ * @skipline ephysics_body_event_callback_add(sphere_body, EPHYSICS_CALLBACK_
+ * @skipline _update_vel_cb
+ *
+ * @ref EPHYSICS_CALLBACK_BODY_STOPPED : called when a body is found to be
+ * stopped. In other words, when the body is not moving anymore.
+ *
+ * @skip ephysics_body_event_callback_add(sphere_body, EPHYSICS_CALLBACK_BODY_ST
+ * @until );
+ *
+ * See
+ * @ref _EPhysics_Callback_Body_Type
+ * for more event types.
+ *
+ * @section add-velcb Velocity Function
+ *
+ * The callback function will be called on every physics iteration to show the
+ * linear and angular velocity and acceleration.
+ *
+ * Here we're declaring the necessary variables to calculate acelerations and
+ * delta time. And checking if its the first time to return before shows
+ * informations about the velocity.
+ *
+ * @dontinclude test_velocity.c
+ *
+ * @skip _update_vel_cb(void *data,
+ * @until EINA_TRUE;
+ *
+ * Get the delta time to use it soon to calculate the acceleration on every
+ * physics iteration.
+ *
+ * @skip time_now = ecore_time_get();
+ * @until time_now;
+ *
+ * Note in this part we get the angular and linear velocities.
+ *
+ * @skip ephysics_body_angular_velocity_get
+ * @until &vy, NULL);
+ *
+ * We need to handle the velocity using delta time to have the acceleration
+ * on every tick. Check if its the first time to return before shows
+ * informations about the velocity because we don't have the old aceletations
+ * and then the calculation of this informations will be wrong.
+ *
+ * Here we calculate the aceletarions using this formula:
+ *
+ * (velocity - old_velocity) / delta_time;
+ *
+ * @skip aaz = (vaz -
+ * @until return;
+ *
+ * Turning data into text, to pass it to edje shows on screen.
+ *
+ * @skip snprintf(buff,
+ * @until "linear_acc", buff);
+ * @skip snprintf(buff,
+ * @until "angular_acc", buff);
+ * @skipline }
+ *
+ * Here we finish the example. The full source code can be found at
+ * @ref test_velocity_c.
+ *
+ */
+
+ /**
+ * @page test_velocity_c test_velocity.c
+ *
+ * @section ephysics-test-h ephysics_test.h
+ * @include ephysics_test.h
+ *
+ * @section test-velocity-c test_velocity.c
+ * @dontinclude test.c
+ *
+ * @skip test_clean
+ * @until }
+ *
+ * @skip test_win_add
+ * @until }
+ *
+ * @include test_velocity.c
+ *
+ * @example test_velocity.c
+ */
+
+ /**
+ * @page tutorial_ephysics_shapes EPhysics - Shapes
+ *
+ * The purpose of this example is to demonstrate the EPhysics Shapes
+ * usage - The code creates two EPhysics_Bodys using a custom shape.
+ *
+ * @image html shapes.png
+ * @image latex shapes.eps
+ *
+ * For this example we'll have an EPhysics_World, and two basic EPhysics_Bodys.
+ *
+ * The basic concepts like - defining an EPhysics_World, render geometry,
+ * physics limiting boundaries, add an EPhysics_Body, associate it to evas
+ * objects, change restitution, friction and impulse properties, were
+ * already covered in
+ * @ref tutorial_ephysics_bouncing_ball
+ *
+ * @section add-shape Adding a Shape
+ * @dontinclude test_shapes.c
+ *
+ * Shapes are used to create bodies with shapes that differ from primitive
+ * ones, like box and circle.
+ *
+ * A shape consists in a group of points, the vertices of the body to be
+ * created later with ephysics_body_shape_add(). You can also save and load
+ * it from a file.
+ *
+ * We'll have to create a specific type of variable:
+ * @ref EPhysics_Shape
+ *
+ * @skip _world_populate(Test_Data
+ * @until Evas_Object *pentagon,
+ *
+ * First we add an image we want to add an EPhysics_Body to have a reference
+ * to after set the points (vertices).
+ *
+ * @skip pentagon = elm_image_add
+ * @until evas_object_show(pentagon);
+ *
+ * Here we create a new shape, note that the returned shape initially
+ * doesn't has points set, so its requiered to set vertices.
+ *
+ * @skipline pentagon_shape =
+ *
+ * Now we're setting the shape points (vertices) basing on the image that
+ * we added, two vertices form a link between them, an edge, so with some
+ * vertices is possible to create polygons, in this case a pentagon.
+ *
+ * @skip ephysics_shape_point_add(pentagon_shape
+ * @until , 21/35., 1, 1);
+ *
+ * Here we create a new physics body using a custom shape. The center of mass
+ * will be the center of the shape. Its collision shape will be the convex
+ * shape that has all the points (and edges) we added to this shape before.
+ *
+ * @skip pentagon_body = ephysics_body_shape_add
+ * @until ephysics_body_restitution_set(pentagon_body, 1);
+ *
+ * Here we just delete the custom shape (not the body) after used to create
+ * the wanted bodies, it's required to delete it. It won't be deleted
+ * automatically by ephysics at any point, even on shutdown.
+ *
+ * @skipline ephysics_shape_del(pentagon_shape
+ *
+ * In the example we add another shape with the same process we just used,
+ * but with different image and points.
+ *
+ * @dontinclude test_shapes.c
+ *
+ * @skip ephysics_shape_point_add(hexagon_shape
+ * @until 18, 60, 10);
+ *
+ * Here we finish the example. The full source code can be found at
+ * @ref test_shapes_c.
+ *
+ */
+
+ /**
+ * @page test_shapes_c test_shapes.c
+ *
+ * @section ephysics-test-h ephysics_test.h
+ * @include ephysics_test.h
+ *
+ * @section test-shapes-c test_shapes.c
+ * @dontinclude test.c
+ *
+ * @skip test_clean
+ * @until }
+ *
+ * @skip test_data_new
+ * @until }
+ *
+ * @skip test_win_add
+ * @until }
+ *
+ * @include test_shapes.c
+ *
+ * @example test_shapes.c
+ */
+
+ /**
+ * @page tutorial_ephysics_sleeping_threshold EPhysics - Sleeping Threshold
+ *
+ * The purpose of this example is to demonstrate the EPhysics Sleeping
+ * Threshold usage - The code apply sleeping threshold in two cubes.
+ *
+ * For this example we'll have an EPhysics_World, and two basic EPhysics_Bodys.
+ *
+ * The basic concepts like - defining an EPhysics_World, render geometry,
+ * physics limiting boundaries, add an EPhysics_Body, associate it to evas
+ * objects, change restitution, friction and impulse properties, were
+ * already covered in
+ * @ref tutorial_ephysics_bouncing_ball
+ *
+ * Concept of velocity were already covered in
+ * @ref tutorial_ephysics_velocity
+ *
+ * @section add-maxsleeping Adding Max Sleeping Time
+ * @dontinclude test_sleeping_threshold.c
+ *
+ * Setting the max sleeping time determines how long(in seconds) a rigid body
+ * under the linear and angular threshold is supposed to be marked as sleeping.
+ *
+ * @skipline ephysics_world_max_sleeping_time_set
+ *
+ * @section add-sleeping Adding a Sleeping Threshold
+ * @dontinclude test_sleeping_threshold.c
+ *
+ * Here we set EPhysics_Bodys linear and angular sleeping threshold. These
+ * factors are used to determine whenever a rigid body is supposed to
+ * increment the sleeping time.
+ *
+ * After every tick the sleeping time is incremented. After reaching the max
+ * sleeping time the body is market to sleep, that means the rigid body is to
+ * be deactivated.
+ *
+ * @skipline ephysics_body_sleeping_threshold_set(sphere_body1
+ *
+ * @skipline ephysics_body_sleeping_threshold_set(sphere_body2
+ *
+ * We can get the EPhysics_Bodys linear and angular sleeping threshold as well.
+ *
+ * @skipline ephysics_body_sleeping_threshold_get(sphere_body1
+ *
+ * @skipline ephysics_body_sleeping_threshold_get(sphere_body2
+ *
+ * @section add-damping Adding a Damping
+ * @dontinclude test_sleeping_threshold.c
+ *
+ * Here we set EPhysics_Bodys linear and angular damping values.The damping is
+ * a force synchronous with the velocity of the object but in opposite
+ * direction - like air resistence.
+ *
+ * @skipline ephysics_body_damping_set(sphere_body1
+ *
+ * @skipline ephysics_body_damping_set(sphere_body2
+ *
+ * Here we finish the example. The full source code can be found at
+ * @ref test_sleeping_threshold_c.
+ *
+ */
+
+ /**
+ * @page test_sleeping_threshold_c test_sleeping_threshold.c
+ *
+ * @section ephysics-test-h ephysics_test.h
+ * @include ephysics_test.h
+ *
+ * @section test-sleeping-threshold-c test_sleeping_threshold.c
+ * @dontinclude test.c
+ *
+ * @skip test_clean
+ * @until }
+ *
+ * @skip test_data_new
+ * @until }
+ *
+ * @skip test_win_add
+ * @until }
+ *
+ * @include test_sleeping_threshold.c
+ *
+ * @example test_sleeping_threshold.c
+ */
+
+ /**
+ * @page tutorial_ephysics_slider EPhysics - Slider
+ *
+ * The purpose of this example is to demonstrate the EPhysics Slider constraint
+ * usage - The code applies slider on three cubes.
+ *
+ * @image html slider.png
+ * @image latex slider.eps
+ *
+ * For this example we'll have an EPhysics_World, and four basic
+ * EPhysics_Bodys.
+ *
+ * The basic concepts like - defining an EPhysics_World, render geometry,
+ * physics limiting boundaries, add an EPhysics_Body, associate it to evas
+ * objects, change restitution, friction and impulse properties, were
+ * already covered in
+ * @ref tutorial_ephysics_bouncing_ball
+ *
+ * You can use also a P2P (point to point) constraint:
+ * @ref tutorial_ephysics_constraint
+ *
+ * @section add-slider Adding a Slider
+ * @dontinclude test_slider.c
+ *
+ * Slider is a constraint that will limit the linear and angular moving of
+ * a body.
+ *
+ * We'll add three sliders on the cubes, starting with the highest purple.
+ *
+ * First we need to create a specific variable type to get EPhysics_Body
+ * constraint and create a new slider constraint passing the body which we
+ * want as parameter.
+ *
+ * @skipline EPhysics_Constraint *constr
+ *
+ * @skipline constraint = ephysics_constraint_slider_add(box_body2
+ *
+ * Here we define the linear moving limits of the slider constraint, in this
+ * case we just set moving limit down on Y axis (under), but if we wanted we
+ * could set left, right and above also.
+ *
+ * @skip ephysics_constraint_slider_linear_limit_set(constraint, 0,
+ * @until , 0, 0);
+ *
+ * Here we set the angular moving limits of the slider constraint. The angular
+ * moving limits is defined in degrees and will limit the moving on Z axis, in
+ * this case we just set the clockwise direction, but if we wanted we could
+ * set the counter clockwise direction also.
+ *
+ *
+ * @skipline ephysics_constraint_slider_angular_limit_set(constraint, 0, 45
+ *
+ * When this cube falls by the gravity, the slider constraint will act limiting
+ * its linear and angular movings, giving the impression that its hanging.
+ *
+ * For the next two cubes is the same process.
+ *
+ * Now we set the slider constraint of the highest blue and lowest purple,
+ * limiting moving limits to the left on X axis and applying an impulse
+ * to the left where the two cubes will be limited by the slider constraint
+ * and pushed back.
+ *
+ * @skip constraint = ephysics_constraint_slider_add(box_body3
+ * @until box_body3, -240, 0, 0);
+ *
+ * @skip constraint = ephysics_constraint_slider_add(box_body4
+ * @until box_body4, -600, 0, 0);
+ *
+ * Here we finish the example. The full source code can be found at
+ * @ref test_slider_c.
+ *
+ */
+
+ /**
+ * @page test_slider_c test_slider.c
+ *
+ * @section ephysics-test-h ephysics_test.h
+ * @include ephysics_test.h
+ *
+ * @section test-slider-c test_slider.c
+ * @dontinclude test.c
+ *
+ * @skip test_clean
+ * @until }
+ *
+ * @skip test_data_new
+ * @until }
+ *
+ * @skip test_win_add
+ * @until }
+ *
+ * @include test_slider.c
+ *
+ * @example test_slider.c
+ */

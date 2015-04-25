@@ -1,0 +1,264 @@
+
+### Library
+
+ecore_eolian_files_legacy = \
+	lib/ecore/ecore_timer.eo \
+	lib/ecore/ecore_poller.eo \
+	lib/ecore/ecore_job.eo \
+	lib/ecore/ecore_exe.eo \
+	lib/ecore/ecore_idler.eo \
+	lib/ecore/ecore_idle_enterer.eo \
+	lib/ecore/ecore_idle_exiter.eo \
+	lib/ecore/ecore_animator.eo
+
+ecore_eolian_files = \
+	$(ecore_eolian_files_legacy) \
+	lib/ecore/ecore_mainloop.eo \
+	lib/ecore/ecore_parent.eo
+
+ecore_eolian_c = $(ecore_eolian_files:%.eo=%.eo.c)
+ecore_eolian_h = $(ecore_eolian_files:%.eo=%.eo.h) \
+                 $(ecore_eolian_files_legacy:%.eo=%.eo.legacy.h)
+
+BUILT_SOURCES += \
+                 $(ecore_eolian_c) \
+                 $(ecore_eolian_h)
+
+CLEANFILES += \
+              $(ecore_eolian_c) \
+              $(ecore_eolian_h)
+
+ecoreeolianfilesdir = $(datadir)/eolian/include/ecore-@VMAJ@
+ecoreeolianfiles_DATA = $(ecore_eolian_files)
+
+EXTRA_DIST += \
+              ${ecoreeolianfiles_DATA}
+
+lib_LTLIBRARIES += lib/ecore/libecore.la
+
+installed_ecoremainheadersdir = $(includedir)/ecore-@VMAJ@
+dist_installed_ecoremainheaders_DATA = \
+lib/ecore/Ecore.h \
+lib/ecore/Ecore_Common.h \
+lib/ecore/Ecore_Legacy.h \
+lib/ecore/Ecore_Eo.h \
+lib/ecore/Ecore_Getopt.h
+
+nodist_installed_ecoremainheaders_DATA = \
+                                         $(ecore_eolian_h)
+
+lib_ecore_libecore_la_SOURCES = \
+lib/ecore/ecore.c \
+lib/ecore/ecore_alloc.c \
+lib/ecore/ecore_anim.c \
+lib/ecore/ecore_app.c \
+lib/ecore/ecore_events.c \
+lib/ecore/ecore_getopt.c \
+lib/ecore/ecore_glib.c \
+lib/ecore/ecore_idle_enterer.c \
+lib/ecore/ecore_idle_exiter.c \
+lib/ecore/ecore_idler.c \
+lib/ecore/ecore_job.c \
+lib/ecore/ecore_main.c \
+lib/ecore/ecore_pipe.c \
+lib/ecore/ecore_poller.c \
+lib/ecore/ecore_time.c \
+lib/ecore/ecore_timer.c \
+lib/ecore/ecore_thread.c \
+lib/ecore/ecore_throttle.c \
+lib/ecore/ecore_exe.c \
+lib/ecore/ecore_exe_private.h \
+lib/ecore/ecore_private.h
+
+if HAVE_WIN32
+lib_ecore_libecore_la_SOURCES += lib/ecore/ecore_exe_win32.c
+else
+EXTRA_DIST += lib/ecore/ecore_exe_ps3.c
+#if ECORE_HAVE_PS3
+#libecore_la_SOURCES += ecore_exe_ps3.c
+#else
+#if ECORE_HAVE_EXOTIC
+#libecore_la_SOURCES +=
+#else
+lib_ecore_libecore_la_SOURCES += lib/ecore/ecore_signal.c lib/ecore/ecore_exe_posix.c
+#endif
+#endif
+endif
+
+lib_ecore_libecore_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
+-DPACKAGE_BIN_DIR=\"$(bindir)\" \
+-DPACKAGE_LIB_DIR=\"$(libdir)\" \
+-DPACKAGE_DATA_DIR=\"$(datadir)/ecore\" \
+-DPACKAGE_BUILD_DIR=\"$(abs_top_builddir)\" \
+@ECORE_CFLAGS@
+lib_ecore_libecore_la_LIBADD = @ECORE_LIBS@ @EVIL_LIBS@
+lib_ecore_libecore_la_DEPENDENCIES = @ECORE_INTERNAL_LIBS@
+lib_ecore_libecore_la_LDFLAGS = @EFL_LTLIBRARY_FLAGS@
+
+
+### Modules
+
+# systemd
+
+if WANT_SYSTEMD
+ecoresystemdpkgdir = $(libdir)/ecore/system/systemd/$(MODULE_ARCH)
+ecoresystemdpkg_LTLIBRARIES = modules/ecore/system/systemd/module.la
+modules_ecore_system_systemd_module_la_SOURCES = \
+modules/ecore/system/systemd/ecore_system_systemd.c
+modules_ecore_system_systemd_module_la_CPPFLAGS = \
+-I$(top_builddir)/src/lib/efl \
+@ECORE_CFLAGS@ \
+@ELDBUS_CFLAGS@
+modules_ecore_system_systemd_module_la_LIBADD = \
+@USE_ECORE_LIBS@ \
+@USE_ELDBUS_LIBS@
+modules_ecore_system_systemd_module_la_DEPENDENCIES = \
+@USE_ECORE_INTERNAL_LIBS@ \
+@USE_ELDBUS_INTERNAL_LIBS@
+modules_ecore_system_systemd_module_la_LDFLAGS = -module @EFL_LTMODULE_FLAGS@
+modules_ecore_system_systemd_module_la_LIBTOOLFLAGS = --tag=disable-static
+endif
+
+# upower
+if ! HAVE_WIN32
+ecoreupowerpkgdir = $(libdir)/ecore/system/upower/$(MODULE_ARCH)
+ecoreupowerpkg_LTLIBRARIES = modules/ecore/system/upower/module.la
+modules_ecore_system_upower_module_la_SOURCES = \
+modules/ecore/system/upower/ecore_system_upower.c
+modules_ecore_system_upower_module_la_CPPFLAGS = \
+-I$(top_builddir)/src/lib/efl \
+@ECORE_CFLAGS@ \
+@ELDBUS_CFLAGS@
+modules_ecore_system_upower_module_la_LIBADD = \
+@USE_ECORE_LIBS@ \
+@USE_ELDBUS_LIBS@
+modules_ecore_system_upower_module_la_DEPENDENCIES = \
+@USE_ECORE_INTERNAL_LIBS@ \
+@USE_ELDBUS_INTERNAL_LIBS@
+modules_ecore_system_upower_module_la_LDFLAGS = -module @EFL_LTMODULE_FLAGS@
+modules_ecore_system_upower_module_la_LIBTOOLFLAGS = --tag=disable-static
+endif
+
+# tizen
+
+if HAVE_TIZEN_CONFIGURATION_MANAGER
+ecoretizenpkgdir = $(libdir)/ecore/system/tizen/$(MODULE_ARCH)
+ecoretizenpkg_LTLIBRARIES = modules/ecore/system/tizen/module.la
+modules_ecore_system_tizen_module_la_SOURCES = \
+modules/ecore/system/tizen/ecore_system_tizen.c
+modules_ecore_system_tizen_module_la_CPPFLAGS = \
+-I$(top_builddir)/src/lib/efl \
+@ECORE_CFLAGS@ \
+@TIZEN_CONFIGURATION_MANAGER_CFLAGS@
+modules_ecore_system_tizen_module_la_LIBADD = \
+@USE_ECORE_LIBS@ \
+@TIZEN_CONFIGURATION_MANAGER_LIBS@
+modules_ecore_system_tizen_module_la_DEPENDENCIES = \
+@USE_ECORE_INTERNAL_LIBS@
+modules_ecore_system_tizen_module_la_LDFLAGS = -module @EFL_LTMODULE_FLAGS@
+modules_ecore_system_tizen_module_la_LIBTOOLFLAGS = --tag=disable-static
+endif
+
+### Unit tests
+
+if EFL_ENABLE_TESTS
+
+check_PROGRAMS += tests/ecore/ecore_suite
+TESTS += tests/ecore/ecore_suite
+
+tests_ecore_ecore_suite_SOURCES = \
+tests/ecore/ecore_suite.c \
+tests/ecore/ecore_test_ecore.c \
+tests/ecore/ecore_test_ecore_con.c \
+tests/ecore/ecore_test_ecore_con_url.c \
+tests/ecore/ecore_test_ecore_imf.c \
+tests/ecore/ecore_test_timer.c \
+tests/ecore/ecore_test_ecore_evas.c \
+tests/ecore/ecore_test_animator.c \
+tests/ecore/ecore_test_ecore_thread_eina_thread_queue.c \
+tests/ecore/ecore_test_ecore_input.c \
+tests/ecore/ecore_test_ecore_file.c \
+tests/ecore/ecore_suite.h
+
+if HAVE_ECORE_X
+tests_ecore_ecore_suite_SOURCES += tests/ecore/ecore_test_ecore_x.c
+endif
+
+tests_ecore_ecore_suite_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
+-DTESTS_SRC_DIR=\"$(top_srcdir)/src/tests/ecore\" \
+-DTESTS_BUILD_DIR=\"$(top_builddir)/src/tests/ecore\" \
+@CHECK_CFLAGS@ \
+@ECORE_CFLAGS@ \
+@ECORE_AUDIO_CFLAGS@ \
+@ECORE_CON_CFLAGS@ \
+@ECORE_FILE_CFLAGS@ \
+@ECORE_X_CFLAGS@ \
+@ECORE_IMF_CFLAGS@ \
+@ECORE_EVAS_CFLAGS@ \
+@ECORE_WAYLAND_CFLAGS@ \
+@ECORE_WAYLAND_SRV_CFLAGS@ \
+@ECORE_DRM_CFLAGS@ \
+@ECORE_FB_CFLAGS@ \
+@ECORE_INPUT_CFLAGS@
+
+tests_ecore_ecore_suite_LDADD = \
+@CHECK_LIBS@ \
+@USE_ECORE_LIBS@ \
+@USE_ECORE_AUDIO_LIBS@ \
+@USE_ECORE_CON_LIBS@ \
+@USE_ECORE_FILE_LIBS@ \
+@USE_ECORE_X_LIBS@ \
+@USE_ECORE_IMF_LIBS@ \
+@USE_ECORE_EVAS_LIBS@ \
+@USE_ECORE_WAYLAND_LIBS@ \
+@USE_ECORE_FB_LIBS@ \
+@ECORE_WAYLAND_SRV_LIBS@ \
+@ECORE_DRM_LIBS@ \
+@USE_ECORE_INPUT_LIBS@
+tests_ecore_ecore_suite_DEPENDENCIES = \
+@USE_ECORE_INTERNAL_LIBS@ \
+@USE_ECORE_AUDIO_INTERNAL_LIBS@ \
+@USE_ECORE_CON_INTERNAL_LIBS@ \
+@USE_ECORE_FILE_INTERNAL_LIBS@ \
+@USE_ECORE_X_INTERNAL_LIBS@ \
+@USE_ECORE_IMF_INTERNAL_LIBS@ \
+@USE_ECORE_EVAS_INTERNAL_LIBS@ \
+@USE_ECORE_WAYLAND_INTERNAL_LIBS@ \
+@USE_ECORE_DRM_INTERNAL_LIBS@ \
+@USE_ECORE_FB_INTERNAL_LIBS@ \
+@USE_ECORE_INPUT_INTERNAL_LIBS@
+
+if HAVE_ECORE_AUDIO
+tests_ecore_ecore_suite_SOURCES += tests/ecore/ecore_test_ecore_audio.c
+endif
+
+if HAVE_ECORE_WAYLAND
+tests_ecore_ecore_suite_SOURCES += tests/ecore/ecore_test_ecore_wayland.c
+endif
+
+if HAVE_ECORE_DRM
+tests_ecore_ecore_suite_SOURCES += tests/ecore/ecore_test_ecore_drm.c
+endif
+
+if HAVE_ECORE_FB
+tests_ecore_ecore_suite_SOURCES += tests/ecore/ecore_test_ecore_fb.c
+endif
+
+endif
+
+EXTRA_DIST += \
+tests/ecore/modem.wav \
+tests/ecore/sms.ogg
+
+if HAVE_ELUA
+
+ecore_eolian_lua = $(ecore_eolian_files:%.eo=%.eo.lua)
+
+generated_ecore_lua_all = $(ecore_eolian_lua)
+
+CLEANFILES += $(generated_ecore_lua_all)
+
+installed_ecoreluadir = $(datadir)/elua/modules/ecore
+nodist_installed_ecorelua_DATA = $(generated_ecore_lua_all)
+
+endif

@@ -1,0 +1,30 @@
+class ColourableSquare (Colourable)
+{
+    legacy_prefix: legacy;
+    data: ColourableSquare_Data;
+    properties {
+        size {
+            set {
+                /*@ Sets size. */
+            }
+            get {
+                /*@ Gets size. */
+            }
+            values {
+                int size; /*@ The size. */
+            }
+        }
+    }
+    methods {
+      size_constructor {
+           legacy: null;
+           params {
+              @in int size;
+           }
+       }
+        size_print { /*@ Show the square. */ }
+    }
+    constructors {
+        .size_constructor;
+    }
+}

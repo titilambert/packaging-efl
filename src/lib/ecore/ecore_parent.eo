@@ -1,0 +1,4 @@
+class Ecore.Parent (Eo.Base)
+{
+   data: null;
+}

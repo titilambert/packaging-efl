@@ -1,0 +1,2 @@
+src/lib/ecore/ecore_getopt.c
+src/lib/efreet/efreet_base.c

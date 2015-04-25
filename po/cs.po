@@ -1,0 +1,243 @@
+# Czech translation for Efl.
+# Copyright (C) 2012 Enlightenment development team
+# This file is put in the public domain.
+#
+# quaker66@gmail.com
+# Vít Pelčák <vit@pelcak.org>, 2011.
+# Tomáš Čech <sleep_walker@suse.cz>, 2012.
+msgid ""
+msgstr ""
+"Project-Id-Version: Efl\n"
+"Report-Msgid-Bugs-To: enlightenment-devel@lists.sourceforge.net\n"
+"POT-Creation-Date: 2015-04-01 16:41+0200\n"
+"PO-Revision-Date: 2014-05-22 21:29+0200\n"
+"Last-Translator: Tomáš Čech <sleep_walker@suse.cz>\n"
+"Language-Team: Czech <kde-i18n-doc@kde.org>\n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+"X-Generator: Lokalize 1.4\n"
+
+#: src/lib/ecore/ecore_getopt.c:89
+msgid "Version:"
+msgstr "Verze:"
+
+#: src/lib/ecore/ecore_getopt.c:98
+msgid "Usage:"
+msgstr "Použití:"
+
+#: src/lib/ecore/ecore_getopt.c:105
+#, fuzzy, c-format
+msgid "%s [options]"
+msgstr "%s [volby]\n"
+
+#: src/lib/ecore/ecore_getopt.c:305
+msgid "Copyright:"
+msgstr "Copyright:"
+
+#: src/lib/ecore/ecore_getopt.c:317
+msgid "License:"
+msgstr "Licence:"
+
+#: src/lib/ecore/ecore_getopt.c:503
+msgid "Type: "
+msgstr "Typ: "
+
+#: src/lib/ecore/ecore_getopt.c:579
+msgid "Default: "
+msgstr "Výchozí: "
+
+#: src/lib/ecore/ecore_getopt.c:606
+msgid "Choices: "
+msgstr "Možnosti: "
+
+#: src/lib/ecore/ecore_getopt.c:644 src/lib/ecore/ecore_getopt.c:645
+msgid "No categories available."
+msgstr ""
+
+#: src/lib/ecore/ecore_getopt.c:649
+#, fuzzy
+msgid "Categories: "
+msgstr "Možnosti: "
+
+#: src/lib/ecore/ecore_getopt.c:771
+msgid "Options:\n"
+msgstr "Volby:\n"
+
+#: src/lib/ecore/ecore_getopt.c:780
+msgid "Positional arguments:\n"
+msgstr ""
+
+#: src/lib/ecore/ecore_getopt.c:847
+#, fuzzy, c-format
+msgid "ERROR: unknown category '%s'.\n"
+msgstr "CHYBA: neznámá volba --%s.\n"
+
+#: src/lib/ecore/ecore_getopt.c:951
+#, c-format
+msgid "ERROR: unknown option --%s.\n"
+msgstr "CHYBA: neznámá volba --%s.\n"
+
+#: src/lib/ecore/ecore_getopt.c:953
+#, c-format
+msgid "ERROR: unknown option -%c.\n"
+msgstr "CHYBA: neznámá volba -%c.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1016
+msgid "ERROR: "
+msgstr "CHYBA: "
+
+#: src/lib/ecore/ecore_getopt.c:1112 src/lib/ecore/ecore_getopt.c:1249
+#: src/lib/ecore/ecore_getopt.c:1265 src/lib/ecore/ecore_getopt.c:1280
+#: src/lib/ecore/ecore_getopt.c:1300 src/lib/ecore/ecore_getopt.c:1347
+#: src/lib/ecore/ecore_getopt.c:1467 src/lib/ecore/ecore_getopt.c:1508
+msgid "value has no pointer set.\n"
+msgstr "hodnota nemá nastaven pointer.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1144 src/lib/ecore/ecore_getopt.c:1367
+#, c-format
+msgid "unknown boolean value %s.\n"
+msgstr "neznámá boolean hodnota %s.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1195 src/lib/ecore/ecore_getopt.c:1455
+#, c-format
+msgid "invalid number format %s\n"
+msgstr "neznámý číselný formát %s\n"
+
+#: src/lib/ecore/ecore_getopt.c:1313
+#, c-format
+msgid "invalid choice \"%s\". Valid values are: "
+msgstr "neznámá volba \"%s\". Možné hodnoty jsou: "
+
+#: src/lib/ecore/ecore_getopt.c:1341
+msgid "missing parameter to append.\n"
+msgstr "chybí parametr k připojení.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1445
+msgid "could not parse value.\n"
+msgstr "nemohu analyzovat hodnotu.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1502
+msgid "missing parameter.\n"
+msgstr "chybí parametr.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1515
+msgid "missing callback function!\n"
+msgstr "chybí callback funkce!\n"
+
+#: src/lib/ecore/ecore_getopt.c:1546
+msgid "no version was defined.\n"
+msgstr "nebyla definována verze.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1563
+msgid "no copyright was defined.\n"
+msgstr "nebyl definován copyright.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1580
+msgid "no license was defined.\n"
+msgstr "nebyla definována licence.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1670
+#, c-format
+msgid "ERROR: unknown option --%s, ignored.\n"
+msgstr "CHYBA: neznámá volba --%s, ignoruji.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1703
+#, c-format
+msgid "ERROR: option --%s requires an argument!\n"
+msgstr "CHYBA: volba --%s vyžaduje argument!\n"
+
+#: src/lib/ecore/ecore_getopt.c:1745
+#, c-format
+msgid "ERROR: unknown option -%c, ignored.\n"
+msgstr "CHYBA: neznámá volba -%c, ignoruji.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1783
+#, c-format
+msgid "ERROR: option -%c requires an argument!\n"
+msgstr "CHYBA: volba -%c vyžaduje argument!\n"
+
+#: src/lib/ecore/ecore_getopt.c:1878
+#, fuzzy, c-format
+msgid "ERROR: missing required positional argument %s.\n"
+msgstr "CHYBA: volba -%c vyžaduje argument!\n"
+
+#: src/lib/ecore/ecore_getopt.c:1910
+#, c-format
+msgid "ERROR: unsupported action type %d for positional argument %s\n"
+msgstr ""
+
+#: src/lib/ecore/ecore_getopt.c:2031 src/lib/ecore/ecore_getopt.c:2097
+msgid "ERROR: no parser provided.\n"
+msgstr "CHYBA: nebyl poskytnut parser.\n"
+
+#: src/lib/ecore/ecore_getopt.c:2036 src/lib/ecore/ecore_getopt.c:2102
+msgid "ERROR: no values provided.\n"
+msgstr "CHYBA: nebyly poskytnuty hodnoty.\n"
+
+#: src/lib/ecore/ecore_getopt.c:2045 src/lib/ecore/ecore_getopt.c:2111
+msgid "ERROR: no arguments provided.\n"
+msgstr "CHYBA: nebyly poskytnuty argumenty.\n"
+
+#: src/lib/ecore/ecore_getopt.c:2071
+msgid "ERROR: invalid options found."
+msgstr "CHYBA: nalezeny neplatné volby."
+
+#: src/lib/ecore/ecore_getopt.c:2077 src/lib/ecore/ecore_getopt.c:2143
+#, c-format
+msgid " See --%s.\n"
+msgstr " Viz --%s.\n"
+
+#: src/lib/ecore/ecore_getopt.c:2079 src/lib/ecore/ecore_getopt.c:2145
+#, c-format
+msgid " See -%c.\n"
+msgstr " Viz -%c.\n"
+
+#: src/lib/ecore/ecore_getopt.c:2137
+#, fuzzy
+msgid "ERROR: invalid positional arguments found."
+msgstr "CHYBA: nalezeny neplatné volby."
+
+#: src/lib/ecore/ecore_getopt.c:2172
+#, c-format
+msgid "ERROR: incorrect geometry value '%s'\n"
+msgstr "CHYBA: neplatná hodnota geometrie '%s'\n"
+
+#: src/lib/ecore/ecore_getopt.c:2190
+#, c-format
+msgid "ERROR: incorrect size value '%s'\n"
+msgstr "CHYBA: neplatná hodnota velikosti '%s'\n"
+
+#: src/lib/efreet/efreet_base.c:123
+msgid "Desktop"
+msgstr "Plocha"
+
+#: src/lib/efreet/efreet_base.c:131
+msgid "Downloads"
+msgstr "Stažené"
+
+#: src/lib/efreet/efreet_base.c:140
+msgid "Templates"
+msgstr "Šablony"
+
+#: src/lib/efreet/efreet_base.c:149
+msgid "Public"
+msgstr "Veřejné"
+
+#: src/lib/efreet/efreet_base.c:158
+msgid "Documents"
+msgstr "Dokumenty"
+
+#: src/lib/efreet/efreet_base.c:166
+msgid "Music"
+msgstr "Hudba"
+
+#: src/lib/efreet/efreet_base.c:174
+msgid "Pictures"
+msgstr "Obrázky"
+
+#: src/lib/efreet/efreet_base.c:182
+msgid "Videos"
+msgstr "Videa"

@@ -1,0 +1,1297 @@
+/* config.h.in.  Generated from configure.ac by autoheader.  */
+
+
+#ifndef EFL_CONFIG_H__
+#define EFL_CONFIG_H__
+
+
+/* Define if building universal (internal helper macro) */
+#undef AC_APPLE_UNIVERSAL_BUILD
+
+/* Build Altivec Code */
+#undef BUILD_ALTIVEC
+
+/* Use biggest dither mask while converting in Evas */
+#undef BUILD_BIG_DITHER_MASK
+
+/* Support for drm Engine in Ecore_Evas */
+#undef BUILD_ECORE_EVAS_DRM
+
+/* Support for ews Engine in Ecore_Evas */
+#undef BUILD_ECORE_EVAS_EWS
+
+/* Support for extn Engine in Ecore_Evas */
+#undef BUILD_ECORE_EVAS_EXTN
+
+/* Support for fb Engine in Ecore_Evas */
+#undef BUILD_ECORE_EVAS_FB
+
+/* Support for gl-drm Engine in Ecore_Evas */
+#undef BUILD_ECORE_EVAS_GL_DRM
+
+/* Support for opengl-cocoa Engine in Ecore_Evas */
+#undef BUILD_ECORE_EVAS_OPENGL_COCOA
+
+/* Support for opengl-sdl Engine in Ecore_Evas */
+#undef BUILD_ECORE_EVAS_OPENGL_SDL
+
+/* Support for opengl-x11 Engine in Ecore_Evas */
+#undef BUILD_ECORE_EVAS_OPENGL_X11
+
+/* OpenGL XCB rendering backend */
+#undef BUILD_ECORE_EVAS_OPENGL_XCB
+
+/* OpenGL Xlib rendering backend */
+#undef BUILD_ECORE_EVAS_OPENGL_XLIB
+
+/* Support for psl1ght Engine in Ecore_Evas */
+#undef BUILD_ECORE_EVAS_PSL1GHT
+
+/* Support for SDL Engine in Ecore_Evas */
+#undef BUILD_ECORE_EVAS_SDL
+
+/* Support for software-ddraw Engine in Ecore_Evas */
+#undef BUILD_ECORE_EVAS_SOFTWARE_DDRAW
+
+/* Support for software-gdi Engine in Ecore_Evas */
+#undef BUILD_ECORE_EVAS_SOFTWARE_GDI
+
+/* Support for software-sdl Engine in Ecore_Evas */
+#undef BUILD_ECORE_EVAS_SOFTWARE_SDL
+
+/* Support for software-x11 Engine in Ecore_Evas */
+#undef BUILD_ECORE_EVAS_SOFTWARE_X11
+
+/* Evas Software XCB Engine Support */
+#undef BUILD_ECORE_EVAS_SOFTWARE_XCB
+
+/* Evas Software Xlib Engine Support */
+#undef BUILD_ECORE_EVAS_SOFTWARE_XLIB
+
+/* Support for Wayland Engine in Ecore_Evas */
+#undef BUILD_ECORE_EVAS_WAYLAND
+
+/* Support for wayland-egl Engine in Ecore_Evas */
+#undef BUILD_ECORE_EVAS_WAYLAND_EGL
+
+/* Support for wayland-shm Engine in Ecore_Evas */
+#undef BUILD_ECORE_EVAS_WAYLAND_SHM
+
+/* Support for Win32 Engine in Ecore_Evas */
+#undef BUILD_ECORE_EVAS_WIN32
+
+/* Support for X Window Engines in Ecore_Evas */
+#undef BUILD_ECORE_EVAS_X11
+
+/* Ecore Imf IBUS Support */
+#undef BUILD_ECORE_IMF_IBUS
+
+/* Ecore Imf SCIM Support */
+#undef BUILD_ECORE_IMF_SCIM
+
+/* Ecore Imf Wayland Support */
+#undef BUILD_ECORE_IMF_WAYLAND
+
+/* Build support for XCB-based OpenGL */
+#undef BUILD_ECORE_X_OPENGL_XCB
+
+/* Use Fixed Point instead of FPU */
+#undef BUILD_EDJE_FP
+
+/* Build buffer Evas engine */
+#undef BUILD_ENGINE_BUFFER
+
+/* Drm rendering backend */
+#undef BUILD_ENGINE_DRM
+
+/* Build fb Evas engine */
+#undef BUILD_ENGINE_FB
+
+/* OpenGL Cocoa rendering backend */
+#undef BUILD_ENGINE_GL_COCOA
+
+/* Generic OpenGL Rendering Support */
+#undef BUILD_ENGINE_GL_COMMON
+
+/* OpenGL Drm rendering backend */
+#undef BUILD_ENGINE_GL_DRM
+
+/* OpenGL SDL rendering backend */
+#undef BUILD_ENGINE_GL_SDL
+
+/* Build OpenGL X11 engine */
+#undef BUILD_ENGINE_GL_X11
+
+/* OpenGL XCB rendering backend */
+#undef BUILD_ENGINE_GL_XCB
+
+/* OpenGL XLib rendering backend */
+#undef BUILD_ENGINE_GL_XLIB
+
+/* Build psl1ght Evas engine */
+#undef BUILD_ENGINE_PSL1GHT
+
+/* Software DirectDraw rendering backend */
+#undef BUILD_ENGINE_SOFTWARE_DDRAW
+
+/* Software GDI rendering backend */
+#undef BUILD_ENGINE_SOFTWARE_GDI
+
+/* Build software X11 engine */
+#undef BUILD_ENGINE_SOFTWARE_X11
+
+/* Software XCB rendering backend */
+#undef BUILD_ENGINE_SOFTWARE_XCB
+
+/* Software Xlib rendering backend */
+#undef BUILD_ENGINE_SOFTWARE_XLIB
+
+/* Wayland Egl rendering backend */
+#undef BUILD_ENGINE_WAYLAND_EGL
+
+/* Wayland Shm rendering backend */
+#undef BUILD_ENGINE_WAYLAND_SHM
+
+/* Use simpler line-only dither mask while converting in Evas */
+#undef BUILD_LINE_DITHER_MASK
+
+/* UP Image Loader Support */
+#undef BUILD_LOADER_BMP
+
+/* UP Image Loader Support */
+#undef BUILD_LOADER_DDS
+
+/* UP Image Loader Support */
+#undef BUILD_LOADER_EET
+
+/* UP Image Loader Support */
+#undef BUILD_LOADER_GENERIC
+
+/* UP Image Loader Support */
+#undef BUILD_LOADER_GIF
+
+/* UP Image Loader Support */
+#undef BUILD_LOADER_ICO
+
+/* UP Image Loader Support */
+#undef BUILD_LOADER_JP2K
+
+/* UP Image Loader Support */
+#undef BUILD_LOADER_JPEG
+
+/* JPEG Region Decode Support */
+#undef BUILD_LOADER_JPEG_REGION
+
+/* UP Image Loader Support */
+#undef BUILD_LOADER_PMAPS
+
+/* UP Image Loader Support */
+#undef BUILD_LOADER_PNG
+
+/* UP Image Loader Support */
+#undef BUILD_LOADER_PSD
+
+/* UP Image Loader Support */
+#undef BUILD_LOADER_TGA
+
+/* UP Image Loader Support */
+#undef BUILD_LOADER_TGV
+
+/* UP Image Loader Support */
+#undef BUILD_LOADER_TIFF
+
+/* UP Image Loader Support */
+#undef BUILD_LOADER_WBMP
+
+/* UP Image Loader Support */
+#undef BUILD_LOADER_WEBP
+
+/* UP Image Loader Support */
+#undef BUILD_LOADER_XPM
+
+/* Build MMX Code */
+#undef BUILD_MMX
+
+/* Build NEON Code */
+#undef BUILD_NEON
+
+/* Do not use dither masks while converting in Evas */
+#undef BUILD_NO_DITHER_MASK
+
+/* Use smaller dither mask while converting in Evas */
+#undef BUILD_SMALL_DITHER_MASK
+
+/* Build SSE3 Code */
+#undef BUILD_SSE3
+
+/* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
+   systems. This function is required for `alloca.c' support on those systems.
+   */
+#undef CRAY_STACKSEG_END
+
+/* Define to 1 if using `alloca.c'. */
+#undef C_ALLOCA
+
+/* Build support for XCB composite */
+#undef ECORE_XCB_COMPOSITE
+
+/* Build support for XCB cursor */
+#undef ECORE_XCB_CURSOR
+
+/* Build support for XCB damage */
+#undef ECORE_XCB_DAMAGE
+
+/* Build support for XCB dpms */
+#undef ECORE_XCB_DPMS
+
+/* Build support for XCB randr */
+#undef ECORE_XCB_RANDR
+
+/* Build support for XCB render */
+#undef ECORE_XCB_RENDER
+
+/* Build support for XCB screensaver */
+#undef ECORE_XCB_SCREENSAVER
+
+/* Build support for XCB shape */
+#undef ECORE_XCB_SHAPE
+
+/* Build support for XCB sync */
+#undef ECORE_XCB_SYNC
+
+/* Build support for XCB xfixes */
+#undef ECORE_XCB_XFIXES
+
+/* Build support for XCB xgesture */
+#undef ECORE_XCB_XGESTURE
+
+/* Build support for XCB xinerama */
+#undef ECORE_XCB_XINERAMA
+
+/* Build support for XCB Present */
+#undef ECORE_XCB_XPRESENT
+
+/* Build support for XCB xprint */
+#undef ECORE_XCB_XPRINT
+
+/* Build support for XCB xtest */
+#undef ECORE_XCB_XTEST
+
+/* Build support for Xcomposite */
+#undef ECORE_XCOMPOSITE
+
+/* Build support for Xcursor */
+#undef ECORE_XCURSOR
+
+/* Build support for Xdamage */
+#undef ECORE_XDAMAGE
+
+/* Build support for Xdpms */
+#undef ECORE_XDPMS
+
+/* Build support for Xfixes */
+#undef ECORE_XFIXES
+
+/* Build support for Xgesture */
+#undef ECORE_XGESTURE
+
+/* Build support for Xi2 */
+#undef ECORE_XI2
+
+/* Build support for Xi2_2 */
+#undef ECORE_XI2_2
+
+/* Build support for Xinerama */
+#undef ECORE_XINERAMA
+
+/* Build support for Xkb */
+#undef ECORE_XKB
+
+/* Build support for Xpresent */
+#undef ECORE_XPRESENT
+
+/* Build support for Xprint */
+#undef ECORE_XPRINT
+
+/* Build support for Xrandr */
+#undef ECORE_XRANDR
+
+/* Build support for Xrender */
+#undef ECORE_XRENDER
+
+/* Build support for Xss */
+#undef ECORE_XSS
+
+/* Build support for Xtest */
+#undef ECORE_XTEST
+
+/* Cache result of calc glob matches */
+#undef EDJE_CALC_CACHE
+
+/* Cache result of program glob matches */
+#undef EDJE_PROGRAM_CACHE
+
+/* eject bin to use */
+#undef EEZE_EJECT_BIN
+
+/* mount bin to use */
+#undef EEZE_MOUNT_BIN
+
+/* umount bin to use */
+#undef EEZE_UNMOUNT_BIN
+
+/* Macro declaring a function to always be inlined. */
+#undef EFL_ALWAYS_INLINE
+
+/* Enable access to unstable EFL API that are still in beta */
+#undef EFL_BETA_API_SUPPORT
+
+/* Enable access to unstable EFL Eo API */
+#undef EFL_EO_API_SUPPORT
+
+/* Define to mention that OSX spinlocks are supported */
+#undef EFL_HAVE_OSX_SPINLOCK
+
+/* Define to mention that POSIX threads are supported */
+#undef EFL_HAVE_POSIX_THREADS
+
+/* Define to mention that POSIX threads spinlocks are supported */
+#undef EFL_HAVE_POSIX_THREADS_SPINLOCK
+
+/* Define to mention that POSIX or Win32 threads are supported */
+#undef EFL_HAVE_THREADS
+
+/* Define to mention that Win32 threads are supported */
+#undef EFL_HAVE_WIN32_THREADS
+
+/* Set to 1 if static is built */
+#undef EINA_BUILD_CHAINED_POOL
+
+/* Set to 1 if static is built */
+#undef EINA_BUILD_ONE_BIG
+
+/* Set to 1 if static is built */
+#undef EINA_BUILD_PASS_THROUGH
+
+/* Turn on Eina_Magic in Eina_Cow */
+#undef EINA_COW_MAGIC_ON
+
+/* Turn on debugging overhead in mempool */
+#undef EINA_DEBUG_MALLOC
+
+/* if set, logging is limited to this amount. */
+#undef EINA_LOG_LEVEL_MAXIMUM
+
+/* Set to 1 if static is statically built */
+#undef EINA_STATIC_BUILD_CHAINED_POOL
+
+/* Set to 1 if static is statically built */
+#undef EINA_STATIC_BUILD_ONE_BIG
+
+/* Set to 1 if static is statically built */
+#undef EINA_STATIC_BUILD_PASS_THROUGH
+
+/* Report Eina stringshare usage pattern */
+#undef EINA_STRINGSHARE_USAGE
+
+/* Build generic Evas engine */
+#undef EMOTION_BUILD_GENERIC
+
+/* Build gstreamer Evas engine */
+#undef EMOTION_BUILD_GSTREAMER
+
+/* Build gstreamer1 Evas engine */
+#undef EMOTION_BUILD_GSTREAMER1
+
+/* Build xine Evas engine */
+#undef EMOTION_BUILD_XINE
+
+/* Build generic Evas engine inside libevas */
+#undef EMOTION_STATIC_BUILD_GENERIC
+
+/* Build gstreamer Evas engine inside libevas */
+#undef EMOTION_STATIC_BUILD_GSTREAMER
+
+/* Build gstreamer1 Evas engine inside libevas */
+#undef EMOTION_STATIC_BUILD_GSTREAMER1
+
+/* Build xine Evas engine inside libevas */
+#undef EMOTION_STATIC_BUILD_XINE
+
+/* Use liblz4 external library instead of embedded copy */
+#undef ENABLE_LIBLZ4
+
+/* Use interpreted Lua (5.1 or 5.2) */
+#undef ENABLE_LUA_OLD
+
+/* Use Multisense */
+#undef ENABLE_MULTISENSE
+
+/* Define to 1 if translation of program messages to the user's native
+   language is requested. */
+#undef ENABLE_NLS
+
+/* Enable X Input Method */
+#undef ENABLE_XIM
+
+/* Shared cache server. */
+#undef EVAS_CSERVE2
+
+/* Build BMP image loader inside libevas */
+#undef EVAS_STATIC_BUILD_BMP
+
+/* Build buffer Evas engine inside libevas */
+#undef EVAS_STATIC_BUILD_BUFFER
+
+/* Build DDS image loader inside libevas */
+#undef EVAS_STATIC_BUILD_DDS
+
+/* Build drm engine inside libevas */
+#undef EVAS_STATIC_BUILD_DRM
+
+/* Build Eet image loader inside libevas */
+#undef EVAS_STATIC_BUILD_EET
+
+/* Build fb Evas engine inside libevas */
+#undef EVAS_STATIC_BUILD_FB
+
+/* Build Generic image loader inside libevas */
+#undef EVAS_STATIC_BUILD_GENERIC
+
+/* Build Gif image loader inside libevas */
+#undef EVAS_STATIC_BUILD_GIF
+
+/* Build gl-cocoa engine inside libevas */
+#undef EVAS_STATIC_BUILD_GL_COCOA
+
+/* Build GL generic engine as part of libevas */
+#undef EVAS_STATIC_BUILD_GL_COMMON
+
+/* Build gl-drm engine inside libevas */
+#undef EVAS_STATIC_BUILD_GL_DRM
+
+/* Build gl-sdl engine inside libevas */
+#undef EVAS_STATIC_BUILD_GL_SDL
+
+/* Build OpenGL X11 engine as part of libevas */
+#undef EVAS_STATIC_BUILD_GL_X11
+
+/* Build gl-xcb engine inside libevas */
+#undef EVAS_STATIC_BUILD_GL_XCB
+
+/* Build gl-xlib engine inside libevas */
+#undef EVAS_STATIC_BUILD_GL_XLIB
+
+/* Build ICO image loader inside libevas */
+#undef EVAS_STATIC_BUILD_ICO
+
+/* Build JP2K image loader inside libevas */
+#undef EVAS_STATIC_BUILD_JP2K
+
+/* Build JPEG image loader inside libevas */
+#undef EVAS_STATIC_BUILD_JPEG
+
+/* Build PMAPS image loader inside libevas */
+#undef EVAS_STATIC_BUILD_PMAPS
+
+/* Build PNG image loader inside libevas */
+#undef EVAS_STATIC_BUILD_PNG
+
+/* Build PSD image loader inside libevas */
+#undef EVAS_STATIC_BUILD_PSD
+
+/* Build psl1ght Evas engine inside libevas */
+#undef EVAS_STATIC_BUILD_PSL1GHT
+
+/* Build software-ddraw engine inside libevas */
+#undef EVAS_STATIC_BUILD_SOFTWARE_DDRAW
+
+/* Build software-gdi engine inside libevas */
+#undef EVAS_STATIC_BUILD_SOFTWARE_GDI
+
+/* Build software generic engine as part of libevas */
+#undef EVAS_STATIC_BUILD_SOFTWARE_GENERIC
+
+/* Build software X11 engine as part of libevas */
+#undef EVAS_STATIC_BUILD_SOFTWARE_X11
+
+/* Build software-xcb engine inside libevas */
+#undef EVAS_STATIC_BUILD_SOFTWARE_XCB
+
+/* Build software-xlib engine inside libevas */
+#undef EVAS_STATIC_BUILD_SOFTWARE_XLIB
+
+/* Build Tga image loader inside libevas */
+#undef EVAS_STATIC_BUILD_TGA
+
+/* Build TGV image loader inside libevas */
+#undef EVAS_STATIC_BUILD_TGV
+
+/* Build Tiff image loader inside libevas */
+#undef EVAS_STATIC_BUILD_TIFF
+
+/* Build wayland-egl engine inside libevas */
+#undef EVAS_STATIC_BUILD_WAYLAND_EGL
+
+/* Build wayland-shm engine inside libevas */
+#undef EVAS_STATIC_BUILD_WAYLAND_SHM
+
+/* Build WBMP image loader inside libevas */
+#undef EVAS_STATIC_BUILD_WBMP
+
+/* Build WEBP image loader inside libevas */
+#undef EVAS_STATIC_BUILD_WEBP
+
+/* Build XPM image loader inside libevas */
+#undef EVAS_STATIC_BUILD_XPM
+
+/* Imagination SGX GLES2 support */
+#undef GLES_VARIETY_SGX
+
+/* Always integrate glib if support compiled */
+#undef GLIB_INTEGRATION_ALWAYS
+
+/* GLSL runtime shader GLES2 support */
+#undef GL_GLES
+
+/* Have abstract sockets namespace */
+#undef HAVE_ABSTRACT_SOCKETS
+
+/* Define to 1 if you have `alloca', as a function or macro. */
+#undef HAVE_ALLOCA
+
+/* Define to 1 if you have <alloca.h> and it should be used (not on Ultrix).
+   */
+#undef HAVE_ALLOCA_H
+
+/* Have `alsa' pkg-config installed. */
+#undef HAVE_ALSA
+
+/* Have altivec.h header file */
+#undef HAVE_ALTIVEC_H
+
+/* Define to 1 if you have the <arpa/inet.h> header file. */
+#undef HAVE_ARPA_INET_H
+
+/* Use fstatat and other -at file functions */
+#undef HAVE_ATFILE_SOURCE
+
+/* Have `avahi' pkg-config installed. */
+#undef HAVE_AVAHI
+
+/* Define to 1 if you have the `backtrace' function. */
+#undef HAVE_BACKTRACE
+
+/* Define to 1 if you have the `backtrace_symbols' function. */
+#undef HAVE_BACKTRACE_SYMBOLS
+
+/* GCC builtin bswap16 exists */
+#undef HAVE_BSWAP16
+
+/* GCC builtin bswap32 exists */
+#undef HAVE_BSWAP32
+
+/* GCC builtin bswap64 exists */
+#undef HAVE_BSWAP64
+
+/* Have `bullet' pkg-config installed. */
+#undef HAVE_BULLET
+
+/* Have `cares' pkg-config installed. */
+#undef HAVE_CARES
+
+/* Define to 1 if you have the MacOS X function CFLocaleCopyCurrent in the
+   CoreFoundation framework. */
+#undef HAVE_CFLOCALECOPYCURRENT
+
+/* Define to 1 if you have the MacOS X function CFPreferencesCopyAppValue in
+   the CoreFoundation framework. */
+#undef HAVE_CFPREFERENCESCOPYAPPVALUE
+
+/* Have cipher support built in eet */
+#undef HAVE_CIPHER
+
+/* Have clock_gettime() */
+#undef HAVE_CLOCK_GETTIME
+
+/* define if the compiler supports basic C++11 syntax */
+#undef HAVE_CXX11
+
+/* Have `dbus' pkg-config installed. */
+#undef HAVE_DBUS
+
+/* Define if the GNU dcgettext() function is already present or preinstalled.
+   */
+#undef HAVE_DCGETTEXT
+
+/* Define to 1 if you have a valid <dirent.h> header file. */
+#undef HAVE_DIRENT_H
+
+/* Define to 1 if you have the `dirfd' function. */
+#undef HAVE_DIRFD
+
+/* Define to 1 if you have the `dladdr' function. */
+#undef HAVE_DLADDR
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
+/* Define to 1 if you have the `dlopen' function. */
+#undef HAVE_DLOPEN
+
+/* Define to 1 if you have the `dlsym' function. */
+#undef HAVE_DLSYM
+
+/* Have `drm' pkg-config installed. */
+#undef HAVE_DRM
+
+/* Enabled drm hardware accelerated rendering */
+#undef HAVE_DRM_HW_ACCEL
+
+/* optional EFL Ecore_Audio is enabled */
+#undef HAVE_ECORE_AUDIO
+
+/* optional EFL Ecore_Cocoa is enabled */
+#undef HAVE_ECORE_COCOA
+
+/* optional EFL Ecore_Drm is enabled */
+#undef HAVE_ECORE_DRM
+
+/* optional EFL Ecore_Evas is enabled */
+#undef HAVE_ECORE_EVAS
+
+/* optional EFL Ecore_FB is enabled */
+#undef HAVE_ECORE_FB
+
+/* Ecore IMF Support */
+#undef HAVE_ECORE_IMF
+
+/* optional EFL Ecore_Imf_Evas is enabled */
+#undef HAVE_ECORE_IMF_EVAS
+
+/* optional EFL Ecore_Input is enabled */
+#undef HAVE_ECORE_INPUT
+
+/* optional EFL Ecore_Input_Evas is enabled */
+#undef HAVE_ECORE_INPUT_EVAS
+
+/* optional EFL Ecore_Psl1ght is enabled */
+#undef HAVE_ECORE_PSL1GHT
+
+/* optional EFL Ecore_SDL is enabled */
+#undef HAVE_ECORE_SDL
+
+/* optional EFL Ecore_Wayland is enabled */
+#undef HAVE_ECORE_WAYLAND
+
+/* optional EFL Ecore_Win32 is enabled */
+#undef HAVE_ECORE_WIN32
+
+/* optional EFL Ecore_X is enabled */
+#undef HAVE_ECORE_X
+
+/* Have `ecore_xcb_gesture' pkg-config installed. */
+#undef HAVE_ECORE_XCB_GESTURE
+
+/* Have `ecore_xcb_xpresent' pkg-config installed. */
+#undef HAVE_ECORE_XCB_XPRESENT
+
+/* Have `ecore_x_xcb' pkg-config installed. */
+#undef HAVE_ECORE_X_XCB
+
+/* Defined to 1 if Xlib is enabled. */
+#undef HAVE_ECORE_X_XLIB
+
+/* optional EFL Edje is enabled */
+#undef HAVE_EDJE
+
+/* optional EFL Eeze is enabled */
+#undef HAVE_EEZE
+
+/* Have `eeze_mount' pkg-config installed. */
+#undef HAVE_EEZE_MOUNT
+
+/* Have eio library */
+#undef HAVE_EIO
+
+/* optional EFL Elua is enabled */
+#undef HAVE_ELUA
+
+/* optional EFL Emotion is enabled */
+#undef HAVE_EMOTION
+
+/* Have `emotion_module_gstreamer' pkg-config installed. */
+#undef HAVE_EMOTION_MODULE_GSTREAMER
+
+/* Have `emotion_module_gstreamer1' pkg-config installed. */
+#undef HAVE_EMOTION_MODULE_GSTREAMER1
+
+/* Have `emotion_module_xine' pkg-config installed. */
+#undef HAVE_EMOTION_MODULE_XINE
+
+/* Have eo id */
+#undef HAVE_EO_ID
+
+/* optional EFL EPhysics is enabled */
+#undef HAVE_EPHYSICS
+
+/* optional EFL Escape is enabled */
+#undef HAVE_ESCAPE
+
+/* optional EFL Ethumb is enabled */
+#undef HAVE_ETHUMB
+
+/* optional EFL Ethumb_Client is enabled */
+#undef HAVE_ETHUMB_CLIENT
+
+/* optional EFL Evas is enabled */
+#undef HAVE_EVAS
+
+/* optional EFL Evil is enabled */
+#undef HAVE_EVIL
+
+/* Define to 1 if you have the <execinfo.h> header file. */
+#undef HAVE_EXECINFO_H
+
+/* Define to 1 if you have the `execvp' function. */
+#undef HAVE_EXECVP
+
+/* Define to 1 if you have the `fchmod' function. */
+#undef HAVE_FCHMOD
+
+/* Define to 1 if you have the `fcntl' function. */
+#undef HAVE_FCNTL
+
+/* Define to 1 if you have the <features.h> header file. */
+#undef HAVE_FEATURES_H
+
+/* Define to 1 if you have the `fnmatch' function. */
+#undef HAVE_FNMATCH
+
+/* Have `fontconfig' pkg-config installed. */
+#undef HAVE_FONTCONFIG
+
+/* Define to 1 if you have the `fpathconf' function. */
+#undef HAVE_FPATHCONF
+
+/* Have `freetype' pkg-config installed. */
+#undef HAVE_FREETYPE
+
+/* Have `fribidi' pkg-config installed. */
+#undef HAVE_FRIBIDI
+
+/* Define to 1 if you have the `fstatat' function. */
+#undef HAVE_FSTATAT
+
+/* Define to 1 if your compiler supports __attribute__ ((vector)). */
+#undef HAVE_GCC_ATTRIBUTE_VECTOR
+
+/* Define to 1 if you have the `geteuid' function. */
+#undef HAVE_GETEUID
+
+/* Define to 1 if you have the `getpagesize' function. */
+#undef HAVE_GETPAGESIZE
+
+/* Define if the GNU gettext() function is already present or preinstalled. */
+#undef HAVE_GETTEXT
+
+/* Define to 1 if you have the `gettimeofday' function. */
+#undef HAVE_GETTIMEOFDAY
+
+/* Define to 1 if you have the `getuid' function. */
+#undef HAVE_GETUID
+
+/* Have `glib' pkg-config installed. */
+#undef HAVE_GLIB
+
+/* Have `gnutls' pkg-config installed. */
+#undef HAVE_GNUTLS
+
+/* have harfbuzz support */
+#undef HAVE_HARFBUZZ
+
+/* Define to 1 if you have the `iconv' function. */
+#undef HAVE_ICONV
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define if IPV6 is supported */
+#undef HAVE_IPV6
+
+/* Define to 1 if you have `isfinite', as a function or macro. */
+#undef HAVE_ISFINITE
+
+/* Define to 1 if you have the <langinfo.h> header file. */
+#undef HAVE_LANGINFO_H
+
+/* Have `libinput' pkg-config installed. */
+#undef HAVE_LIBINPUT
+
+/* Have `liblz4' pkg-config installed. */
+#undef HAVE_LIBLZ4
+
+/* Have local sockets support */
+#undef HAVE_LOCAL_SOCKETS
+
+/* GCC builtin lround exists */
+#undef HAVE_LROUND
+
+/* Have `lua' pkg-config installed. */
+#undef HAVE_LUA
+
+/* Have `luajit' pkg-config installed. */
+#undef HAVE_LUAJIT
+
+/* Define to 1 if you have the `mallinfo' function. */
+#undef HAVE_MALLINFO
+
+/* Define to 1 if you have the `malloc_info' function. */
+#undef HAVE_MALLOC_INFO
+
+/* Define to 1 if you have the `malloc_usable_size' function. */
+#undef HAVE_MALLOC_USABLE_SIZE
+
+/* Define to 1 if you have the <mcheck.h> header file. */
+#undef HAVE_MCHECK_H
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the `mkdirat' function. */
+#undef HAVE_MKDIRAT
+
+/* Define to 1 if you have a working `mmap' system call. */
+#undef HAVE_MMAP
+
+/* Define to 1 if you have the `mtrace' function. */
+#undef HAVE_MTRACE
+
+/* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
+#undef HAVE_NDIR_H
+
+/* Define to 1 if you have the <netdb.h> header file. */
+#undef HAVE_NETDB_H
+
+/* Define to 1 if you have the <netinet/in.h> header file. */
+#undef HAVE_NETINET_IN_H
+
+/* Define to 1 if you have the <netinet/tcp.h> header file. */
+#undef HAVE_NETINET_TCP_H
+
+/* Define to 1 if you have the <net/if.h> header file. */
+#undef HAVE_NET_IF_H
+
+/* File monitoring with Windows notification */
+#undef HAVE_NOTIFY_WIN32
+
+/* Have `openssl' pkg-config installed. */
+#undef HAVE_OPENSSL
+
+/* Define to 1 if you have the `pause' function. */
+#undef HAVE_PAUSE
+
+/* Have `pixman' pkg-config installed. */
+#undef HAVE_PIXMAN
+
+/* Define if the <pthread.h> defines PTHREAD_MUTEX_RECURSIVE. */
+#undef HAVE_PTHREAD_MUTEX_RECURSIVE
+
+/* Define if the POSIX multithreading library has read/write locks. */
+#undef HAVE_PTHREAD_RWLOCK
+
+/* Have `pulse' pkg-config installed. */
+#undef HAVE_PULSE
+
+/* Define to 1 if you have the `realpath' function. */
+#undef HAVE_REALPATH
+
+/* Have `sdl' pkg-config installed. */
+#undef HAVE_SDL
+
+/* SDL_OPENGLES flag is present */
+#undef HAVE_SDL_FLAG_OPENGLES
+
+/* SDL_GL version attributes present */
+#undef HAVE_SDL_GL_CONTEXT_VERSION
+
+/* Define to 1 if you have the `setxattr' function. */
+#undef HAVE_SETXATTR
+
+/* Define to 1 if you have the `shm_open' function. */
+#undef HAVE_SHM_OPEN
+
+/* Define to 1 if the system has the type `siginfo_t'. */
+#undef HAVE_SIGINFO_T
+
+/* Define to 1 if you have the `siglongjmp' function. */
+#undef HAVE_SIGLONGJMP
+
+/* Have signature support for eet file */
+#undef HAVE_SIGNATURE
+
+/* Have `sndfile' pkg-config installed. */
+#undef HAVE_SNDFILE
+
+/* Define to 1 if you have the `splice' function. */
+#undef HAVE_SPLICE
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the `strlcpy' function. */
+#undef HAVE_STRLCPY
+
+/* Define to 1 if the system has the type `struct ipv6_mreq'. */
+#undef HAVE_STRUCT_IPV6_MREQ
+
+/* Define to 1 if the system has the type `struct sigaction'. */
+#undef HAVE_STRUCT_SIGACTION
+
+/* Have `systemd' pkg-config installed. */
+#undef HAVE_SYSTEMD
+
+/* Have systemd-login */
+#undef HAVE_SYSTEMD_LOGIN
+
+/* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
+   */
+#undef HAVE_SYS_DIR_H
+
+/* Define to 1 if you have the <sys/epoll.h> header file. */
+#undef HAVE_SYS_EPOLL_H
+
+/* Define to 1 if you have the <sys/inotify.h> header file. */
+#undef HAVE_SYS_INOTIFY_H
+
+/* Define to 1 if you have the <sys/mman.h> header file. */
+#undef HAVE_SYS_MMAN_H
+
+/* Define to 1 if you have the <sys/ndir.h> header file, and it defines `DIR'.
+   */
+#undef HAVE_SYS_NDIR_H
+
+/* Define to 1 if you have the <sys/param.h> header file. */
+#undef HAVE_SYS_PARAM_H
+
+/* Define to 1 if you have the <sys/prctl.h> header file. */
+#undef HAVE_SYS_PRCTL_H
+
+/* Define to 1 if you have the <sys/resource.h> header file. */
+#undef HAVE_SYS_RESOURCE_H
+
+/* Define to 1 if you have the <sys/signalfd.h> header file. */
+#undef HAVE_SYS_SIGNALFD_H
+
+/* Define to 1 if you have the <sys/socket.h> header file. */
+#undef HAVE_SYS_SOCKET_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/timerfd.h> header file. */
+#undef HAVE_SYS_TIMERFD_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <sys/un.h> header file. */
+#undef HAVE_SYS_UN_H
+
+/* Define to 1 if you have the <sys/wait.h> header file. */
+#undef HAVE_SYS_WAIT_H
+
+/* Define to 1 if you have the `timerfd_create' function. */
+#undef HAVE_TIMERFD_CREATE
+
+/* Define to 1 if you have Tizen configuration manager(vconf). */
+#undef HAVE_TIZEN_CONFIGURATION_MANAGER
+
+/* Have `tslib' pkg-config installed. */
+#undef HAVE_TSLIB
+
+/* Have `udev' pkg-config installed. */
+#undef HAVE_UDEV
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define to 1 if you have Video4Linux 2 available */
+#undef HAVE_V4L2
+
+/* Valgrind support enabled */
+#undef HAVE_VALGRIND
+
+/* Have `wayland' pkg-config installed. */
+#undef HAVE_WAYLAND
+
+/* Define to 1 if you have the <winsock2.h> header file. */
+#undef HAVE_WINSOCK2_H
+
+/* Define to 1 if you have the <ws2tcpip.h> header file. */
+#undef HAVE_WS2TCPIP_H
+
+/* Define to 1 if you have the `listxattr', `setxattr' and `getxattr'
+   functions. */
+#undef HAVE_XATTR
+
+/* Build with Gstreamer Xoverlay support */
+#undef HAVE_XOVERLAY_H
+
+/* Use gst_x_overlay_set_window_handle instead of old deprecated
+   gst_x_overlay_set_xwindow_id */
+#undef HAVE_X_OVERLAY_SET
+
+/* libinput version >= 0.8 */
+#undef LIBINPUT_HIGHER_08
+
+/* Define to the sub-directory in which libtool stores uninstalled libraries.
+   */
+#undef LT_OBJDIR
+
+/* "Module architecture" */
+#undef MODULE_ARCH
+
+/* Define to 1 if you need <netdb.h> to define MAXHOSTNAMELEN */
+#undef NEED_NETDB_H
+
+/* Define to 1 if you need <sys/param.h> to define MAXHOSTNAMELEN */
+#undef NEED_SYS_PARAM_H
+
+/* Define to 1 if your C compiler doesn't accept -c and -o together. */
+#undef NO_MINUS_C_MINUS_O
+
+/* Valgrind support disabled */
+#undef NVALGRIND
+
+/* using first version of libmount */
+#undef OLD_LIBMOUNT
+
+/* using older version of libudev */
+#undef OLD_LIBUDEV
+
+/* Name of package */
+#undef PACKAGE
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* default value since PATH_MAX is not defined */
+#undef PATH_MAX
+
+/* Allow pixman to render fonts */
+#undef PIXMAN_FONT
+
+/* Allow pixman to render images */
+#undef PIXMAN_IMAGE
+
+/* Allow pixman to render image sampled scaling */
+#undef PIXMAN_IMAGE_SCALE_SAMPLE
+
+/* Allow pixman to render lines */
+#undef PIXMAN_LINE
+
+/* Allow pixman to render polys */
+#undef PIXMAN_POLY
+
+/* Allow pixman to render rects */
+#undef PIXMAN_RECT
+
+/* Define if the pthread_in_use() detection is hard. */
+#undef PTHREAD_IN_USE_DETECTION_HARD
+
+/* Suffix for shared objects */
+#undef SHARED_LIB_SUFFIX
+
+/* The size of `Eina_Unicode', as computed by sizeof. */
+#undef SIZEOF_EINA_UNICODE
+
+/* The size of `FriBidiChar', as computed by sizeof. */
+#undef SIZEOF_FRIBIDICHAR
+
+/* The size of `int', as computed by sizeof. */
+#undef SIZEOF_INT
+
+/* The size of `long', as computed by sizeof. */
+#undef SIZEOF_LONG
+
+/* The size of `uintptr_t', as computed by sizeof. */
+#undef SIZEOF_UINTPTR_T
+
+/* The size of `wchar_t', as computed by sizeof. */
+#undef SIZEOF_WCHAR_T
+
+/* Sloppy Spec Compliance */
+#undef SLOPPY_SPEC
+
+/* If using the C implementation of alloca, define if you know the
+   direction of stack growth for your system; otherwise it will be
+   automatically deduced at runtime.
+	STACK_DIRECTION > 0 => grows toward higher addresses
+	STACK_DIRECTION < 0 => grows toward lower addresses
+	STACK_DIRECTION = 0 => direction of growth unknown */
+#undef STACK_DIRECTION
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Enable tiled rotate algorithm */
+#undef TILE_ROTATE
+
+/* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
+#undef TIME_WITH_SYS_TIME
+
+/* Define to 1 if you have Windows Fiber support. */
+#undef USE_FIBER
+
+/* Use g_main_loop in ecore */
+#undef USE_G_MAIN_LOOP
+
+/* Ecore_Wayland IVI-Shell Support */
+#undef USE_IVI_SHELL
+
+/* Define if the POSIX multithreading library can be used. */
+#undef USE_POSIX_THREADS
+
+/* Define if references to the POSIX multithreading library should be made
+   weak. */
+#undef USE_POSIX_THREADS_WEAK
+
+/* Define if the GNU Pth multithreading library can be used. */
+#undef USE_PTH_THREADS
+
+/* Define if references to the GNU Pth multithreading library should be made
+   weak. */
+#undef USE_PTH_THREADS_WEAK
+
+/* Define to 1 if you have setjmp/longjmp functions. */
+#undef USE_SETJMP
+
+/* Define if the old Solaris multithreading library can be used. */
+#undef USE_SOLARIS_THREADS
+
+/* Define if references to the old Solaris multithreading library should be
+   made weak. */
+#undef USE_SOLARIS_THREADS_WEAK
+
+/* Enable extensions on AIX 3, Interix.  */
+#ifndef _ALL_SOURCE
+# undef _ALL_SOURCE
+#endif
+/* Enable GNU extensions on systems that have them.  */
+#ifndef _GNU_SOURCE
+# undef _GNU_SOURCE
+#endif
+/* Enable threading extensions on Solaris.  */
+#ifndef _POSIX_PTHREAD_SEMANTICS
+# undef _POSIX_PTHREAD_SEMANTICS
+#endif
+/* Enable extensions on HP NonStop.  */
+#ifndef _TANDEM_SOURCE
+# undef _TANDEM_SOURCE
+#endif
+/* Enable general extensions on Solaris.  */
+#ifndef __EXTENSIONS__
+# undef __EXTENSIONS__
+#endif
+
+
+/* Define to 1 if you have posix ucontext functions. */
+#undef USE_UCONTEXT
+
+/* Define if the Win32 multithreading API can be used. */
+#undef USE_WIN32_THREADS
+
+/* Version number of package */
+#undef VERSION
+
+/* Major version */
+#undef VMAJ
+
+/* Micro version */
+#undef VMIC
+
+/* Minor version */
+#undef VMIN
+
+/* Revison */
+#undef VREV
+
+/* Want Ecore_Timer dump infrastructure */
+#undef WANT_ECORE_TIMER_DUMP
+
+/* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
+   significant byte first (like Motorola and SPARC, unlike Intel). */
+#if defined AC_APPLE_UNIVERSAL_BUILD
+# if defined __BIG_ENDIAN__
+#  define WORDS_BIGENDIAN 1
+# endif
+#else
+# ifndef WORDS_BIGENDIAN
+#  undef WORDS_BIGENDIAN
+# endif
+#endif
+
+/* good xrandr */
+#undef XRANDR_GOOD
+
+/* Define to 1 if the X Window System is missing or not being used. */
+#undef X_DISPLAY_MISSING
+
+/* Enable large inode numbers on Mac OS X 10.5.  */
+#ifndef _DARWIN_USE_64_BIT_INODE
+# define _DARWIN_USE_64_BIT_INODE 1
+#endif
+
+/* Number of bits in a file offset, on hosts where this is settable. */
+#undef _FILE_OFFSET_BITS
+
+/* Define for large files, on AIX-style hosts. */
+#undef _LARGE_FILES
+
+/* Define to 1 if on MINIX. */
+#undef _MINIX
+
+/* Define to 2 if the system does not provide POSIX.1 features except with
+   this defined. */
+#undef _POSIX_1_SOURCE
+
+/* Define to 1 if you need to in order for `stat' and other things to work. */
+#undef _POSIX_SOURCE
+
+/* Define to `__inline__' or `__inline' if that's what the C compiler
+   calls it, or to nothing if 'inline' is not supported under any name.  */
+#ifndef __cplusplus
+#undef inline
+#endif
+
+/* Define to `unsigned int' if <sys/types.h> does not define. */
+#undef size_t
+
+
+#endif /* EFL_CONFIG_H__ */
+

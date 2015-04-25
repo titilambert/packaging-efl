@@ -1,0 +1,240 @@
+# Spanish translation for Efl.
+# Copyright (C) 2012 Enlightenment development team
+# This file is put in the public domain.
+# Aníbal Garrido <khany@member.trisquel.info>, 2012.
+# Adrián Arévalo <adri58@gmail.com>, 2012.
+msgid ""
+msgstr ""
+"Project-Id-Version: Efl\n"
+"Report-Msgid-Bugs-To: enlightenment-devel@lists.sourceforge.net\n"
+"POT-Creation-Date: 2015-04-01 16:41+0200\n"
+"PO-Revision-Date: 2013-01-04 23:53+0100\n"
+"Last-Translator: Adrián Arévalo <adri58@gmail.com>\n"
+"Language-Team: Enlightenment Team\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.5.4\n"
+
+#: src/lib/ecore/ecore_getopt.c:89
+msgid "Version:"
+msgstr "Versión:"
+
+#: src/lib/ecore/ecore_getopt.c:98
+msgid "Usage:"
+msgstr "Uso:"
+
+#: src/lib/ecore/ecore_getopt.c:105
+#, fuzzy, c-format
+msgid "%s [options]"
+msgstr "%s [opciones]\n"
+
+#: src/lib/ecore/ecore_getopt.c:305
+msgid "Copyright:"
+msgstr "Copyright:"
+
+#: src/lib/ecore/ecore_getopt.c:317
+msgid "License:"
+msgstr "Licencia:"
+
+#: src/lib/ecore/ecore_getopt.c:503
+msgid "Type: "
+msgstr "Tipo:"
+
+#: src/lib/ecore/ecore_getopt.c:579
+msgid "Default: "
+msgstr "Predeterminado"
+
+#: src/lib/ecore/ecore_getopt.c:606
+msgid "Choices: "
+msgstr "Elecciones:"
+
+#: src/lib/ecore/ecore_getopt.c:644 src/lib/ecore/ecore_getopt.c:645
+msgid "No categories available."
+msgstr ""
+
+#: src/lib/ecore/ecore_getopt.c:649
+#, fuzzy
+msgid "Categories: "
+msgstr "Elecciones:"
+
+#: src/lib/ecore/ecore_getopt.c:771
+msgid "Options:\n"
+msgstr "Opciones:\n"
+
+#: src/lib/ecore/ecore_getopt.c:780
+msgid "Positional arguments:\n"
+msgstr ""
+
+#: src/lib/ecore/ecore_getopt.c:847
+#, fuzzy, c-format
+msgid "ERROR: unknown category '%s'.\n"
+msgstr "ERROR: opción desconocida --%s.\n"
+
+#: src/lib/ecore/ecore_getopt.c:951
+#, c-format
+msgid "ERROR: unknown option --%s.\n"
+msgstr "ERROR: opción desconocida --%s.\n"
+
+#: src/lib/ecore/ecore_getopt.c:953
+#, c-format
+msgid "ERROR: unknown option -%c.\n"
+msgstr "ERROR: opción desconocida -%c.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1016
+msgid "ERROR: "
+msgstr "ERROR: "
+
+#: src/lib/ecore/ecore_getopt.c:1112 src/lib/ecore/ecore_getopt.c:1249
+#: src/lib/ecore/ecore_getopt.c:1265 src/lib/ecore/ecore_getopt.c:1280
+#: src/lib/ecore/ecore_getopt.c:1300 src/lib/ecore/ecore_getopt.c:1347
+#: src/lib/ecore/ecore_getopt.c:1467 src/lib/ecore/ecore_getopt.c:1508
+msgid "value has no pointer set.\n"
+msgstr "no se definió el valor.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1144 src/lib/ecore/ecore_getopt.c:1367
+#, c-format
+msgid "unknown boolean value %s.\n"
+msgstr "valor booleano desconocido %s.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1195 src/lib/ecore/ecore_getopt.c:1455
+#, c-format
+msgid "invalid number format %s\n"
+msgstr "formato numérico inválido %s\n"
+
+#: src/lib/ecore/ecore_getopt.c:1313
+#, c-format
+msgid "invalid choice \"%s\". Valid values are: "
+msgstr "Elección inválida \"%s\". Los valores válidos son:"
+
+#: src/lib/ecore/ecore_getopt.c:1341
+msgid "missing parameter to append.\n"
+msgstr "falta parámetro a añadir.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1445
+msgid "could not parse value.\n"
+msgstr "incapaz de procesar el valor.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1502
+msgid "missing parameter.\n"
+msgstr "parámetro faltante.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1515
+msgid "missing callback function!\n"
+msgstr "función de invocación faltante!\n"
+
+#: src/lib/ecore/ecore_getopt.c:1546
+msgid "no version was defined.\n"
+msgstr "no se definió la versión.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1563
+msgid "no copyright was defined.\n"
+msgstr "no se definió el copyright.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1580
+msgid "no license was defined.\n"
+msgstr "no se definió la licencia.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1670
+#, c-format
+msgid "ERROR: unknown option --%s, ignored.\n"
+msgstr "ERROR: opción desconocida --%s, ignorada.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1703
+#, c-format
+msgid "ERROR: option --%s requires an argument!\n"
+msgstr "ERROR: La opción --%s requiere un argumento!\n"
+
+#: src/lib/ecore/ecore_getopt.c:1745
+#, c-format
+msgid "ERROR: unknown option -%c, ignored.\n"
+msgstr "ERROR: opción desconocida -%c, ignorada.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1783
+#, c-format
+msgid "ERROR: option -%c requires an argument!\n"
+msgstr "ERROR: La opción -%c requiere un argumento!\n"
+
+#: src/lib/ecore/ecore_getopt.c:1878
+#, fuzzy, c-format
+msgid "ERROR: missing required positional argument %s.\n"
+msgstr "ERROR: La opción -%c requiere un argumento!\n"
+
+#: src/lib/ecore/ecore_getopt.c:1910
+#, c-format
+msgid "ERROR: unsupported action type %d for positional argument %s\n"
+msgstr ""
+
+#: src/lib/ecore/ecore_getopt.c:2031 src/lib/ecore/ecore_getopt.c:2097
+msgid "ERROR: no parser provided.\n"
+msgstr "ERROR: no se proporcionó ningún parser.\n"
+
+#: src/lib/ecore/ecore_getopt.c:2036 src/lib/ecore/ecore_getopt.c:2102
+msgid "ERROR: no values provided.\n"
+msgstr "ERROR: no se proporcionó ningún valor.\n"
+
+#: src/lib/ecore/ecore_getopt.c:2045 src/lib/ecore/ecore_getopt.c:2111
+msgid "ERROR: no arguments provided.\n"
+msgstr "ERROR: no se proporcionó ningún argumento.\n"
+
+#: src/lib/ecore/ecore_getopt.c:2071
+msgid "ERROR: invalid options found."
+msgstr "ERROR: opciones inválidas."
+
+#: src/lib/ecore/ecore_getopt.c:2077 src/lib/ecore/ecore_getopt.c:2143
+#, c-format
+msgid " See --%s.\n"
+msgstr " Vea --%s.\n"
+
+#: src/lib/ecore/ecore_getopt.c:2079 src/lib/ecore/ecore_getopt.c:2145
+#, c-format
+msgid " See -%c.\n"
+msgstr " Vea -%c.\n"
+
+#: src/lib/ecore/ecore_getopt.c:2137
+#, fuzzy
+msgid "ERROR: invalid positional arguments found."
+msgstr "ERROR: opciones inválidas."
+
+#: src/lib/ecore/ecore_getopt.c:2172
+#, c-format
+msgid "ERROR: incorrect geometry value '%s'\n"
+msgstr "ERROR: valor geométrico incorrecto '%s'\n"
+
+#: src/lib/ecore/ecore_getopt.c:2190
+#, c-format
+msgid "ERROR: incorrect size value '%s'\n"
+msgstr "ERROR: tamaño incorrecto '%s'\n"
+
+#: src/lib/efreet/efreet_base.c:123
+msgid "Desktop"
+msgstr "Escritorio"
+
+#: src/lib/efreet/efreet_base.c:131
+msgid "Downloads"
+msgstr "Descargas"
+
+#: src/lib/efreet/efreet_base.c:140
+msgid "Templates"
+msgstr "Plantillas"
+
+#: src/lib/efreet/efreet_base.c:149
+msgid "Public"
+msgstr "Público"
+
+#: src/lib/efreet/efreet_base.c:158
+msgid "Documents"
+msgstr "Documentos"
+
+#: src/lib/efreet/efreet_base.c:166
+msgid "Music"
+msgstr "Música"
+
+#: src/lib/efreet/efreet_base.c:174
+msgid "Pictures"
+msgstr "Imágenes"
+
+#: src/lib/efreet/efreet_base.c:182
+msgid "Videos"
+msgstr "Vídeos"

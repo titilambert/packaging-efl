@@ -1,0 +1,239 @@
+# Esperanto translation for enlightenment
+# Copyright (c) 2012 Rosetta Contributors and Canonical Ltd 2012
+# This file is distributed under the same license as the enlightenment package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2012.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: enlightenment\n"
+"Report-Msgid-Bugs-To: enlightenment-devel@lists.sourceforge.net\n"
+"POT-Creation-Date: 2015-04-01 16:41+0200\n"
+"PO-Revision-Date: 2014-02-13 06:52+0000\n"
+"Last-Translator: Eliovir <Unknown>\n"
+"Language-Team: Esperanto <eo@li.org>\n"
+"Language: eo\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Launchpad-Export-Date: 2014-02-14 06:59+0000\n"
+"X-Generator: Launchpad (build 16916)\n"
+
+#: src/lib/ecore/ecore_getopt.c:89
+msgid "Version:"
+msgstr "Versio:"
+
+#: src/lib/ecore/ecore_getopt.c:98
+msgid "Usage:"
+msgstr "Uzado:"
+
+#: src/lib/ecore/ecore_getopt.c:105
+#, c-format
+msgid "%s [options]"
+msgstr "%s [opcioj]"
+
+#: src/lib/ecore/ecore_getopt.c:305
+msgid "Copyright:"
+msgstr "Kopirajto:"
+
+#: src/lib/ecore/ecore_getopt.c:317
+msgid "License:"
+msgstr "Permesilo:"
+
+#: src/lib/ecore/ecore_getopt.c:503
+msgid "Type: "
+msgstr "Speco: "
+
+#: src/lib/ecore/ecore_getopt.c:579
+msgid "Default: "
+msgstr "Apriore: "
+
+#: src/lib/ecore/ecore_getopt.c:606
+msgid "Choices: "
+msgstr "Elektoj: "
+
+#: src/lib/ecore/ecore_getopt.c:644 src/lib/ecore/ecore_getopt.c:645
+msgid "No categories available."
+msgstr "Neniu kategorio disponebla"
+
+#: src/lib/ecore/ecore_getopt.c:649
+msgid "Categories: "
+msgstr "Kategorioj: "
+
+#: src/lib/ecore/ecore_getopt.c:771
+msgid "Options:\n"
+msgstr "Opcioj:\n"
+
+#: src/lib/ecore/ecore_getopt.c:780
+msgid "Positional arguments:\n"
+msgstr "Poziciaj argumentoj:\n"
+
+#: src/lib/ecore/ecore_getopt.c:847
+#, c-format
+msgid "ERROR: unknown category '%s'.\n"
+msgstr "ERARO: nekonata kategorio \"%s\".\n"
+
+#: src/lib/ecore/ecore_getopt.c:951
+#, c-format
+msgid "ERROR: unknown option --%s.\n"
+msgstr "ERARO: nekonata opcio --%s.\n"
+
+#: src/lib/ecore/ecore_getopt.c:953
+#, c-format
+msgid "ERROR: unknown option -%c.\n"
+msgstr "ERARO: nekonata opcio -%c.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1016
+msgid "ERROR: "
+msgstr "ERARO: "
+
+#: src/lib/ecore/ecore_getopt.c:1112 src/lib/ecore/ecore_getopt.c:1249
+#: src/lib/ecore/ecore_getopt.c:1265 src/lib/ecore/ecore_getopt.c:1280
+#: src/lib/ecore/ecore_getopt.c:1300 src/lib/ecore/ecore_getopt.c:1347
+#: src/lib/ecore/ecore_getopt.c:1467 src/lib/ecore/ecore_getopt.c:1508
+msgid "value has no pointer set.\n"
+msgstr "valoro ne havas agorditan referencon.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1144 src/lib/ecore/ecore_getopt.c:1367
+#, c-format
+msgid "unknown boolean value %s.\n"
+msgstr "nekonata bulea valoro %s.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1195 src/lib/ecore/ecore_getopt.c:1455
+#, c-format
+msgid "invalid number format %s\n"
+msgstr "nevalida numeraranĝo %s\n"
+
+#: src/lib/ecore/ecore_getopt.c:1313
+#, c-format
+msgid "invalid choice \"%s\". Valid values are: "
+msgstr "nevalida elekto \"%s\". Validaj valoroj estas: "
+
+#: src/lib/ecore/ecore_getopt.c:1341
+msgid "missing parameter to append.\n"
+msgstr "postaldonenda parametro mankas.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1445
+msgid "could not parse value.\n"
+msgstr "valoro ne sintakse analizeblas.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1502
+msgid "missing parameter.\n"
+msgstr "parametro mankas.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1515
+msgid "missing callback function!\n"
+msgstr "funkcio vokita per referenco mankas!\n"
+
+#: src/lib/ecore/ecore_getopt.c:1546
+msgid "no version was defined.\n"
+msgstr "neniu versio estas difinita.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1563
+msgid "no copyright was defined.\n"
+msgstr "neniu kopirajto estas difinita.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1580
+msgid "no license was defined.\n"
+msgstr "neniu permesilo estas difinita.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1670
+#, c-format
+msgid "ERROR: unknown option --%s, ignored.\n"
+msgstr "ERARO: nekonata opcio --%s. Ignorita.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1703
+#, c-format
+msgid "ERROR: option --%s requires an argument!\n"
+msgstr "ERARO: opcio --%s postulas argumenton!\n"
+
+#: src/lib/ecore/ecore_getopt.c:1745
+#, c-format
+msgid "ERROR: unknown option -%c, ignored.\n"
+msgstr "ERARO: nekonata opcio -%c. Ignorata.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1783
+#, c-format
+msgid "ERROR: option -%c requires an argument!\n"
+msgstr "ERARO: opcio -%c postulas argumenton!\n"
+
+#: src/lib/ecore/ecore_getopt.c:1878
+#, c-format
+msgid "ERROR: missing required positional argument %s.\n"
+msgstr "ERARO: nepra poziciaj argumento %s mankas.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1910
+#, c-format
+msgid "ERROR: unsupported action type %d for positional argument %s\n"
+msgstr "ERARO: neeltena tipo de agado %d por pozicia argumento %s\n"
+
+#: src/lib/ecore/ecore_getopt.c:2031 src/lib/ecore/ecore_getopt.c:2097
+msgid "ERROR: no parser provided.\n"
+msgstr "ERARO: neniu sintaksa analizilo provizita.\n"
+
+#: src/lib/ecore/ecore_getopt.c:2036 src/lib/ecore/ecore_getopt.c:2102
+msgid "ERROR: no values provided.\n"
+msgstr "ERARO: neniu valoro provizita.\n"
+
+#: src/lib/ecore/ecore_getopt.c:2045 src/lib/ecore/ecore_getopt.c:2111
+msgid "ERROR: no arguments provided.\n"
+msgstr "ERARO: neniu argumento provizita.\n"
+
+#: src/lib/ecore/ecore_getopt.c:2071
+msgid "ERROR: invalid options found."
+msgstr "ERARO: nevalidaj opcioj trovitaj."
+
+#: src/lib/ecore/ecore_getopt.c:2077 src/lib/ecore/ecore_getopt.c:2143
+#, c-format
+msgid " See --%s.\n"
+msgstr " Vidu --%s.\n"
+
+#: src/lib/ecore/ecore_getopt.c:2079 src/lib/ecore/ecore_getopt.c:2145
+#, c-format
+msgid " See -%c.\n"
+msgstr " Vidu -%c.\n"
+
+#: src/lib/ecore/ecore_getopt.c:2137
+msgid "ERROR: invalid positional arguments found."
+msgstr "ERARO: nevalida poziciaj argumentoj trovitaj."
+
+#: src/lib/ecore/ecore_getopt.c:2172
+#, c-format
+msgid "ERROR: incorrect geometry value '%s'\n"
+msgstr "ERARO: nekorekta geometria valoro '%s'\n"
+
+#: src/lib/ecore/ecore_getopt.c:2190
+#, c-format
+msgid "ERROR: incorrect size value '%s'\n"
+msgstr "ERARO: nekorekta valoro de grando '%s'\n"
+
+#: src/lib/efreet/efreet_base.c:123
+msgid "Desktop"
+msgstr "Labortablo"
+
+#: src/lib/efreet/efreet_base.c:131
+msgid "Downloads"
+msgstr "Elŝutujo"
+
+#: src/lib/efreet/efreet_base.c:140
+msgid "Templates"
+msgstr "Ŝablonujo"
+
+#: src/lib/efreet/efreet_base.c:149
+msgid "Public"
+msgstr "Publikujo"
+
+#: src/lib/efreet/efreet_base.c:158
+msgid "Documents"
+msgstr "Dokumentujo"
+
+#: src/lib/efreet/efreet_base.c:166
+msgid "Music"
+msgstr "Muzikujo"
+
+#: src/lib/efreet/efreet_base.c:174
+msgid "Pictures"
+msgstr "Bildujo"
+
+#: src/lib/efreet/efreet_base.c:182
+msgid "Videos"
+msgstr "Videujo"

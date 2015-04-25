@@ -1,0 +1,275 @@
+# Greek translation for Efl.
+# Copyright (C) 2012 Enlightenment development team
+# This file is put in the public domain.
+# ragecryx <ragecryx@yahoo.gr>, 2009.
+# George Rizopoulos <george.rizopoulos.1@gmail.com> 2011
+# Alex-P. Natsios <drakevr@linuxteam.teilar.gr> 2012
+# Efstathios Iosifidis <iosifidis@opensuse.org>, 2012.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Efl\n"
+"Report-Msgid-Bugs-To: enlightenment-devel@lists.sourceforge.net\n"
+"POT-Creation-Date: 2015-04-01 16:41+0200\n"
+"PO-Revision-Date: 2012-12-01 18:26+0200\n"
+"Last-Translator: Efstathios Iosifidis <iosifidis@opensuse.org>\n"
+"Language-Team: Ελληνικά, Σύγχρονα <opensuse-translation-el@opensuse.org>\n"
+"Language: el\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+"X-Generator: Gtranslator 2.91.5\n"
+
+#: src/lib/ecore/ecore_getopt.c:89
+msgid "Version:"
+msgstr "Έκδοση:"
+
+#: src/lib/ecore/ecore_getopt.c:98
+msgid "Usage:"
+msgstr "Χρήση:"
+
+#: src/lib/ecore/ecore_getopt.c:105
+#, fuzzy, c-format
+msgid "%s [options]"
+msgstr "%s [επιλογές]\n"
+
+#: src/lib/ecore/ecore_getopt.c:305
+msgid "Copyright:"
+msgstr "Πνευματικά δικαιώματα:"
+
+#: src/lib/ecore/ecore_getopt.c:317
+msgid "License:"
+msgstr "Άδεια:"
+
+#: src/lib/ecore/ecore_getopt.c:503
+msgid "Type: "
+msgstr "Τύπος: "
+
+#: src/lib/ecore/ecore_getopt.c:579
+msgid "Default: "
+msgstr "Προκαθορισμένο: "
+
+#: src/lib/ecore/ecore_getopt.c:606
+msgid "Choices: "
+msgstr "Επιλογές:"
+
+#: src/lib/ecore/ecore_getopt.c:644 src/lib/ecore/ecore_getopt.c:645
+msgid "No categories available."
+msgstr ""
+
+#: src/lib/ecore/ecore_getopt.c:649
+#, fuzzy
+msgid "Categories: "
+msgstr "Επιλογές:"
+
+#: src/lib/ecore/ecore_getopt.c:771
+msgid "Options:\n"
+msgstr "Επιλογές:\n"
+
+#: src/lib/ecore/ecore_getopt.c:780
+msgid "Positional arguments:\n"
+msgstr ""
+
+#: src/lib/ecore/ecore_getopt.c:847
+#, fuzzy, c-format
+msgid "ERROR: unknown category '%s'.\n"
+msgstr "ΣΦΑΛΜΑ: άγνωστη επιλογή --%s.\n"
+
+#: src/lib/ecore/ecore_getopt.c:951
+#, c-format
+msgid "ERROR: unknown option --%s.\n"
+msgstr "ΣΦΑΛΜΑ: άγνωστη επιλογή --%s.\n"
+
+#: src/lib/ecore/ecore_getopt.c:953
+#, c-format
+msgid "ERROR: unknown option -%c.\n"
+msgstr "ΣΦΑΛΜΑ: άγνωστη επιλογή -%c.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1016
+msgid "ERROR: "
+msgstr "ΣΦΑΛΜΑ: "
+
+#: src/lib/ecore/ecore_getopt.c:1112 src/lib/ecore/ecore_getopt.c:1249
+#: src/lib/ecore/ecore_getopt.c:1265 src/lib/ecore/ecore_getopt.c:1280
+#: src/lib/ecore/ecore_getopt.c:1300 src/lib/ecore/ecore_getopt.c:1347
+#: src/lib/ecore/ecore_getopt.c:1467 src/lib/ecore/ecore_getopt.c:1508
+msgid "value has no pointer set.\n"
+msgstr "η τιμή δεν έχει καθορισμένο τον δείκτη.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1144 src/lib/ecore/ecore_getopt.c:1367
+#, c-format
+msgid "unknown boolean value %s.\n"
+msgstr "άγνωστη τιμή boolean %s.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1195 src/lib/ecore/ecore_getopt.c:1455
+#, c-format
+msgid "invalid number format %s\n"
+msgstr "μη έγκυρη μορφή αριθμού %s\n"
+
+#: src/lib/ecore/ecore_getopt.c:1313
+#, c-format
+msgid "invalid choice \"%s\". Valid values are: "
+msgstr "μη έγκυρη επιλογή \"%s\". Οι έγκυρες τιμές είναι: "
+
+#: src/lib/ecore/ecore_getopt.c:1341
+msgid "missing parameter to append.\n"
+msgstr "απούσα παράμετρος για προσάρτηση.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1445
+msgid "could not parse value.\n"
+msgstr "αδυναμία ανάλυσης τιμών.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1502
+msgid "missing parameter.\n"
+msgstr "απούσα παράμετρος.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1515
+msgid "missing callback function!\n"
+msgstr "απούσα λειτουργία επανάκλησης!\n"
+
+#: src/lib/ecore/ecore_getopt.c:1546
+msgid "no version was defined.\n"
+msgstr "δεν έχει οριστεί έκδοση.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1563
+msgid "no copyright was defined.\n"
+msgstr "δεν έχουν οριστεί πνευματικά δικαιώματα.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1580
+msgid "no license was defined.\n"
+msgstr "δεν έχει οριστεί άδεια.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1670
+#, c-format
+msgid "ERROR: unknown option --%s, ignored.\n"
+msgstr "ΣΦΑΛΜΑ: άγνωστη επιλογή --%s, αγνοήθηκε.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1703
+#, c-format
+msgid "ERROR: option --%s requires an argument!\n"
+msgstr "ΣΦΑΛΜΑ: η επιλογή --%s απαιτεί μια παράμετρο!\n"
+
+#: src/lib/ecore/ecore_getopt.c:1745
+#, c-format
+msgid "ERROR: unknown option -%c, ignored.\n"
+msgstr "ΣΦΑΛΜΑ: άγνωστη επιλογή -%c, αγνοήθηκε.\n"
+
+#: src/lib/ecore/ecore_getopt.c:1783
+#, c-format
+msgid "ERROR: option -%c requires an argument!\n"
+msgstr "ΣΦAΛΜΑ: η επιλογή -%c απαιτεί μία παράμετρο!\n"
+
+#: src/lib/ecore/ecore_getopt.c:1878
+#, fuzzy, c-format
+msgid "ERROR: missing required positional argument %s.\n"
+msgstr "ΣΦAΛΜΑ: η επιλογή -%c απαιτεί μία παράμετρο!\n"
+
+#: src/lib/ecore/ecore_getopt.c:1910
+#, c-format
+msgid "ERROR: unsupported action type %d for positional argument %s\n"
+msgstr ""
+
+#: src/lib/ecore/ecore_getopt.c:2031 src/lib/ecore/ecore_getopt.c:2097
+msgid "ERROR: no parser provided.\n"
+msgstr "ΣΦΑΛΜΑ: δεν παρέχεται αναλυτής.\n"
+
+#: src/lib/ecore/ecore_getopt.c:2036 src/lib/ecore/ecore_getopt.c:2102
+msgid "ERROR: no values provided.\n"
+msgstr "ΣΦΑΛΜΑ: δεν έχουν δοθεί τιμές.\n"
+
+#: src/lib/ecore/ecore_getopt.c:2045 src/lib/ecore/ecore_getopt.c:2111
+msgid "ERROR: no arguments provided.\n"
+msgstr "ΣΦΑΛΜΑ:δεν έχουν δοθεί παράμετροι.\n"
+
+#: src/lib/ecore/ecore_getopt.c:2071
+msgid "ERROR: invalid options found."
+msgstr "ΣΦΑΛΜΑ: βρέθηκαν μη έγκυρες επιλογές."
+
+#: src/lib/ecore/ecore_getopt.c:2077 src/lib/ecore/ecore_getopt.c:2143
+#, c-format
+msgid " See --%s.\n"
+msgstr " Δείτε --%s.\n"
+
+#: src/lib/ecore/ecore_getopt.c:2079 src/lib/ecore/ecore_getopt.c:2145
+#, c-format
+msgid " See -%c.\n"
+msgstr " Δείτε -%c.\n"
+
+#: src/lib/ecore/ecore_getopt.c:2137
+#, fuzzy
+msgid "ERROR: invalid positional arguments found."
+msgstr "ΣΦΑΛΜΑ: βρέθηκαν μη έγκυρες επιλογές."
+
+#: src/lib/ecore/ecore_getopt.c:2172
+#, c-format
+msgid "ERROR: incorrect geometry value '%s'\n"
+msgstr "ΣΦΑΛΜΑ: μη έγκυρη γεωμετρική τιμή '%s'\n"
+
+#: src/lib/ecore/ecore_getopt.c:2190
+#, c-format
+msgid "ERROR: incorrect size value '%s'\n"
+msgstr "ΣΦΑΛΜΑ: μη έγκυρη τιμή μεγέθους '%s'\n"
+
+#: src/lib/efreet/efreet_base.c:123
+msgid "Desktop"
+msgstr "Επιφάνεια εργασίας"
+
+#: src/lib/efreet/efreet_base.c:131
+msgid "Downloads"
+msgstr "Λήψεις"
+
+#: src/lib/efreet/efreet_base.c:140
+msgid "Templates"
+msgstr "Πρότυπα"
+
+#: src/lib/efreet/efreet_base.c:149
+msgid "Public"
+msgstr "Δημόσια"
+
+#: src/lib/efreet/efreet_base.c:158
+msgid "Documents"
+msgstr "Λήψεις"
+
+#: src/lib/efreet/efreet_base.c:166
+msgid "Music"
+msgstr "Μουσική"
+
+#: src/lib/efreet/efreet_base.c:174
+msgid "Pictures"
+msgstr "Εικόνες"
+
+#: src/lib/efreet/efreet_base.c:182
+msgid "Videos"
+msgstr "Βίντεο"
+
+#~ msgid ""
+#~ "\n"
+#~ "   "
+#~ msgstr ""
+#~ "\n"
+#~ "   "
+
+#~ msgid "true"
+#~ msgstr "true"
+
+#~ msgid "false"
+#~ msgstr "false"
+
+#~ msgid "f"
+#~ msgstr "f"
+
+#~ msgid "no"
+#~ msgstr "no"
+
+#~ msgid "off"
+#~ msgstr "off"
+
+#~ msgid "t"
+#~ msgstr "t"
+
+#~ msgid "yes"
+#~ msgstr "yes"
+
+#~ msgid "on"
+#~ msgstr "on"

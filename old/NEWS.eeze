@@ -1,0 +1,39 @@
+Eeze 1.7.0
+
+Changes since Eeze 1.7.0:
+-------------------------
+
+Additions:
+
+    * Sensor subsystem
+    * Unit tests
+
+Changes since Eeze 1.2.0:
+-------------------------
+
+Additions:
+
+    * Joystick support
+    * Support for mtab-less systems
+
+Changes since Eeze 1.1.0:
+-------------------------
+
+Additions:
+
+    * Detect bluetooth devices.
+    * Network device API (eeze_net_*).
+
+Changes since Eeze 1.0.0:
+-------------------------
+
+Additions:
+
+    * more disk-related detection/info functions
+    * disk mounting API
+    * eeze_scanner utility for applications to hook for drive detection
+
+Fixes:
+
+    * bugs with device detection related to newer kernel versions
+    * device filtering to be more accurate in some cases

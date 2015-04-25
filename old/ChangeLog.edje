@@ -1,0 +1,718 @@
+2011-01-29  Carsten Haitzler (The Rasterman)
+
+        1.0.0 release
+
+2011-01-30  Tom Hacohen (TAsn)
+
+        * Added "UNDER" cursor mode.
+        * Added auto-alignment to text parts, just set text.alignment to -1 to
+          activate it. It's only relevant to TEXT parts, textblock objects
+          already have that by default.
+
+2011-02-01  Tom Hacohen (TAsn)
+
+        * Added Mirroring support to edje objects.
+
+2011-02-08  Cedric BAIL
+
+	* Fix invalid memory access by edje alias code.
+
+2011-02-10  Cedric BAIL
+
+	* Fix use of recursive alias.
+
+2011-02-21  WooHyun Jung
+
+        * Fix missing cursor changed signale on backspace
+
+2011-02-21  Mike Blumenkrantz
+
+        * Add built-in cpp (epp) to provide consistent output on all archs/OSes
+
+2011-02-10  Cedric BAIL
+
+	* Fix propagation of recursive events on existing part.
+
+2011-02-24  Cedric BAIL
+
+	* fix signal comming from box/table item to include their
+	index or name correctly.
+
+2011-02-25  Jihoon Kim
+
+	* Add edje_object_part_text_cursor_pos_{set,get} API
+
+2011-02-27  Tom Hacohen (TAsn)
+
+        * Added size_range property to TEXT parts in edje files.
+	This lets you limit the size of the font that will be used.
+	Especially useful when using fit.
+
+2011-03-10  WooHyun Jung
+
+        * Fix: Emit clicked signal on entry if still in - missing.
+
+2011-03-10  Cedric BAIL
+
+	* Correctly propagate recursive event with existing and non existing
+	part.
+
+2011-03-11  Cedric BAIL
+
+	* Add PROXY part.
+
+2011-03-19  Carsten Haitzler (The Rasterman)
+
+	* Change edje_decc to only use edje_cc as the compiler for security
+        and correctness reasons.
+
+2011-03-23  Brett Nash (nash)
+
+	* Move some of edje over to use smart clipper in evas.  This _should_
+	be transparent to users.
+
+2011-03-30  Carsten Haitzler (The Rasterman)
+
+	* text.align (only the vertical part) now works for textblock.
+
+2011-04-1  Carsten Haitzler (The Rasterman)
+
+	* Add Feature: Support explicit shadow direction with extra effect
+        param (optional). Default as before.
+
+2011-04-28  Tom Hacohen (TAsn)
+
+        * size_min_restricted_calc: Fixed textblock handling.
+
+2011-05-15  Tom Hacohen (TAsn)
+
+	 * Entry - New API: added edje_object_part_text_append which appends
+	   text to the end of the textblock part. This lets us do cool thing
+	   like population of textblock using idler.
+
+2011-05-16  Carsten Haitzler (The Rasterman)
+
+	* Add new interpolation modes for programs to make animation
+        much easier. Added: ACCEL_FAC, DECEL_FAC, SIN_FAC, DIVIS,
+        BOUNCE, SPRING (also made short name versions of the long ones
+        possible too).
+
+2011-05-19  Tom Hacohen (TAsn)
+
+	 * Entry: Don't emit "cursor,changed" when setting the text, because
+	   the cursor really didn't change, it's more like a new cursor.
+	   Also, when setting position, don't do anything if position is as it
+	   was.
+
+2011-05-27  Carsten Haitzler (The Rasterman)
+
+	* Improve performance on create/delete of edje objects by using
+        evas freeze and thaw calls. May help in certain pathological
+        situations.
+
+2011-05-27  Cedric Bail
+
+	* Improve performance by avoiding walking eina_list for nothing
+	when deleting member_class.
+
+2011-06-09  Cedric Bail
+
+	* Fix external usage in sub group to have the proper parents.
+
+2011-06-11  Tom Hacohen (TAsn)
+
+	* Fix an issue with ellipsis not working properly with small
+	  text parts.
+
+2011-06-21  Cedric Bail
+
+	* Make it possible to define part.description.max only on one axis.
+
+2011-07-24  Mike Blumenkrantz
+
+        * Add signals entry,paste,request,1 (PRIMARY) and entry,paste,request,3 (CLIPBOARD)
+          to differentiate between paste types
+        * Add entry,selection,all,request for signalling ctrl+a in an entry
+        * Add entry,selection,none,request for signalling ctrl+shift+a in an entry
+        * Fix entry,paste,request* to be emitted after cursor,changed (fixes middle mouse paste location)
+
+2011-05-27  Carsten Haitzler (The Rasterman)
+
+	* Fix edje_shutdown() being called before all evas objects created
+        by edje (edje objects) are gone. Delay internal core shutdown
+        until all references gone.
+
+2011-08-03  Tom Hacohen (TAsn)
+
+	* Entry: Added changed,user signal. This signal indicates the entry
+	has changed because of user interaction, i.e not by code.
+
+2012-08-04  Flavio Ceolin
+
+        * Added edje_codegen - tool that genereates code to working with
+          edje files.
+
+2011-08-22  Cedric Bail
+
+	* Add collection.group.limits {
+	          vertical: "name" value;
+	          horizontal: "name" value;
+	      }.
+
+2011-08-25  Jihoon Kim
+
+	* Add entry input panel layout setting api's
+
+2011-08-10  Tom Hacohen (TAsn)
+
+	* Signals: Added the ability to pass extra data with edje signals.
+	Added edje_object_signal_callback_extra_data_get to support that.
+
+2011-08-29  Jaehwan Kim
+
+	* Add group's inheritance.
+	* Add insert_before, insert_after to can change the part's order.
+
+2011-10-02  Boris Faure (billiob)
+
+	* Fix edje_cc to accept -1 in description.max
+
+2011-10-03  Tom Hacohen (TAsn)
+
+	* Entry: Added change information to entry,changed,user
+
+2011-11-03  Jaehwan Kim
+
+	* Transition: Add the "CURRENT" option which causes the edje object move
+	      from its current position.
+
+2011-10-04  Govindaraju SM, Prince Kumar Dubey
+
+	* Add Edje multisense that allows playback of samples and
+          vibrator control and ultimately beginsd to pave the way for
+          more complex audio etc. support.
+
+2011-11-06  David Seikel (onefang)
+
+	* Lua: Added color_class and text_class functions.
+	    Still need to write a function for setting the classes of an object.
+	    This works for things in OTHER groups using those classes though.
+	* Add image, text, textblock (commented out), and edje objects.
+	    Very basic support.
+	* Add functions for set/get text font, size, and text.
+	* Add function for set/get image image.
+	    Still needs to limit to only imagess in the current edje file.
+	* Add functions for set/get image fill and filled.
+	* Add function for set/get edje file.
+	    Still needs to limit to only groups in the current edje file.
+	* Add full support for evas line object.
+	* Add full support for evas polygon object.
+	* Beefed up the example lua script to show most of the above.
+	  Including some handling of size changes.
+	* White space fixes, one of the editors I use cleans those up automatically.  shrugs
+
+2011-11-06  David Seikel (onefang)
+
+	* Lua: Added half of the evas map API.
+
+2011-11-07  David Seikel (onefang)
+
+	* Lua: Added the other half of the evas map API.
+
+2011-11-19  Carsten Haitzler (The Rasterman)
+
+	* Fix message and signal propagation to be consistent in all situations
+        as well as simpler.
+
+2011-12-02 Carsten Haitzler (The Rasterman)
+
+        1.1.0 release
+
+2011-12-12 Mike Blumenkrantz (discomfitor/zmike)
+
+        * Fix potential crash from buffer overflow on copying map data.
+
+2011-12-15  Tom Hacohen (TAsn)
+
+	* Entry: Added support for various new key bindings:
+	Ctrl+Arrows, Ctrl+Del and Ctrl+Backspace.
+	* Entry: Added cursor,changed,manual signal.
+	This signal indicates the cursor has been manually changed, i.e by
+	either mouse click or arrows.
+
+2011-12-15  Cedric Bail
+
+	* Fix detections of limits by edje_cc parser.
+
+2011-12-16  Cedric Bail
+
+	* Fix wrong call to free() in edje_load.
+	* Reduce parts walk to the strict minimum.
+
+2011-12-19  Cedric Bail
+
+	* Check existence of group at compile time also.
+
+2012-01-02 Carsten Haitzler (The Rasterman)
+
+        * Fix prototype for edje_object_part_text_cursor_content_get()
+          as it returned a strduped string and not an internal one, so
+          this just formalizes its existing behavior correctly.
+
+2012-01-03  Tom Hacohen (TAsn)
+
+	* Entry: Fixed undo/redo with IMF.
+
+2012-01-04  Carsten Haitzler (The Rasterman)
+
+        * Add HEX, TERMINAL and PASSWORD layouts to edje
+        * Add "recalc" smart callback for object size changes
+
+2012-01-05  Cedric Bail
+
+	* Reduce call to stat during edje_object_file_set.
+
+2012-01-06  Cedric Bail
+
+	* Unswallow object that are about to be swallowed if necessary.
+	* Add EDJE_ASPECT_PREFER_SOURCE.
+
+2012-01-07  David Seikel (onefang)
+
+	* Lua: Calling non exstent functions no longer crashes scripts.
+	   This is so that future scripts will still work with old libraries,
+	   and lets us add the "host can provide Lua API" feature soon.
+
+2012-01-09  David Seikel (onefang)
+
+	* Lua: Added edje.version().
+
+2012-01-14  Carsten Haitzler (The Rasterman)
+
+        * Added minmul propery for edje to multiply minimum size during min size calc
+
+2012-01-20  Carsten Haitzler (The Rasterman)
+
+        * Fix the ability to change the edje file source of an edje object
+        inside a callback - it worked but you couldn't swallow/set text etc.
+
+2012-01-03  Tom Hacohen (TAsn)
+
+	* Entry: Added edje_object_part_text_style_user_set/get that'll use
+	the new corresponding textblock functions.
+
+2012-01-23  Cedric Bail
+
+	* Fix overridding group in edje_cc by fixing with the right index.
+
+2012-01-24  Cedric Bail
+
+	* Filter should only be valid once all program affecting there part are done.
+
+2012-01-25  Cedric Bail
+
+	* Only store the image used by active group.
+
+2012-01-26  Cedric Bail
+
+	* Add min: SOURCE, max: SOURCE.
+
+2012-02-03  Jihoon Kim
+
+	* Entry: Fix to work edje_object_part_text_input_panel_enabled_set/get well
+             even though ecore_imf doesn't exist or immodule isn't used.
+
+2012-02-07  WooHyun Jung
+
+        * Added edje_object_markup_filter_callback_{add,del,del_full}.
+        These let you append(delete) markup filter functions for filtering
+        inserted text.
+
+2012-02-08  Cedric Bail
+
+	* Fix bug when using EDJE_CALC_CACHE and using relative to x and y
+	on separate part.
+	* Fix bug with filter preventing any action to be triggered.
+
+2012-02-10  Cedric Bail
+
+	* Prevent propagation of signal, when there is a matching target with edje GROUP.
+
+2012-02-13  Jihoon Kim
+
+	* add edje_object_part_text_input_panel_show/hide.
+      These APIs can be used in input panel manual control mode.
+	* add edje_object_part_text_imf_context_reset that will use
+      for reseting the input method context.
+
+2012-02-14  Jihoon Kim
+
+	* add edje_object_part_text_prediction_allow_set/get.
+      These APIs can be used to set whether prediction feature is allowed or not.
+
+2012-02-14  Cedric Bail
+
+	* add a way to disable signal broadcasting introduced in edje 1.1.
+
+2012-02-15  Jihoon Kim
+
+	* add edje_object_part_text_input_panel_language_set/get
+          edje_object_part_text_input_panel_imdata_set/get
+          edje_object_part_text_input_panel_return_key_type_set/get
+          edje_object_part_text_input_panel_return_key_disabled_set/get
+
+2012-02-20  WooHyun Jung
+
+        * Change API names from edje_object_markup_filter_callback_{add,del,del_full}.
+        to edje_object_text_markup_filter_callback_{add,del,del_full}.
+
+2012-02-24  Jihoon Kim
+
+	* add edje_object_part_text_imf_context_get for getting Ecore_IMF_Context handle in edje text object
+
+2012-02-29  Tom Hacohen (TAsn)
+
+	* Entry: Added edje_object_part_text_user_insert.
+	This function inserts text as if the user has inserted it.
+	This means it actually registers as a change and etc.
+
+2012-03-06  Mikael Sans (XHeLL)
+
+	* Entry: Added double click and triple click.
+	Double click selects a word.
+	Triple click selects a line.
+
+2012-03-07  Tom Hacohen (TAsn)
+
+	* Entry: Replaced edje_object_part_text_style_user_set/get 
+	with edje_object_part_text_style_user_set/get to correspond to
+	textblock's recent changes.
+
+2012-03-07  Cedric Bail
+
+	* Correctly count and propagate preload signal with GROUP.
+	* Fix rotation with fixed point.
+
+2012-03-11  Cedric Bail
+
+	* Propagate scale factor to GROUP's part.
+
+2012-03-12  Cedric Bail
+
+	* Make it possible for edje to update size hint automatically.
+	* Add min: SOURCE to GROUP's part.
+
+2012-03-30  Jihoon Kim
+
+	* Fix number doesn't insert even though NUM LOCK is locked.
+
+2012-04-16  Carsten Haitzler (The Rasterman)
+
+        * Add EDJE_VERSION_12 define so edc files can #ifdef compile
+        right.
+
+2012-04-20  Carsten Haitzler (The Rasterman)
+
+        * To work through a bug in Elementary, add
+        edje_object_part_text_escaped_set() that converts escapes to
+        plain UTF8 if the part is TEXT.
+
+2012-04-26 Carsten Haitzler (The Rasterman)
+
+        1.2.0 release
+
+2012-04-30  Jérôme Pinot
+
+	* Add missing files in the tarballs.
+
+2012-05-02  Cedric Bail
+
+	* Doing less allocation and reuse Evas_Map does help.
+
+2012-05-08  Cedric Bail
+
+	* Add edje_watch tools to automatically rebuild edc.
+
+2012-05-09  Cedric Bail
+
+	* Fix bug in case of nesting edje_object_signal_emit and edje_object_signal_callback_{add,del}
+	* Check that the file changed on disk when trying to reopen it.
+	* Emit ['edje,change,file', 'edje'] when the file change on disk.
+	* Automatically reload edje file when it change in edje_player.
+
+2012-05-10  Cedric Bail
+
+	* Preserve user box and table items during call of edje_object_file_set.
+
+2012-05-12  Rajeev Ranjan (Rajeev)
+
+	* Add edje_cc optimization to remove alpha channel flag from images
+        with absolutely no alpha in them if marked as havin alpha in the
+        originals
+
+2012-05-14  Cedric Bail
+
+	* Preserve drag informations during call of edje_object_file_set.
+
+2012-05-15  Carsten Haitzler (The Rasterman)
+
+        * Optimize edje_cc to be multi-threaded and compress in parallel
+        * Remove O(n2) algorithms for O(1) in the parser in edje_cc
+        * Add options for the new compression modes in Eet. (fastcomp
+        and fastdecomp - LZ4 and LZ4HC).
+        * Overall sped up edje_cc by 4x faster (if you use fastcomp)
+        and about 4.5x faster with old zlib compression.
+
+2012-05-16  Cedric Bail
+
+	* Fix table and text when fixed point is turned on.
+	* Clamp image tween to never underflow also.
+
+2012-05-20  Cedric Bail
+
+	* Use Eina_File instead of fopen when possible in edje_cc.
+
+2012-05-21  Shilpa Onkar Singh
+
+        * Fix patch for edje draggable jump issue when external event
+        area is used for the dragable.
+
+2012-06-04  Cedric Bail
+
+	* Add SPACER part to reduce the load on the canvas (lighter and faster theme).
+
+2012-06-04  Prince Kumar Dubey
+
+	* Fix decompile of sound samples to use sound source file, not name
+	* Fix decompile of sound samples not double-free
+        * Fix alsa configure option to be alsa, not flac.
+
+2012-06-06  Leandro Pereira
+
+        * Made state index optional (defaulting to 0.0).
+
+2012-06-06  Jihoon Kim
+
+	* edje_entry: display preedit string even though there is no attribute
+
+2012-06-20  Kim Shinwoo
+
+	* Add edje_object_access_part_list_get and acess flags in edc file.
+
+2012-06-21  Carsten Haitzler (The Rasterman)
+
+        * Improve edje_cc slightly to use prefix for full path to
+        embryo_cc. this still like before requires embryo and edje to share
+        the same install prefix for edje_cc to work.
+
+2012-06-12  Michael Bouchaud (yoz)
+
+	* The aliases are now inherited from the targeted group
+	* Aliases can be usable with edje programs, if the part is in the
+	group
+
+2012-06-24  Cedric Bail
+
+	* Emit signal for flagged part when their size get to zero.
+
+2012-07-03  Tom Hacohen (TAsn)
+
+	* Entry: Update anchors from user_insert as well.
+
+2012-07-12  Tom Hacohen (TAsn)
+
+	* Textblock: Fixed issue with updating only the font size using text
+	classes.
+	* Textblock: Fixed updating textblock text_class with
+	edje_text_class_set.
+	* Text classes: Fixed edje_text_class_set to behave like
+	edje_object_text_class_set (and as expected) wrt NULL fonts.
+
+2012-07-12  Cedric Bail
+
+	* Warn at compile time about forgotten image definition.
+	* Stop compilation when clipping to a non RECT part.
+
+2012-07-14  Cedric Bail
+
+	* Fix Edje_Multisense shutdown.
+
+2012-07-24  Carsten Haitzler (The Rasterman)
+
+        * Fix edje entry to extend selection to char pos/word or line
+        when holding shift + mouse click.
+
+2012-07-29  Cedric Bail
+
+	* Reduce potential reentrant issue when using edje_object_signal_emit.
+
+2012-08-06  Cedric Bail
+
+	* Call edje_object_message_signal_process also on GROUP part Edje object.
+
+2012-08-07  Cedric Bail
+
+	* Fix memory leak when Edje file have alias defined.
+
+2012-08-09  Cedric Bail
+
+	* Improve speed of color_class lookup by using an Eina_Hash.
+
+2012-08-14  Hermet
+
+	* Fix the uv mapping correctly in case of image swallowed.
+
+2012-08-21  Guilherme Silveira
+
+	* Fix password timeout with fixed point.
+
+2012-08-24  Cedric Bail
+
+	* Properly destroy color_class and text_class on an Edje_Object.
+
+2012-08-27  Tom Hacohen (TAsn)
+
+	* Textblock: Fixed issue with textblock fit not sizing correctly. This
+	fix is not perfect.
+
+2012-08-29  Cedric Bail
+
+	* Don't leak memory on edje block error during signal emit.
+
+2012-08-30  Carsten Haitzler (The Rasterman)
+
+        1.7.0 release
+
+2012-08-30  Cedric Bail
+
+	* Check the number of parameter for image in edc.
+
+2012-09-04  Cedric Bail
+
+	* Report type of file when listing file used by an edc.
+
+2012-09-04  Jihoon Kim (jihoon)
+
+	* Add EDJE_INPUT_PANEL_RETURN_KEY_TYPE_SIGNIN.
+
+2012-09-04  Aharon Hillel
+
+	* Added nested parts support.
+	This lets us do nested parts, e.g parts "{ part { part { } } }"
+
+2012-09-05  ChunEon Park (Hermet)
+
+	* if user change image size of the image object which is swallowed and
+	it's map enabled by the edje, then edje needs to update it's uv mapping
+  	info.
+
+2012-09-11  Cedric Bail
+
+	* O(1) lookup used when searching Part_Lookup in edje_cc.
+	* O(1) lookup when generating alias of group.
+	* O(1) access time for parameters in edje_cc_handler.
+	* Recycle and use less memory during load time.
+
+2012-09-11  Carsten Haitzler (The Rasterman)
+
+        * Improve memory footprint by cutting core edje real part
+        struct down by less than half its size and making some parts allocated
+        extra only if the type needs it.
+
+2012-09-12  Cedric Bail
+
+	* Small improvement in memory footprint by using an array instead of a list for
+	some callback list.
+
+2012-09-17  Cedric Bail
+
+	* Don't generate an annotate file if edje_cc failed.
+
+2012-09-17  Michael Bouchaud (yoz)
+
+        * fix group inheritance on a group who have a script with global
+        varable.
+        * fix group inheritance on a group who have some programs uses script
+
+2012-09-20  David Seikel (onefang)
+
+	* Lua: Lua 5.2 support added.
+
+2012-09-21  Flavio Ceolin
+
+	* edje_codegen: added support for externals
+
+2012-09-27  Michael Bouchaud (yoz)
+
+        * fix scale_set in sub group
+
+2012-09-27  Flavio Ceolin
+
+	* edje_codegen: adding support for draggable
+
+2012-10-10
+
+	* edje_entry: Add more tags(preedit_sub1~4) for a variety of preediting states.
+
+2012-10-21 Daniel Zaoui
+
+	* Edje: change Edje to use Eo.
+	This change adds Eo support to Edje while keeping the old API intact.
+	For more information, go to Eo.
+
+2012-10-26  Michael Bouchaud (yoz)
+
+        * fix edje_object_scale_set with edje containing boxes and/or tables
+
+2012-10-31  Carsten Haitzler (The Rasterman)
+
+        * Fix edje_cc to use max compression, not default compression.
+
+2012-10-31  ChunEon Park (Hermet)
+
+        * Fix to update the text classes when text classes are changed.
+
+2012-11-02  ChunEon Park (Hermet)
+
+        * Fix to not update map uv for proxy
+
+2012-11-15  Daniel Willmann
+
+        * Add embryo function get_image_id
+
+2012-11-23  Bruno Dilly
+
+        * Support message sending on edje player.
+
+2012-11-23  Eduardo Lima (Etrunko)
+
+        * Add embryo function get_program_id
+
+2012-12-05  Robert David
+
+	* Fix Solaris 11 build.
+
+2012-12-05  Tae-Hwan Kim (Bluezery)
+
+	* Fix inheriting gorups with programs that have after programs where
+        after programs are duplicated in the list.
+
+2012-12-12  Cedric Bail
+
+	* Use Evas to compute Ellipsis.
+
+2012-12-13  Jihoon Kim
+
+	* Return plain text in retrive surrounding text callback of entry
+
+2012-12-13  Bruno Dilly
+
+        * Support physics.
+
+2012-12-18  Jihoon Kim
+
+	* ecore_imf cursor infomation update is not necessary in focus-out event
+
+2012-12-18  WooHyun Jung
+
+	* Before cursor is moved by mouse_down, imf_context_reset should be called with current cursor position.

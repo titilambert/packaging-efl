@@ -1,0 +1,58 @@
+EPhysics 0.1.0
+
+******************************************************************************
+
+ FOR ANY ISSUES PLEASE EMAIL:
+ enlightenment-devel@lists.sourceforge.net
+
+******************************************************************************
+
+Requirements:
+-------------
+
+Must:
+  libc
+  ecore (at least 1.2.99)
+  ecore-evas (at least 1.2.99)
+  evas (at least 1.2.99)
+  bullet (at least 2.79)
+
+EPhysics is a library that manages Ecore, Evas and Bullet Physics into
+an easy to use way. It's a kind of wrapper, a glue, between these libraries.
+It's not intended to be a physics library (we already have many out there).
+
+WARNING: if you are building Bullet Physics instead of using a package,
+use cmake build option. Autotools seems to be unmaintained.
+
+------------------------------------------------------------------------------
+
+COMPILING AND INSTALLING:
+
+  $ ./configure
+  $ make
+(as root unless you are installing in your users directories):
+  $ make install
+
+------------------------------------------------------------------------------
+
+TESTS
+
+There are a project with many tests for ephysics, including a logo example,
+and a sandbox util.
+
+It's called ephysics_test, and may be found at:
+
+http://svn.enlightenment.org/svn/e/trunk/ephysics_tests
+
+Tests require the library Elementary to be build.
+
+------------------------------------------------------------------------------
+
+DOCS
+
+To generate documentation, doxygen is required.
+
+  $ make doc
+
+will create a ephysics/doc/html directory. You could start looking at
+index.html.

@@ -1,0 +1,120 @@
+MAINTAINERCLEANFILES = Makefile.in
+
+EXTRA_DIST =
+CLEANFILES =
+
+########################################################################
+# Embryo
+embryofilesdir = $(datadir)/embryo/include
+embryofiles_DATA = embryo/default.inc
+EXTRA_DIST += $(embryofiles_DATA)
+
+########################################################################
+# Evas
+evasfilesdir = $(datadir)/evas
+evasfiles_DATA = evas/checkme
+EXTRA_DIST += $(evasfiles_DATA)
+
+########################################################################
+# Eeze
+eezefilesdir = $(datadir)/eeze
+eezefiles_DATA = eeze/checkme
+EXTRA_DIST += $(eezefiles_DATA)
+
+########################################################################
+# Ecore
+ecorefilesdir = $(datadir)/ecore
+ecorefiles_DATA = ecore/checkme
+EXTRA_DIST += $(ecorefiles_DATA)
+
+########################################################################
+# Ecore_X
+ecore_xfilesdir = $(datadir)/ecore_x
+ecore_xfiles_DATA = ecore_x/checkme
+EXTRA_DIST += $(ecore_xfiles_DATA)
+
+########################################################################
+# Ecore_Imf
+ecoreimffilesdir = $(datadir)/ecore_imf
+ecoreimffiles_DATA = ecore_imf/checkme
+EXTRA_DIST += $(ecoreimffiles_DATA)
+
+########################################################################
+# Efreet
+efreetfilesdir = $(datadir)/efreet
+efreetfiles_DATA = efreet/checkme
+EXTRA_DIST += $(efreetfiles_DATA)
+
+########################################################################
+# Eo
+eogdbdir = $(datadir)/eo/gdb
+eogdb_DATA = eo/eo_gdb.py
+EXTRA_DIST += $(eogdb_DATA)
+
+# Borrowed from gobject
+libeo.so.@VMAJ@.@VMIN@.@VMIC@-gdb.py: eo/libeo-gdb.py.in
+	$(AM_V_GEN) $(SED) -e "s|\@datadir\@|$(datadir)|" $(srcdir)/eo/libeo-gdb.py.in > $(builddir)/libeo.so.@VMAJ@.@VMIN@.@VMIC@-gdb.py
+
+eogdbloaddir = $(datadir)/gdb/auto-load/$(libdir)
+eogdbload_DATA = libeo.so.@VMAJ@.@VMIN@.@VMIC@-gdb.py
+EXTRA_DIST += $(eogdbload_DATA)
+
+CLEANFILES += libeo.so.@VMAJ@.@VMIN@.@VMIC@-gdb.py
+
+EXTRA_DIST += $(eogdb_SCRIPTS) eo/libeo-gdb.py.in
+
+if BUILD_GUI
+
+########################################################################
+# Edje
+edjefilesdir = $(datadir)/edje/include
+edjefiles_DATA = edje/include/edje.inc
+EXTRA_DIST += $(edjefiles_DATA)
+
+mimedir = $(datadir)/mime/packages
+mime_DATA = edje/edje.xml
+EXTRA_DIST += $(mime_DATA)
+
+EXTRA_DIST += \
+edje/edje-mode.el
+
+# Helper for people using EDJ
+include ../src/Makefile_Edje_Helper.am
+
+########################################################################
+# Emotion
+emotionfilesdir = $(datadir)/emotion
+emotionfiles_DATA = emotion/checkme
+EXTRA_DIST += $(emotionfiles_DATA)
+
+########################################################################
+# Ethumb
+ethumbfilesdir = $(datadir)/ethumb
+ethumbfiles_DATA = ethumb/checkme
+EXTRA_DIST += $(ethumbfiles_DATA)
+
+ethumbframesdir = $(datadir)/ethumb/frames
+ethumbframes_DATA = ethumb/frames/default.edj
+CLEANFILES += ethumb/frames/default.edj
+
+ethumb/frames/default.edj: ethumb/frames/default.edc
+	@$(mkdir_p) ethumb/frames/
+	$(AM_V_EDJ)$(EDJE_CC) $(EDJE_CC_FLAGS) -id $(srcdir)/ethumb/frames/ $< $@
+
+
+EXTRA_DIST += \
+ethumb/frames/default.edc \
+ethumb/frames/border-0.jpg
+
+########################################################################
+# Ethumb_Client
+ethumb_clientfilesdir = $(datadir)/ethumb_client
+ethumb_clientfiles_DATA = ethumb_client/checkme
+EXTRA_DIST += $(ethumb_clientfiles_DATA)
+endif
+
+########################################################################
+# Elua
+eluafilesdir = $(datadir)/elua
+eluafiles_DATA = elua/checkme
+EXTRA_DIST += $(eluafiles_DATA)

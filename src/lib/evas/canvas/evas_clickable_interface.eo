@@ -1,0 +1,12 @@
+interface Evas.Clickable_Interface (Evas.Signal_Interface)
+{
+   events {
+      clicked;
+      clicked,double;
+      clicked,triple;
+      pressed;
+      unpressed;
+      longpressed;
+      repeated;
+   }
+}

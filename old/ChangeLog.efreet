@@ -1,0 +1,172 @@
+2011-01-29  Carsten Haitzler (The Rasterman)
+
+        1.0.0 release
+
+2011-01-29  Brian Mattern
+
+        Fix bug when you have an empty <Name></Name> in a menu
+
+2011-01-30  Carsten Haitzler (The Rasterman)
+
+        Fix tests to not build clearenv related code if not available
+
+2011-01-31  Sebastian Dransfeld
+
+	* Fix memleak, free cache icons after retrival
+	* Add temporary memory cache of eet file data
+	* Always use icon cache, remove old code
+	* Make check for stat return more explicit
+	* Check whether dirs is NULL
+	* Create internal struct for theme cache
+	* Check if theme has changed when building cache
+	* Prefix internal efreet cache keys with __
+	* Create one cache file for each theme
+	* Before doing strcmp, check if pointers are equal. They might be
+	  because of mmap and stringshare.
+	* Add local icon cache, so we wont hit the cache file for each icon
+	  to be retrieved
+
+2011-02-03  Sebastian Dransfeld
+
+        * Fix leak in efreet_mime_type_icon_get()
+
+2011-02-05  Sebastian Dransfeld
+
+        * Remove global log domain and make all files define log domain
+          before including efreet_private.h
+        * Remove efreet_xml_{init,shutdown}() from efreet_menu.c, it is done
+          in efreet_init()
+        * Set EFREET_MODULE_LOG_DOM variable to -1 after unregister
+        * Remove duplicate logging macros
+
+2011-02-05  Hannes Janetzek
+
+        * Clear mem cache when closing eet file
+
+2011-02-06  Sebastian Dransfeld
+
+        * Fix doc for efreet_utils.{h,c},efreet_mime.c
+        * Add comment for all internal EAPI functions
+        * Remove doc for removed _efreet_log_domain_global
+
+2011-02-07  Sebastian Dransfeld
+
+	* Don't create cache dir several times
+	* Do efreet_init before using efreet_*() functions
+	* Move lock creation to own function for desktop cache
+	* Set file owner to calling user
+
+2011-02-09  Sebastian Dransfeld
+
+	* Move theme hash from efreet_icon.c to efreet_cache.c
+	* Don't free data returned by efreet_util_cache_names
+	* Add free callback to eet hashes
+	* Remove unneeded header
+	* Check if pattern equals "*" before doing pattern match
+	* Remove EAPI from efreet_home_dir_get
+	* Make efreet_cache_icon_theme_free only used in efreet_cache.c static
+	* Move struct only used for cache to efreet_cache_private.h
+
+2011-02-10  Sebastian Dransfeld
+
+	* Move all eet cache handling to efreet_cache.c
+	* Free hashes on init error
+	* efreet_cache_icon -> efreet_icon for functions in efreet_icon.c
+	* Fix memleak in desktop cache create
+	* Pass dirs to desktop cache process as arguments
+	* Delay cache recreation with a timer
+	* Move desktop cache to efreet_cache.c, and cache all requests which
+	  hit the eet cache
+
+2011-03-18  Mike Blumenkrantz
+
+        * Use eina_log more effectively
+
+2011-04-04  Tom Hacohen (TAsn)
+
+	* Fixed uri encoding when opening files.
+
+2011-08-16  Sebastian Dransfeld
+
+	* Always rebuild cache from scratch when needed, but rely on correct
+	spec behaviour to check for theme changes. This will considerably
+	speed up the cache process when there is no change, and improve the
+	correctness of the cache when changes occur. For example didn't the
+	previous behaviour handle file removal gracefully.
+
+2011-08-16  Sebastian Dransfeld
+
+	* Save whether cache changed in update file, and propagate to update
+	event.
+
+2011-12-02 Carsten Haitzler (The Rasterman)
+
+        1.1.0 release
+
+2012-01-19 Carsten Haitzler (The Rasterman)
+
+        * use eina_file_direct_ls not opendir()
+
+2012-01-19 Jérôme Pinot
+
+        * Documentation fixes.
+
+2012-04-26 Carsten Haitzler (The Rasterman)
+
+        1.2.0 release
+
+2012-05-11 Cedric Bail
+
+	* Faster loading of mime type.
+
+2012-06-25 Sebastian Dransfeld
+
+        * Added efreet_lang_reset() to reset language dependent variables and caches
+
+2012-06-25 Sebastian Dransfeld
+
+        * Support XDG_DESKTOP_DIR and read user-dirs.dirs
+
+2012-07-02 Sebastian Dransfeld
+
+	* Fix minor memory leak in cache update handler
+
+2012-08-30  Carsten Haitzler (The Rasterman)
+
+        1.7.0 release
+
+2012-09-27  Carsten Haitzler (The Rasterman)
+
+        * Fix long lurking bug where desktop/icon cache updates get
+        delayed by silly long amounts of time.
+
+2012-10-09  Gustavo Sverzut Barbieri (k-s)
+
+	* Add $XDG_RUNTIME_DIR support
+	* Add user directories $XDG_PICTURES_DIR, $XDG_VIDEOS_DIR,
+	$XDG_DOWNLOAD_DIR, $XDG_TEMPLATES_DIR, $XDG_PUBLICSHARE_DIR,
+	$XDG_DOCUMENTS_DIR and $XDG_MUSIC_DIR.
+
+2012-10-10  Sebastian Dransfeld
+
+	* Icon cache continues searching in inherited themes to get icon paths
+	for all possible extensions. This will mainly help those which do not
+	build evas .svg loader, as many themes only provides .svg, and we can
+	find .png in inherited themes.
+
+2012-11-02  Sebastian Dransfeld
+
+	* Add common dbus daemon to listen for file system updates and to do
+	cache building.
+
+2012-11-22  Sebastian Dransfeld
+
+	* Accept unquoted values in user-dirs.dirs
+
+2012-11-24  Sebastian Dransfeld
+
+	* Fix alloca
+
+2012-11-26  Sebastian Dransfeld
+
+	* Update language for efreetd

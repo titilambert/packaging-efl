@@ -1,0 +1,84 @@
+class Ecore.Con.Server (Ecore.Con.Base) {
+   eo_prefix: ecore_con_server_obj;
+   properties {
+      name {
+         /*@
+          * Retrieves the name of server.
+          *
+          * The name returned is the name used to connect on this server.
+          */
+         set {
+            legacy: null;
+         }
+         get {
+         }
+         values {
+            const(char) *name; /*@ The name of the server. */
+         }
+      }
+      client_limit {
+         /*@
+          * Sets a limit on the number of clients that can be handled concurrently
+          * by the given server, and a policy on what to do if excess clients try to
+          * connect.
+          *
+          *
+          * Beware that if you set this once ecore is already running, you may
+          * already have pending CLIENT_ADD events in your event queue.  Those
+          * clients have already connected and will not be affected by this call.
+          * Only clients subsequently trying to connect will be affected.
+          */
+         set {
+         }
+         get {
+            legacy: null;
+         }
+         values {
+            int client_limit; /*@ The maximum number of clients to handle concurrently.  -1 means unlimited (default). 0 effectively disables the server. */
+            char reject_excess_clients; /*@ Set to 1 to automatically disconnect excess clients as soon as they connect if you are already handling client_limit clients.  Set to 0 (default) to just hold off on the "accept()" system call until the number of active clients drops. This causes the kernel to queue up to 4096 connections (or your kernel's limit, whichever is lower). */
+         }
+      }
+      /* FIXME: Should this return an iterator? */
+      clients {
+         /*@
+          * Retrieves the current list of clients.
+          *
+          *
+          * Each node in the returned list points to an @ref Ecore_Con_Client. This list
+          * cannot be modified or freed. It can also change if new clients are connected
+          * or disconnected, and will become invalid when the server is deleted/freed.
+          */
+         get {
+         }
+         values {
+            const(list<const(Ecore.Con.Client) *>) *clients; /*@ The list of clients on this server. */
+         }
+      }
+      connection_type {
+        get {
+            legacy: null;
+        }
+        set {
+            legacy: null;
+        }
+        values {
+            Ecore_Con_Type conn_type;
+        }
+      }
+   }
+   implements {
+      Eo.Base.constructor;
+      Eo.Base.destructor;
+      Eo.Base.finalize;
+      Ecore.Con.Base.ip.get;
+      Ecore.Con.Base.uptime.get;
+      Ecore.Con.Base.port.set;
+      Ecore.Con.Base.port.get;
+      Ecore.Con.Base.fd.get;
+      Ecore.Con.Base.connected.get;
+      Ecore.Con.Base.timeout.set;
+      Ecore.Con.Base.timeout.get;
+      Ecore.Con.Base.flush;
+      Ecore.Con.Base.send;
+   }
+}

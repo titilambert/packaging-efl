@@ -1,0 +1,146 @@
+if HAVE_ECORE_X
+
+ecore_x_vsync_bin_PROGRAMS = lib/ecore_x/ecore_x_vsync
+ecore_x_vsync_bindir = $(libdir)/ecore_x/bin/$(MODULE_ARCH)
+lib_ecore_x_ecore_x_vsync_SOURCES = \
+lib/ecore_x/ecore_x_vsync_tool.c \
+lib/ecore_x/ecore_x_vsync_tool_glx.c
+lib_ecore_x_ecore_x_vsync_CPPFLAGS = \
+-I$(top_builddir)/src/lib/efl \
+@ECORE_CFLAGS@ @ECORE_CON_CFLAGS@ @EINA_CFLAGS@ \
+-DPACKAGE_BIN_DIR=\"$(bindir)\" \
+-DPACKAGE_LIB_DIR=\"$(libdir)\" \
+-DPACKAGE_DATA_DIR=\"$(datadir)/ecore_x\"
+lib_ecore_x_ecore_x_vsync_LDADD = @USE_EINA_LIBS@ @USE_ECORE_LIBS@ @USE_ECORE_CON_LIBS@
+lib_ecore_x_ecore_x_vsync_DEPENDENCIES = @USE_EINA_INTERNAL_LIBS@ @USE_ECORE_INTERNAL_LIBS@ @USE_ECORE_CON_INTERNAL_LIBS@
+
+### Library
+
+lib_LTLIBRARIES += lib/ecore_x/libecore_x.la
+
+installed_ecorexmainheadersdir = $(includedir)/ecore-x-@VMAJ@
+dist_installed_ecorexmainheaders_DATA = \
+lib/ecore_x/Ecore_X.h \
+lib/ecore_x/ecore_x_version.h \
+lib/ecore_x/Ecore_X_Atoms.h \
+lib/ecore_x/Ecore_X_Cursor.h
+
+lib_ecore_x_libecore_x_la_SOURCES = \
+lib/ecore_x/ecore_x_atoms_decl.h
+
+if HAVE_ECORE_X_XCB
+lib_ecore_x_libecore_x_la_SOURCES += \
+lib/ecore_x/xcb/ecore_xcb.c \
+lib/ecore_x/xcb/ecore_xcb_atoms.c \
+lib/ecore_x/xcb/ecore_xcb_extensions.c \
+lib/ecore_x/xcb/ecore_xcb_shape.c \
+lib/ecore_x/xcb/ecore_xcb_screensaver.c \
+lib/ecore_x/xcb/ecore_xcb_sync.c \
+lib/ecore_x/xcb/ecore_xcb_render.c \
+lib/ecore_x/xcb/ecore_xcb_randr.c \
+lib/ecore_x/xcb/ecore_xcb_xfixes.c \
+lib/ecore_x/xcb/ecore_xcb_composite.c \
+lib/ecore_x/xcb/ecore_xcb_cursor.c \
+lib/ecore_x/xcb/ecore_xcb_damage.c \
+lib/ecore_x/xcb/ecore_xcb_dnd.c \
+lib/ecore_x/xcb/ecore_xcb_dpms.c \
+lib/ecore_x/xcb/ecore_xcb_drawable.c \
+lib/ecore_x/xcb/ecore_xcb_e.c \
+lib/ecore_x/xcb/ecore_xcb_gc.c \
+lib/ecore_x/xcb/ecore_xcb_image.c \
+lib/ecore_x/xcb/ecore_xcb_input.c \
+lib/ecore_x/xcb/ecore_xcb_gesture.c \
+lib/ecore_x/xcb/ecore_xcb_mwm.c \
+lib/ecore_x/xcb/ecore_xcb_pixmap.c \
+lib/ecore_x/xcb/ecore_xcb_present.c \
+lib/ecore_x/xcb/ecore_xcb_region.c \
+lib/ecore_x/xcb/ecore_xcb_selection.c \
+lib/ecore_x/xcb/ecore_xcb_textlist.c \
+lib/ecore_x/xcb/ecore_xcb_events.c \
+lib/ecore_x/xcb/ecore_xcb_keymap.c \
+lib/ecore_x/xcb/ecore_xcb_netwm.c \
+lib/ecore_x/xcb/ecore_xcb_icccm.c \
+lib/ecore_x/xcb/ecore_xcb_window.c \
+lib/ecore_x/xcb/ecore_xcb_window_prop.c \
+lib/ecore_x/xcb/ecore_xcb_window_shape.c \
+lib/ecore_x/xcb/ecore_xcb_window_shadow.c \
+lib/ecore_x/xcb/ecore_xcb_xinerama.c \
+lib/ecore_x/xcb/ecore_xcb_error.c \
+lib/ecore_x/xcb/ecore_xcb_xtest.c \
+lib/ecore_x/xcb/ecore_xcb_vsync.c \
+lib/ecore_x/xcb/ecore_xcb_xdefaults.c \
+lib/ecore_x/xcb/ecore_xcb_private.h
+else
+lib_ecore_x_libecore_x_la_SOURCES += \
+lib/ecore_x/xlib/ecore_x.c \
+lib/ecore_x/xlib/ecore_x_dnd.c \
+lib/ecore_x/xlib/ecore_x_sync.c \
+lib/ecore_x/xlib/ecore_x_randr.c \
+lib/ecore_x/xlib/ecore_x_fixes.c \
+lib/ecore_x/xlib/ecore_x_damage.c \
+lib/ecore_x/xlib/ecore_x_composite.c \
+lib/ecore_x/xlib/ecore_x_error.c \
+lib/ecore_x/xlib/ecore_x_events.c \
+lib/ecore_x/xlib/ecore_x_icccm.c \
+lib/ecore_x/xlib/ecore_x_netwm.c \
+lib/ecore_x/xlib/ecore_x_mwm.c \
+lib/ecore_x/xlib/ecore_x_e.c \
+lib/ecore_x/xlib/ecore_x_selection.c \
+lib/ecore_x/xlib/ecore_x_window.c \
+lib/ecore_x/xlib/ecore_x_window_prop.c \
+lib/ecore_x/xlib/ecore_x_window_shape.c \
+lib/ecore_x/xlib/ecore_x_pixmap.c \
+lib/ecore_x/xlib/ecore_x_present.c \
+lib/ecore_x/xlib/ecore_x_gc.c \
+lib/ecore_x/xlib/ecore_x_xinerama.c \
+lib/ecore_x/xlib/ecore_x_screensaver.c \
+lib/ecore_x/xlib/ecore_x_dpms.c \
+lib/ecore_x/xlib/ecore_x_drawable.c \
+lib/ecore_x/xlib/ecore_x_cursor.c \
+lib/ecore_x/xlib/ecore_x_test.c \
+lib/ecore_x/xlib/ecore_x_atoms.c \
+lib/ecore_x/xlib/ecore_x_region.c \
+lib/ecore_x/xlib/ecore_x_image.c \
+lib/ecore_x/xlib/ecore_x_xi2.c \
+lib/ecore_x/xlib/ecore_x_vsync.c \
+lib/ecore_x/xlib/ecore_x_gesture.c \
+lib/ecore_x/xlib/ecore_x_private.h
+endif
+
+lib_ecore_x_libecore_x_la_CPPFLAGS = \
+-I$(top_builddir)/src/lib/efl \
+@ECORE_X_CFLAGS@ @ECORE_CON_CFLAGS@ \
+-DPACKAGE_BIN_DIR=\"$(bindir)\" \
+-DPACKAGE_LIB_DIR=\"$(libdir)\" \
+-DPACKAGE_DATA_DIR=\"$(datadir)/ecore_x\"
+if HAVE_ECORE_X_XCB
+lib_ecore_x_libecore_x_la_CPPFLAGS += -I$(top_builddir)/src/lib/ecore_x/xcb
+endif
+
+lib_ecore_x_libecore_x_la_LIBADD = @ECORE_X_LIBS@ @USE_ECORE_CON_LIBS@
+lib_ecore_x_libecore_x_la_DEPENDENCIES = @ECORE_X_INTERNAL_LIBS@ @USE_ECORE_CON_INTERNAL_LIBS@
+lib_ecore_x_libecore_x_la_LDFLAGS = @EFL_LTLIBRARY_FLAGS@
+
+if HAVE_ECORE_X_XCB
+MAINTAINERCLEANFILES += \
+$(top_builddir)/src/lib/ecore_x/xcb/ecore_xcb_keysym_table.h \
+$(top_builddir)/src/lib/ecore_x/xcb/ecore_xcb_keysym_table_h
+
+BUILT_SOURCES += \
+$(top_builddir)/src/lib/ecore_x/xcb/ecore_xcb_keysym_table.h
+
+$(top_builddir)/src/lib/ecore_x/xcb/ecore_xcb_keysym_table.h: $(KEYSYMDEFS) utils/ecore/makekeys$(EXEEXT)
+	$(mkdir_p) $(top_builddir)/src/lib/ecore_x/xcb
+	$(top_builddir)/src/utils/ecore/makekeys $(KEYSYMDEFS) > $(top_builddir)/src/lib/ecore_x/xcb/ecore_xcb_keysym_table_h
+	mv -f $(top_builddir)/src/lib/ecore_x/xcb/ecore_xcb_keysym_table_h $(top_builddir)/src/lib/ecore_x/xcb/ecore_xcb_keysym_table.h
+endif
+
+### Utils
+
+noinst_PROGRAMS += utils/ecore/makekeys
+
+utils_ecore_makekeys_SOURCES = utils/ecore/makekeys.c
+utils_ecore_makekeys_CFLAGS = @ECORE_X_CFLAGS@
+
+endif
+EXTRA_DIST += utils/ecore/mkks.sh
