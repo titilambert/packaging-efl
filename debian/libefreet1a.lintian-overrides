@@ -1,0 +1,2 @@
+libefreet1a: package-name-doesnt-match-sonames libefreet1 libefreet-mime1 libefreet-trash1
+libefreet1a: symbols-declares-dependency-on-other-package libefreet-bin

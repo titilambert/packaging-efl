@@ -1,0 +1,41 @@
+diff --git a/src/lib/eina/eina_abi.c b/src/lib/eina/eina_abi.c
+index cdf0f9f..7c35655 100644
+--- a/src/lib/eina/eina_abi.c
++++ b/src/lib/eina/eina_abi.c
+@@ -20,6 +20,8 @@
+ # include "config.h"
+ #endif
+ 
++#include <assert.h>
++
+ #include "eina_config.h"
+ #include "eina_private.h"
+ #include "eina_unicode.h"
+@@ -67,3 +69,27 @@ eina_mempool_alignof(unsigned int size)
+ 
+    return ((size >> align) + (size & mask ? 1 : 0)) << align;
+ }
++
++
++typedef struct _Eina_Array Eina_Array;
++struct _Eina_Array
++{
++#define EINA_ARRAY_VERSION 1
++   int          version;
++
++   void       **data;
++   unsigned int total;
++   unsigned int count;
++   unsigned int step;
++   EINA_MAGIC
++};
++
++EAPI void
++eina_array_clean(Eina_Array *array)
++{
++   EINA_SAFETY_ON_NULL_RETURN(array);
++
++   assert(array->version == EINA_ARRAY_VERSION);
++
++   array->count = 0;
++}

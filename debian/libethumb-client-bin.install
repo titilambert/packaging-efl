@@ -1,0 +1,3 @@
+debian/tmp/usr/bin/ethumbd
+debian/tmp/usr/lib/*/ethumb_client/utils/*/ethumbd_slave
+debian/tmp/usr/share/dbus-1/services/org.enlightenment.Ethumb.service

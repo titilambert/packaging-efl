@@ -1,0 +1,2 @@
+debian/tmp/usr/lib/*/libecore_evas.so.*
+debian/tmp/usr/lib/*/ecore_evas/engines/*/*/module.so

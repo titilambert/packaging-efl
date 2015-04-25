@@ -1,0 +1,13 @@
+diff --git a/src/tests/ecore/ecore_test_ecore_imf.c b/src/tests/ecore/ecore_test_ecore_imf.c
+index f1ca873..0630478 100644
+--- a/src/tests/ecore/ecore_test_ecore_imf.c
++++ b/src/tests/ecore/ecore_test_ecore_imf.c
+@@ -79,6 +79,6 @@ END_TEST
+ void ecore_test_ecore_imf(TCase *tc)
+ {
+    tcase_add_test(tc, ecore_test_ecore_imf_init);
+-   tcase_add_test(tc, ecore_test_ecore_imf_modules);
+-   tcase_add_test(tc, ecore_test_ecore_imf_modules_load);
++// tcase_add_test(tc, ecore_test_ecore_imf_modules);
++// tcase_add_test(tc, ecore_test_ecore_imf_modules_load);
+ }

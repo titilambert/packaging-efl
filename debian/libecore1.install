@@ -1,0 +1,4 @@
+debian/tmp/usr/lib/*/libecore.so.*
+debian/tmp/usr/lib/*/ecore/system/*/*/module.so
+
+debian/tmp/usr/lib/*/libeldbus.so.*

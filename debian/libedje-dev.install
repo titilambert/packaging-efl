@@ -1,0 +1,3 @@
+debian/tmp/usr/include/edje-1
+debian/tmp/usr/lib/*/libedje.so
+debian/tmp/usr/lib/*/pkgconfig/edje.pc

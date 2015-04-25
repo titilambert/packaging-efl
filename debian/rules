@@ -1,0 +1,57 @@
+#!/usr/bin/make -f
+
+CFLAGS += -fvisibility=hidden
+LDFLAGS += -Wl,-z,defs -Wl,--as-needed
+
+ifneq (,$(filter $(DEB_HOST_ARCH), armel armhf))
+	arch_flags += --with-opengl=es
+endif
+
+ifeq (linux,$(DEB_HOST_ARCH_OS))
+	arch_flags += --enable-fb
+endif
+
+%:
+	dh $@ --with autoreconf --parallel
+
+override_dh_auto_configure:
+	dh_auto_configure -- \
+	--disable-rpath \
+	--enable-doc \
+	--with-profile=dev \
+	--with-tests=regular \
+	--with-crypto=gnutls \
+	--disable-cserve \
+	--disable-pulseaudio \
+	--disable-physics \
+	--disable-tslib \
+	--disable-magic-debug \
+	$(arch_flags)
+
+override_dh_auto_build-indep:
+	$(MAKE) doc
+
+override_dh_auto_test-indep:
+override_dh_auto_test-arch:
+	CK_DEFAULT_TIMEOUT=300 $(MAKE) -j1 check VERBOSE=yes
+
+# The install phase doesn't work reliably in parallel
+# Force it to run with only 1 thread to avoid issues
+override_dh_auto_install:
+	$(MAKE) -j1 DESTDIR=$(CURDIR)/debian/tmp install
+
+override_dh_install:
+	dh_install
+ifeq ($(DEB_HOST_ARCH_OS),linux)
+	dh_install -plibecore-dev debian/tmp/usr/lib/*/libecore_fb.so
+endif
+
+override_dh_makeshlibs:
+	dh_makeshlibs -Xmodule.so
+
+override_dh_shlibdeps:
+	dh_shlibdeps -Nlibefreet1a
+	dh_shlibdeps -plibefreet1a -- -xlibefreet-bin
+
+override_dh_strip:
+	dh_strip --dbg-package=efl-dbg

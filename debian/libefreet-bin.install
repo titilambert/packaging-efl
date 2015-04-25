@@ -1,0 +1,2 @@
+debian/tmp/usr/bin/efreetd
+debian/tmp/usr/share/dbus-1/services/org.enlightenment.Efreet.service

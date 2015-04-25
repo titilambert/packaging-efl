@@ -1,0 +1,8 @@
+debian/tmp/usr/include/ethumb-1
+debian/tmp/usr/include/ethumb-client-1
+
+debian/tmp/usr/lib/*/libethumb.so
+debian/tmp/usr/lib/*/libethumb_client.so
+
+debian/tmp/usr/lib/*/pkgconfig/ethumb.pc
+debian/tmp/usr/lib/*/pkgconfig/ethumb_client.pc

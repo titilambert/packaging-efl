@@ -1,0 +1,10 @@
+Document: efl
+Title: Enlightenment Foundation Libraries Documentation
+Author: Carsten Haitzler
+Abstract: This document describes the Enlightenment Foundation Libraries
+ and provides sample C code.
+Section: Programming/C
+
+Format: HTML
+Index: /usr/share/doc/efl-doc/html/index.html
+Files: /usr/share/doc/efl-doc/html/*.html

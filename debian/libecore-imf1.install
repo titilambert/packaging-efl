@@ -1,0 +1,3 @@
+debian/tmp/usr/lib/*/libecore_imf.so.*
+debian/tmp/usr/lib/*/libecore_imf_evas.so.*
+debian/tmp/usr/lib/*/ecore_imf/modules/*/*/module.so

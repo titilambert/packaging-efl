@@ -1,0 +1,13 @@
+diff --git a/src/tests/ecore/ecore_suite.c b/src/tests/ecore/ecore_suite.c
+index 7119d7d..0df9f94 100644
+--- a/src/tests/ecore/ecore_suite.c
++++ b/src/tests/ecore/ecore_suite.c
+@@ -22,7 +22,7 @@ static const Ecore_Test_Case etc[] = {
+   { "Ecore_Con", ecore_test_ecore_con },
+   { "Ecore_X", ecore_test_ecore_x },
+   { "Ecore_Imf", ecore_test_ecore_imf },
+-#if HAVE_ECORE_AUDIO
++#if 0
+   { "Ecore Audio", ecore_test_ecore_audio},
+ #endif
+   { "Ecore_Timers", ecore_test_timer },
