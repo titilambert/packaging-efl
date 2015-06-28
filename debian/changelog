@@ -1,136 +1,47 @@
-efl (1.8.6-2.1) unstable; urgency=medium
+efl (1.14.2-1) unstable; urgency=medium
 
   * Non-maintainer upload.
-  * GnuTLS v3 transition: Change (build-)depends to libgnutls28-dev, add b-d
-    on libgcrypt-dev. Closes: #753025
-  * efl-doc built with doxygen 1.8.7-3 to work around #762272.
 
- -- Andreas Metzler <ametzler@debian.org>  Sat, 20 Sep 2014 14:47:56 +0200
+ -- Thibault Cohen <titilambert@titilambert.org>  Sun, 28 Jun 2015 20:11:21 -0400
 
-efl (1.8.6-2) unstable; urgency=medium
-
-  * patches/04_eina_suite_lockup: cherry-pick f5c125 to fix eina suite lockup
-
- -- Albin Tonnerre <lutin@debian.org>  Sun, 04 May 2014 13:54:21 +0200
-
-efl (1.8.6-1) unstable; urgency=medium
-
-  * New upstream version
-  * debian/watch: update watch file to correctly parse alpha/beta versions
-  * patches/{04_magic_debug_abi,05_eina_time_get}: remove, applied upstream
-
- -- Albin Tonnerre <lutin@debian.org>  Sun, 09 Mar 2014 12:31:42 +0100
-
-efl (1.8.5-3) unstable; urgency=medium
-
-  * debian/control: libedje1, libeio1, libeeze1, efl-dbg are now M-A: same
-  * debian: add new package for Emotion
-  * debian: add new packages for Ethumb/Ethumb-Client
-
- -- Albin Tonnerre <lutin@debian.org>  Sat, 01 Mar 2014 14:42:35 +0100
-
-efl (1.8.5-2) unstable; urgency=medium
-
-  * debian: enable GLES insead of regular GL on armel and armhf
-  * debian/patches/04_magic_debug_abi: disable 'magic debug' to not break ABI.
-    Eina uses a 'magic' number to perform checks on its data structures, but
-    enabling this 'magic' number changes to ABI. Eina in debian is currently
-    compiled without magic debug, so we need to this patch to keep ABI
-    compatibility
-  * debian/patches/05_eina_time_get: fix issues with clock_gettime on hurd/*bsd
-  * Upload to unstable
-
- -- Albin Tonnerre <lutin@debian.org>  Sat, 22 Feb 2014 11:34:32 +0100
-
-efl (1.8.5-1) experimental; urgency=medium
+efl (1.14.1-0vivid0) vivid; urgency=low
 
   * New upstream release
-  * patches/04_eina_file_hash_fix: remove, applied upstream
-  * debian/control: allow efl-dbg to be installed on platforms lacking ecore-fb
-  * debian/control: allow efl to build on non-linux architectures
-    libudev-dev, libmount-dev and libbkid-dev are all linux-specific
-    packages. When they're not present the build system disables libeeze, so
-    that package is now linux-any.
-  * debian/copyright: fix missing licenses for some files (Closes: #736914)
 
- -- Albin Tonnerre <lutin@debian.org>  Fri, 31 Jan 2014 13:48:50 +0100
+ -- Arthur (Niko2040) Nikitenko <niko2040@bynets.ru>  Wed, 03 Jun 2015 17:31:57 +0300
 
-efl (1.8.4-2) experimental; urgency=medium
-
-  * debian/control: use misc:Pre-Depends instead of hardcoded multiarch-support
-  * debian/control: all libecore packages are now Multi-Arch: same
-  * debian: add the libefreet-bin package, necessary for proper efreet operation
-  * debian: update the efreet packaging to work with Multi-Arch
-    libefreet1 and efreetd communicate via d-bus, and there is a circular
-    dependency between libefreet1 and efreetd, which make things difficult
-    with Multi-Arch (as the helper binary had to be in a separate package).
-    To avoid that circular dependency issue, libefreet1 is now a
-    transitional package to libefreet1a and libefreet-bin and the
-    libefreet1a shlibs file forces a Depends: libefreet-bin. Thanks to
-    Josselin Mouette for the suggestion!
-  * debian: add packaging information for Eeze
-
- -- Albin Tonnerre <lutin@debian.org>  Sun, 26 Jan 2014 20:14:58 +0100
-
-efl (1.8.4-1) experimental; urgency=low
+efl (1.14.0-0vivid0) vivid; urgency=low
 
   * New upstream release
-  * debian/control: Build-Depend on libudev-dev only for Linux architectures
-  * debian/control: libevas1 Depends: libevas-loaders to support more formats
-  * debian/control: drop B-D on librsvg2-dev, svg is handled via evas-loaders
-  * debian/control: use Architecture: linux-any instead of hardcoded list
-  * debian/control: mark libeet1 and libevas1 packages as Multi-Arch: same
-  * debian/control: bump Standards-Version to 3.9.5, no changes required
-  * patches/03_ecore_evas_extn_abi: remove, applied upstream
-  * patches/03_no_ecore_audio_test: disable the Ecore_Audio testsuite.
-    We don't ship libecore-audio but the testsuite seems to have issues at
-    least on s390x. Since the library has other problems that make
-    debugging difficult, disable the tests until it gets fixed.
-  * patches/04_eina_file_hash_fix: cherry-pick cad0db51 to fix FTBFS on Sparc
-  * debian/rules: use a large testsuite timeout to fix issues on slow buildds
-  * debian: merge all libe*-doc into a single efl-doc package.
-    The initial upload erroenously copied the complete doc in all the -doc
-    packages, reuslting in much bigger packages than expected. Now that all
-    libs are in the same source package, keeping separate -doc binary
-    packages does not make much sense, so merge them all.
 
- -- Albin Tonnerre <lutin@debian.org>  Sun, 19 Jan 2014 12:13:11 +0100
+ -- Arthur (Niko2040) Nikitenko <niko2040@bynets.ru>  Thu, 07 May 2015 00:22:25 +0300
 
-efl (1.8.3-1) experimental; urgency=low
+efl (1.13.2-0vivid0) vivid; urgency=low
 
-  * First upload of the merged EFL tree (Closes: #729751)
-  * debian: add control and packages information from previous EFL packages
-  * debian: bring back and refresh applicable patches from previous EFL packages
-  * debian: move to a single debug symbols package for EFL
-  * debian: core evas engines now ship with libevas1, drop libevas-engines-core
-  * debian: upstream no longer provides static libraries
-  * debian: fix install path for ecore and edje utility libraries
-  * debian: remove evas loaders install; they'll be split in a separate package
-  * debian: update Build-Depends as per new EFL requirements
-  * debian/rules: always run autoreconf during build to get a recent version
-  * debian/rules: force build with dev profile
-  * debian/rules: add support for parallel builds
-  * debian: add packaging information for EO.
-    Since this a base EFL that all other libs depend on, integrate it with
-    the eina package
-  * debian: add packaging information for Eldbus.
-    To avoid a circular dependency between eldbus and ecore (ecore modules
-    depend on eldbus, eldbus depends on ecore), put the eldbus library in
-    the libecore package
-  * debian: refactor packages dependencies to be easier to maintain.
-    Upstream always generates the .pc files to have dependencies between
-    libs with the upstream version (ie. for EFL 1.8.3 all .pc files refer to
-    1.8.3), so there's no point in trying to be clever: just use the
-    source:Upstream-Version. Also, include Efl_Config.h in eina and make
-    sure all -dev packages depend on libeina-dev to get that config header
-  * debian/libevas1.symbols: mark all evas_common symbols as optional.
-    Even if the evas_common symbols are exported, they are internal to
-    Evas: they are only part of the internal engine API, but the symbols
-    have to be exported because Evas module use them and we need to be able
-    to resolve references to those symbols
-  * debian/libecore-evas1.symbols: drop windows-only symbol removed from EFL 1.8
-  * add patches/03_ecore_evas_extn_abi: cherry-pick e1b1296 to fix ABI issue
-  * debian: add new symbols from this version in the symbols files
-  * debian: add a DEP5-compliant copyright file
+  * New upstream release
 
- -- Albin Tonnerre <lutin@debian.org>  Mon, 06 Jan 2014 12:05:43 +0100
+ -- Arthur (Niko2040) Nikitenko <niko2040@bynets.ru>  Thu, 16 Apr 2015 04:49:47 +0300
+
+efl (1.13.1-0vivid0) vivid; urgency=low
+
+  * New upstream release
+
+ -- Arthur (Niko2040) Nikitenko <niko2040@bynets.ru>  Fri, 27 Feb 2015 21:33:35 +0300
+
+efl (1.13.0-0vivid3) vivid; urgency=low
+
+  * New upstream release
+
+ -- Arthur (Niko2040) Nikitenko <niko2040@bynets.ru>  Tue, 17 Feb 2015 03:24:06 +0300
+
+efl (1.12.2-0vivid2) vivid; urgency=low
+
+  * New upstream release
+
+ -- Arthur (Niko2040) Nikitenko <niko2040@bynets.ru>  Tue, 06 Jan 2015 04:46:06 +0300
+
+efl (1.11.3-0utopic1) utopic; urgency=low
+
+  * New upstream release
+
+ -- Arthur (Niko2040) Nikitenko <niko2040@bynets.ru>  Sat, 18 Oct 2014 06:04:44 +0300

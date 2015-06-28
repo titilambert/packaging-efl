@@ -1,3 +1,0 @@
-debian/tmp/usr/include/eio-*/*
-debian/tmp/usr/lib/*/libeio.so
-debian/tmp/usr/lib/*/pkgconfig/eio*.pc

@@ -1,0 +1,6 @@
+usr/bin/*
+usr/lib/*/ecore_x/bin/*/ecore_x_vsync
+usr/lib/*/edje/utils/*/epp
+usr/lib/*/efreet/*/*
+usr/lib/*/ethumb_client/utils/*/*
+usr/lib/*/evas/cserve2/bin/*/*

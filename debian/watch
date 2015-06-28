@@ -1,3 +1,0 @@
-version=3
-opts="uversionmangle=s/-/~/" \
-http://download.enlightenment.org/rel/libs/efl/efl-(.*)\.tar\.gz

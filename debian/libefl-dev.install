@@ -1,0 +1,17 @@
+usr/include/*
+usr/lib/*/pkgconfig/*
+usr/lib/*/*.la
+usr/lib/*/*.so
+usr/lib/*/ecore/system/systemd/*/module.la
+usr/lib/*/ecore/system/upower/*/module.la
+usr/lib/*/ecore_evas/engines/*/*/module.la
+usr/lib/*/ecore_imf/modules/xim/*/module.la
+usr/lib/*/edje/modules/emotion/*/module.la
+usr/lib/*/eeze/modules/sensor/fake/*/module.la
+usr/lib/*/eeze/modules/sensor/udev/*/module.la
+usr/lib/*/emotion/modules/gstreamer1/*/module.la
+usr/lib/*/ethumb/modules/emotion/*/module.la
+usr/lib/*/evas/modules/engines/*/*/module.la
+usr/lib/*/evas/modules/image_loaders/*/*/module.la
+usr/lib/*/evas/modules/image_savers/*/*/module.la
+usr/lib/*/cmake/*

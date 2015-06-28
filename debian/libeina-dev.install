@@ -1,8 +1,0 @@
-debian/tmp/usr/include/efl-1
-debian/tmp/usr/include/eina-1
-debian/tmp/usr/lib/*/libeina.so
-debian/tmp/usr/lib/*/pkgconfig/eina.pc
-
-debian/tmp/usr/include/eo-1
-debian/tmp/usr/lib/*/libeo.so
-debian/tmp/usr/lib/*/pkgconfig/eo.pc

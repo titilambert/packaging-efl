@@ -1,0 +1,3 @@
+usr/share/*
+usr/lib/systemd/*
+usr/lib/*/ethumb/modules/emotion/*/template.edj

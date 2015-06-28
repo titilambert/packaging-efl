@@ -1,3 +1,0 @@
-debian/tmp/usr/include/eeze-*
-debian/tmp/usr/lib/*/libeeze.so
-debian/tmp/usr/lib/*/pkgconfig/eeze.pc
