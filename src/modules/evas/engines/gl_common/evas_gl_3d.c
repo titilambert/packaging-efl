@@ -1,6 +1,23 @@
 #include "evas_gl_private.h"
 #include "evas_gl_3d_private.h"
 
+#define RENDER_MESH_NODE_ITERATE_BEGIN(param)                                                      \
+   Evas_Mat4          matrix_mv;                                                                   \
+   Evas_Mat4          matrix_mvp;                                                                  \
+   Eina_Iterator     *it;                                                                          \
+   void              *ptr;                                                                         \
+   evas_mat4_multiply(&matrix_mv, matrix_##param, &pd_mesh_node->data.mesh.matrix_local_to_world); \
+   evas_mat4_multiply(&matrix_mvp, &pd->projection, &matrix_mv);                                   \
+   it = eina_hash_iterator_data_new(pd_mesh_node->data.mesh.node_meshes);                          \
+   while (eina_iterator_next(it, &ptr))                                                            \
+     {                                                                                             \
+        Evas_3D_Node_Mesh *nm = (Evas_3D_Node_Mesh *)ptr;                                          \
+        Evas_3D_Mesh_Data *pdmesh = eo_data_scope_get(nm->mesh, EVAS_3D_MESH_CLASS);
+
+#define RENDER_MESH_NODE_ITERATE_END \
+   }                                 \
+   eina_iterator_free(it);
+
 void
 e3d_texture_param_update(E3D_Texture *texture)
 {
@@ -407,7 +424,7 @@ E3D_Drawable *
 e3d_drawable_new(int w, int h, int alpha, GLenum depth_format, GLenum stencil_format)
 {
    E3D_Drawable  *drawable = NULL;
-   GLuint         tex, fbo, texDepth;
+   GLuint         tex, fbo, texDepth, texcolorpick, color_pick_fb_id;
    GLuint         depth_stencil_buf = 0;
    GLuint         depth_buf = 0;
    GLuint         stencil_buf = 0;
@@ -434,6 +451,18 @@ e3d_drawable_new(int w, int h, int alpha, GLenum depth_format, GLenum stencil_fo
 #ifndef GL_GLES
    glTexImage2D(GL_TEXTURE_2D, 0, GL_R16, w, h, 0, GL_RED, GL_UNSIGNED_SHORT, 0);
 #endif
+
+   glGenTextures(1, &texcolorpick);
+   glBindTexture(GL_TEXTURE_2D, texcolorpick);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+#ifndef GL_GLES
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_R16, w, h, 0, GL_RED, GL_UNSIGNED_SHORT, 0);
+#endif
+
+   glGenFramebuffers(1, &color_pick_fb_id);
 
    glGenFramebuffers(1, &fbo);
    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
@@ -511,6 +540,8 @@ e3d_drawable_new(int w, int h, int alpha, GLenum depth_format, GLenum stencil_fo
    drawable->tex = tex;
    drawable->fbo = fbo;
    drawable->depth_stencil_buf = depth_stencil_buf;
+   drawable->texcolorpick = texcolorpick;
+   drawable->color_pick_fb_id = color_pick_fb_id;
    drawable->depth_buf = depth_buf;
    drawable->stencil_buf = stencil_buf;
    drawable->texDepth = texDepth;
@@ -522,9 +553,13 @@ error:
 
    if (tex)
      glDeleteTextures(1, &tex);
+   if (texcolorpick)
+     glDeleteTextures(1, &texcolorpick);
 
    if (fbo)
      glDeleteFramebuffers(1, &fbo);
+   if (color_pick_fb_id)
+     glDeleteFramebuffers(1, &color_pick_fb_id);
 
    if (depth_stencil_buf)
      {
@@ -595,19 +630,16 @@ e3d_drawable_texture_id_get(E3D_Drawable *drawable)
    return drawable->tex;
 }
 
+GLuint
+e3d_drawable_texture_color_pick_id_get(E3D_Drawable *drawable)
+{
+   return drawable->texcolorpick;
+}
+
 GLenum
 e3d_drawable_format_get(E3D_Drawable *drawable)
 {
    return drawable->format;
-}
-
-static inline GLuint
-_texture_id_get(Evas_3D_Texture *texture)
-{
-   Evas_3D_Texture_Data *pd = eo_data_scope_get(texture, EVAS_3D_TEXTURE_CLASS);
-   E3D_Texture *tex = (E3D_Texture *)pd->engine_data;
-
-   return tex->tex;
 }
 
 static inline void
@@ -1101,9 +1133,18 @@ _mesh_draw_data_build(E3D_Draw_Data *data,
         data->flags |= E3D_SHADER_FLAG_FOG_ENABLED;
         data->fog_color = pdmesh->fog_color;
      }
+   if (pdmesh->alpha_test_enabled)
+     data->flags |= E3D_SHADER_FLAG_ALPHA_TEST_ENABLED;
 
    if (pdmesh->shadowed)
-        data->flags |= E3D_SHADER_FLAG_SHADOWED;
+     data->flags |= E3D_SHADER_FLAG_SHADOWED;
+
+   if (pdmesh->color_pick_enabled)
+     data->color_pick_key = pdmesh->color_pick_key;
+
+   data->alpha_comparison = pdmesh->alpha_comparison;
+   data->alpha_ref_value = pdmesh->alpha_ref_value;
+   data->alpha_test_enabled =pdmesh->alpha_test_enabled;
 
    data->blending = pdmesh->blending;
    data->blend_sfactor = pdmesh->blend_sfactor;
@@ -1138,6 +1179,17 @@ _mesh_draw_data_build(E3D_Draw_Data *data,
         BUILD(vertex_attrib,     VERTEX_COLOR,        EINA_TRUE);
      }
    else if (pdmesh->shade_mode == EVAS_3D_SHADE_MODE_SHADOW_MAP_RENDER)
+     {
+        BUILD(vertex_attrib,     VERTEX_POSITION,     EINA_TRUE);
+        if (pdmesh->alpha_test_enabled)
+          {
+             BUILD(material_texture,  MATERIAL_DIFFUSE,    EINA_FALSE);
+
+             if (_flags_need_tex_coord(data->flags))
+               BUILD(vertex_attrib,     VERTEX_TEXCOORD,     EINA_FALSE);
+          }
+     }
+   else if (pdmesh->shade_mode == EVAS_3D_SHADE_MODE_COLOR_PICK)
      {
         BUILD(vertex_attrib,     VERTEX_POSITION,     EINA_TRUE);
      }
@@ -1192,13 +1244,19 @@ _mesh_draw_data_build(E3D_Draw_Data *data,
         if (_flags_need_tex_coord(data->flags))
           BUILD(vertex_attrib,     VERTEX_TEXCOORD,     EINA_FALSE);
      }
-   else if (pdmesh->shade_mode == EVAS_3D_SHADE_MODE_NORMAL_MAP)
+   else if ((pdmesh->shade_mode == EVAS_3D_SHADE_MODE_NORMAL_MAP) ||
+            (pdmesh->shade_mode == EVAS_3D_SHADE_MODE_PARALLAX_OCCLUSION))
      {
         BUILD(vertex_attrib,     VERTEX_POSITION,     EINA_TRUE);
         BUILD(vertex_attrib,     VERTEX_NORMAL,       EINA_TRUE);
         BUILD(vertex_attrib,     VERTEX_TEXCOORD,     EINA_TRUE);
         BUILD(material_texture,  MATERIAL_NORMAL,     EINA_TRUE);
         BUILD(vertex_attrib,     VERTEX_TANGENT,      EINA_FALSE);
+
+
+        if (pdmesh->shade_mode == EVAS_3D_SHADE_MODE_NORMAL_MAP)
+          BUILD(vertex_attrib,     VERTEX_TANGENT,      EINA_FALSE);
+        else BUILD(vertex_attrib,     VERTEX_TANGENT,      EINA_TRUE);
 
         BUILD(material_color,    MATERIAL_AMBIENT,    EINA_FALSE);
         BUILD(material_color,    MATERIAL_DIFFUSE,    EINA_FALSE);
@@ -1214,10 +1272,17 @@ _mesh_draw_data_build(E3D_Draw_Data *data,
         evas_normal_matrix_get(&data->matrix_normal, matrix_mv);
      }
 
-   // TODO Add correct numbering
    int num;
    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &num);
    data->smap_sampler = num - 1;
+
+   if (data->texture_count >= num)
+     if ((data->flags & E3D_SHADER_FLAG_SHADOWED) || (data->texture_count > num))
+       {
+          ERR("Too many textures for your graphics configuration.");
+          return EINA_FALSE;
+       }
+
    return EINA_TRUE;
 }
 
@@ -1238,7 +1303,8 @@ void _shadowmap_render(E3D_Drawable *drawable, E3D_Renderer *renderer, Evas_3D_S
    Eina_List        *l;
    Evas_3D_Node     *n;
    Evas_3D_Shade_Mode shade_mode;
-   Evas_Color      c = {1.0, 1.0, 1.0};
+   Eina_Bool       blend_enabled;
+   Evas_Color      c = {1.0, 1.0, 1.0, 1.0};
    Evas_Mat4 matrix_vp;
 
    glEnable(GL_POLYGON_OFFSET_FILL);
@@ -1256,32 +1322,21 @@ void _shadowmap_render(E3D_Drawable *drawable, E3D_Renderer *renderer, Evas_3D_S
 
    EINA_LIST_FOREACH(data->mesh_nodes, l, n)
      {
-        Evas_Mat4          matrix_mv;
-        Evas_Mat4          matrix_mvp;
-        Eina_Iterator     *it;
-        void              *ptr;
-
         Evas_3D_Node_Data *pd_mesh_node = eo_data_scope_get(n, EVAS_3D_NODE_CLASS);
 
         if (evas_is_sphere_in_frustum(&pd_mesh_node->bsphere, planes))
           {
-
-             evas_mat4_multiply(&matrix_mv, matrix_light_eye, &pd_mesh_node->data.mesh.matrix_local_to_world);
-             evas_mat4_multiply(&matrix_mvp, &pd->projection,
-                           &matrix_mv);
-
-             it = eina_hash_iterator_data_new(pd_mesh_node->data.mesh.node_meshes);
-
-             while (eina_iterator_next(it, &ptr))
+             RENDER_MESH_NODE_ITERATE_BEGIN(light_eye)
                {
-                  Evas_3D_Node_Mesh *nm = (Evas_3D_Node_Mesh *)ptr;
-                  Evas_3D_Mesh_Data *pdmesh = eo_data_scope_get(nm->mesh, EVAS_3D_MESH_CLASS);
                   shade_mode = pdmesh->shade_mode;
+                  blend_enabled = pdmesh->blending;
+                  pdmesh->blending = EINA_FALSE;
                   pdmesh->shade_mode = EVAS_3D_SHADE_MODE_SHADOW_MAP_RENDER;
                   _mesh_draw(renderer, nm->mesh, nm->frame, light, matrix_light_eye, &matrix_mv, &matrix_mvp, &matrix_mvp);
                   pdmesh->shade_mode = shade_mode;
+                  pdmesh->blending = blend_enabled;
                }
-             eina_iterator_free(it);
+             RENDER_MESH_NODE_ITERATE_END
           }
      }
 
@@ -1367,3 +1422,105 @@ e3d_drawable_scene_render(E3D_Drawable *drawable, E3D_Renderer *renderer, Evas_3
      }
    e3d_renderer_flush(renderer);
 }
+
+Eina_Bool
+e3d_drawable_scene_render_to_texture(E3D_Drawable *drawable, E3D_Renderer *renderer,
+                                     Evas_3D_Scene_Public_Data *data)
+{
+   const Evas_Mat4  *matrix_eye;
+   Evas_3D_Shade_Mode shade_mode;
+   Eina_Stringshare *tmp;
+   Eina_Iterator *itmn;
+   void *ptrmn;
+   Eina_List *repeat_node = NULL;
+   Evas_Color c = {0, 0, 0, 0}, *unic_color = NULL;
+
+   glBindFramebuffer(GL_FRAMEBUFFER, drawable->color_pick_fb_id);
+   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                          GL_TEXTURE_2D, drawable->texcolorpick, 0);
+#ifdef GL_GLES
+   glBindTexture(GL_TEXTURE_2D, drawable->depth_stencil_buf);
+   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                               GL_TEXTURE_2D, drawable->depth_stencil_buf, 0);
+#else
+   glBindRenderbuffer(GL_RENDERBUFFER, drawable->depth_stencil_buf);
+   glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
+                             GL_RENDERBUFFER, drawable->depth_stencil_buf);
+#endif
+
+   e3d_renderer_clear(renderer, &c);
+
+   Evas_3D_Node_Data *pd_camera_node = eo_data_scope_get(data->camera_node, EVAS_3D_NODE_CLASS);
+   matrix_eye = &pd_camera_node->data.camera.matrix_world_to_eye;
+   Evas_3D_Camera_Data *pd = eo_data_scope_get(pd_camera_node->data.camera.camera, EVAS_3D_CAMERA_CLASS);
+
+   itmn = eina_hash_iterator_data_new(data->colors_node_mesh);
+
+   while (eina_iterator_next(itmn, &ptrmn))
+     {
+        Evas_3D_Node      *n;
+        Eina_Array *arr = NULL;
+
+        arr = (Eina_Array *)ptrmn;
+        n = (Evas_3D_Node *)eina_array_data_get(arr, 0);
+        /*To avoid repeatedly render mesh*/
+        if (!repeat_node)
+          repeat_node = eina_list_append(repeat_node, (void*)n);
+        else
+          {
+             if (eina_list_data_find(repeat_node, (void *)n))
+               continue;
+             else
+               repeat_node = eina_list_append(repeat_node, (void *)n);
+          }
+        Evas_3D_Node_Data *pd_mesh_node = eo_data_scope_get(n, EVAS_3D_NODE_CLASS);
+        RENDER_MESH_NODE_ITERATE_BEGIN(eye)
+          {
+             if (pdmesh->color_pick_enabled)
+               {
+                  tmp = eina_stringshare_printf("%p %p", n, nm->mesh);
+                  unic_color = (Evas_Color *)eina_hash_find(data->node_mesh_colors, tmp);
+                  if (unic_color)
+                    {
+                       pdmesh->color_pick_key = unic_color->r;
+                       shade_mode = pdmesh->shade_mode;
+                       pdmesh->shade_mode = EVAS_3D_SHADE_MODE_COLOR_PICK;
+                       _mesh_draw(renderer, nm->mesh, nm->frame, NULL, matrix_eye, &matrix_mv,
+                                  &matrix_mvp, NULL);
+                       pdmesh->shade_mode = shade_mode;
+                    }
+                  eina_stringshare_del(tmp);
+               }
+          }
+        RENDER_MESH_NODE_ITERATE_END
+     }
+
+   eina_iterator_free(itmn);
+   eina_list_free(repeat_node);
+   glBindFramebuffer(GL_FRAMEBUFFER, drawable->fbo);
+   return EINA_TRUE;
+}
+
+double
+e3d_drawable_texture_pixel_color_get(GLuint tex EINA_UNUSED, int x, int y,
+                            void *drawable)
+{
+   E3D_Drawable *d = (E3D_Drawable *)drawable;
+   GLuint pixel;
+
+   glBindFramebuffer(GL_FRAMEBUFFER, d->color_pick_fb_id);
+   /*TODO Bottle neck - get more effective getting pixels from openGL*/
+#ifndef GL_GLES
+   glReadPixels(x, y, 1, 1, GL_RED, GL_UNSIGNED_SHORT, &pixel);
+   glBindFramebuffer(GL_FRAMEBUFFER, d->fbo);
+   return (double)pixel / USHRT_MAX;
+#else
+   // FIXME: Verify this logic. UNTESTED! (build fix was required)
+   glReadPixels(x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &pixel);
+   glBindFramebuffer(GL_FRAMEBUFFER, d->fbo);
+   return ((double)R_VAL(&pixel)) / 255.0;
+#endif
+}
+
+#undef RENDER_MESH_NODE_ITERATE_BEGIN
+#undef RENDER_MESH_NODE_ITERATE_END

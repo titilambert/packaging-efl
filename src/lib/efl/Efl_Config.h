@@ -14,7 +14,7 @@
 #endif
 
 #define EFL_VERSION_MAJOR 1
-#define EFL_VERSION_MINOR 13
+#define EFL_VERSION_MINOR 14
 #define EFL_BUILD_ID "none"
 
 #endif

@@ -120,6 +120,13 @@ _mesh_init(Evas_3D_Mesh_Data *pd)
    pd->blend_sfactor = EVAS_3D_BLEND_ONE;
    pd->blend_dfactor = EVAS_3D_BLEND_ZERO;
    pd->blending = EINA_FALSE;
+
+   pd->alpha_comparison = EVAS_3D_COMPARISON_ALWAYS;
+   pd->alpha_ref_value = 0.0f;
+   pd->alpha_test_enabled = EINA_FALSE;
+
+   pd->color_pick_key = -1.0;
+   pd->color_pick_enabled = EINA_FALSE;
 }
 
 static inline void
@@ -256,7 +263,6 @@ _evas_3d_mesh_eo_base_constructor(Eo *obj, Evas_3D_Mesh_Data *pd)
 EOLIAN static void
 _evas_3d_mesh_eo_base_destructor(Eo *obj, Evas_3D_Mesh_Data *pd)
 {
-   //evas_3d_object_unreference(&pd->base);
    _mesh_fini(pd);
    eo_do_super(obj, MY_CLASS, eo_destructor());
 }
@@ -284,7 +290,7 @@ _evas_3d_mesh_vertex_count_set(Eo *obj, Evas_3D_Mesh_Data *pd, unsigned int coun
    eo_do(obj, evas_3d_object_change(EVAS_3D_STATE_MESH_VERTEX_COUNT, NULL));
 }
 
-EOLIAN static int
+EOLIAN static unsigned int
 _evas_3d_mesh_vertex_count_get(Eo *obj EINA_UNUSED, Evas_3D_Mesh_Data *pd)
 {
    return pd->vertex_count;
@@ -802,16 +808,54 @@ _evas_3d_mesh_blending_func_get(Eo *obj EINA_UNUSED, Evas_3D_Mesh_Data *pd,
 }
 
 EOLIAN static void
-_evas_3d_mesh_mmap_set(Eo *obj, Evas_3D_Mesh_Data *pd,
-                       Eina_File *file, const char *key EINA_UNUSED)
+_evas_3d_mesh_alpha_func_set(Eo *obj, Evas_3D_Mesh_Data *pd, Evas_3D_Comparison comparison,
+                                    Evas_Real ref_value)
+{
+   if (pd->alpha_comparison == comparison && pd->alpha_ref_value == ref_value)
+     return;
+   pd->alpha_comparison = comparison;
+   pd->alpha_ref_value = ref_value;
+   eo_do(obj, evas_3d_object_change(EVAS_3D_STATE_MESH_ALPHA_TEST, NULL));
+}
+
+EOLIAN static void
+_evas_3d_mesh_alpha_func_get(Eo *obj EINA_UNUSED, Evas_3D_Mesh_Data *pd,
+                                   Evas_3D_Comparison *comparison,
+                                   Evas_Real *ref_value)
+{
+   if (comparison) *comparison = pd->alpha_comparison;
+   if (ref_value) *ref_value = pd->alpha_ref_value;
+}
+
+EOLIAN static void
+_evas_3d_mesh_alpha_test_enable_set(Eo *obj, Evas_3D_Mesh_Data *pd, Eina_Bool enabled)
+{
+   pd->alpha_test_enabled = enabled;
+   eo_do(obj, evas_3d_object_change(EVAS_3D_STATE_MESH_ALPHA_TEST, NULL));
+}
+
+EOLIAN static Eina_Bool
+_evas_3d_mesh_alpha_test_enable_get(Eo *obj EINA_UNUSED, Evas_3D_Mesh_Data *pd)
+{
+   return pd->alpha_test_enabled;
+}
+
+EOLIAN static Eina_Bool
+_evas_3d_mesh_efl_file_mmap_set(Eo *obj,
+                                Evas_3D_Mesh_Data *pd,
+                                const Eina_File *f, const char *key EINA_UNUSED)
 {
    _mesh_fini(pd);
    _mesh_init(pd);
 
-   if (file == NULL) return;
+   if (f == NULL) return EINA_FALSE;
 
-   evas_common_load_model_from_eina_file(obj, file);
+   evas_common_load_model_from_eina_file(obj, f);
+
+   return EINA_TRUE;
 }
+
+/* FIXME: Imelemnt mmap_get and file_get. */
 
 EOLIAN static Eina_Bool
 _evas_3d_mesh_efl_file_file_set(Eo *obj, Evas_3D_Mesh_Data *pd,
@@ -961,6 +1005,19 @@ evas_3d_mesh_interpolate_vertex_buffer_get(Evas_3D_Mesh *mesh, int frame,
 
         *weight = 1.0;
      }
+}
+
+EOLIAN static Eina_Bool
+_evas_3d_mesh_color_pick_enable_get(Eo *obj EINA_UNUSED, Evas_3D_Mesh_Data *pd)
+{
+   return pd->color_pick_enabled;
+}
+EOLIAN static void
+_evas_3d_mesh_color_pick_enable_set(Eo *obj, Evas_3D_Mesh_Data *pd, Eina_Bool enabled)
+{
+   if (pd->color_pick_enabled != enabled)
+     pd->color_pick_enabled = enabled;
+   eo_do(obj, evas_3d_object_change(EVAS_3D_STATE_MESH_COLOR_PICK, NULL));
 }
 
 #include "canvas/evas_3d_mesh.eo.c"

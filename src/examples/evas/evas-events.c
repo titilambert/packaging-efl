@@ -12,7 +12,6 @@
  */
 
 #ifdef HAVE_CONFIG_H
-
 #include "config.h"
 #else
 #define PACKAGE_EXAMPLES_DIR "."
@@ -22,11 +21,12 @@
 #include <Ecore_Evas.h>
 #include <stdio.h>
 #include <errno.h>
+#include "evas-common.h"
 
 #define WIDTH  (320)
 #define HEIGHT (240)
 
-static const char *img_path = PACKAGE_EXAMPLES_DIR "/enlightenment.png";
+static const char *img_path = PACKAGE_EXAMPLES_DIR EVAS_IMAGE_FOLDER "/enlightenment.png";
 
 static const char *commands = \
   "commands are:\n"
@@ -147,7 +147,7 @@ _on_keydown(void        *data EINA_UNUSED,
 
    if (strcmp(ev->key, "h") == 0) /* print help */
      {
-        fprintf(stdout, commands);
+        puts(commands);
         return;
      }
 
@@ -395,7 +395,7 @@ main(void)
 
    d.resize_timer = ecore_timer_add(2, _resize_cb, NULL);
 
-   fprintf(stdout, commands);
+   puts(commands);
    ecore_main_loop_begin();
 
    ecore_evas_free(d.ee);

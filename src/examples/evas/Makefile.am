@@ -7,9 +7,11 @@ AM_CPPFLAGS = \
 -I$(top_builddir)/src/lib/efl/interfaces \
 -I$(top_srcdir)/src/lib/eina \
 -I$(top_srcdir)/src/lib/eo \
+-I$(top_srcdir)/src/lib/ector \
 -I$(top_srcdir)/src/lib/evas \
 -I$(top_builddir)/src/lib/eina \
 -I$(top_builddir)/src/lib/eo \
+-I$(top_builddir)/src/lib/ector \
 -I$(top_builddir)/src/lib/evas \
 @EVAS_CFLAGS@
 
@@ -30,15 +32,19 @@ evas_init_shutdown_LDADD = $(top_builddir)/src/lib/evas/libevas.la @EVAS_LDFLAGS
 ECORE_EVAS_COMMON_CPPFLAGS = \
 -I$(top_srcdir)/src/lib/eina \
 -I$(top_srcdir)/src/lib/eo \
+-I$(top_srcdir)/src/lib/ector \
 -I$(top_srcdir)/src/lib/evas \
 -I$(top_srcdir)/src/lib/ecore \
+-I$(top_srcdir)/src/lib/ecore_file \
 -I$(top_srcdir)/src/lib/ecore_input \
 -I$(top_srcdir)/src/lib/ecore_evas \
 -I$(top_builddir)/src/lib/efl \
 -I$(top_builddir)/src/lib/eina \
 -I$(top_builddir)/src/lib/eo \
+-I$(top_builddir)/src/lib/ector \
 -I$(top_builddir)/src/lib/evas \
 -I$(top_builddir)/src/lib/ecore \
+-I$(top_builddir)/src/lib/ecore_file \
 -I$(top_srcdir)/src/lib/ecore_input \
 -I$(top_builddir)/src/lib/ecore_evas \
 -DPACKAGE_EXAMPLES_DIR=\".\" \
@@ -49,8 +55,10 @@ $(top_builddir)/src/lib/efl/libefl.la \
 $(top_builddir)/src/lib/eina/libeina.la \
 $(top_builddir)/src/lib/eo/libeo.la \
 $(top_builddir)/src/lib/ecore/libecore.la \
+$(top_builddir)/src/lib/ecore_file/libecore_file.la \
 $(top_builddir)/src/lib/ecore_input/libecore_input.la \
 $(top_builddir)/src/lib/ecore_evas/libecore_evas.la \
+$(top_builddir)/src/lib/ector/libector.la \
 $(top_builddir)/src/lib/evas/libevas.la \
 @EVAS_LDFLAGS@ -lm
 
@@ -63,7 +71,9 @@ EDJE_COMMON_CPPFLAGS = \
 -I$(top_builddir)/src/lib/eo \
 -I$(top_srcdir)/src/lib/eet \
 -I$(top_builddir)/src/lib/eet \
+-I$(top_srcdir)/src/lib/ector \
 -I$(top_srcdir)/src/lib/evas \
+-I$(top_builddir)/src/lib/ector \
 -I$(top_builddir)/src/lib/evas \
 -I$(top_srcdir)/src/lib/ecore \
 -I$(top_builddir)/src/lib/ecore \
@@ -139,6 +149,11 @@ evas_images3_SOURCES = evas-images3.c
 evas_images3_LDADD = $(ECORE_EVAS_COMMON_LDADD)
 evas_images3_CPPFLAGS = $(ECORE_EVAS_COMMON_CPPFLAGS)
 
+EXTRA_PROGRAMS += evas_images4
+evas_images4_SOURCES = evas-images4.c
+evas_images4_LDADD = $(ECORE_EVAS_COMMON_LDADD)
+evas_images4_CPPFLAGS = $(ECORE_EVAS_COMMON_CPPFLAGS)
+
 EXTRA_PROGRAMS += evas_text
 evas_text_SOURCES = evas-text.c
 evas_text_LDADD = $(ECORE_EVAS_COMMON_LDADD)
@@ -190,17 +205,17 @@ evas_3d_cube_LDADD = $(ECORE_EVAS_COMMON_LDADD) @EFL_PTHREAD_LIBS@
 evas_3d_cube_CPPFLAGS = $(ECORE_EVAS_COMMON_CPPFLAGS)
 
 EXTRA_PROGRAMS += evas_3d_cube2
-evas_3d_cube2_SOURCES = evas-3d-cube2.c
+evas_3d_cube2_SOURCES = evas-3d-cube2.c evas-3d-primitives.c evas-3d-primitives.h
 evas_3d_cube2_LDADD = $(ECORE_EVAS_COMMON_LDADD) @EFL_PTHREAD_LIBS@
 evas_3d_cube2_CPPFLAGS = $(ECORE_EVAS_COMMON_CPPFLAGS)
 
 EXTRA_PROGRAMS += evas_3d_proxy
-evas_3d_proxy_SOURCES = evas-3d-proxy.c
+evas_3d_proxy_SOURCES = evas-3d-proxy.c evas-3d-primitives.c evas-3d-primitives.h
 evas_3d_proxy_LDADD = $(ECORE_EVAS_COMMON_LDADD) @EFL_PTHREAD_LIBS@
 evas_3d_proxy_CPPFLAGS = $(ECORE_EVAS_COMMON_CPPFLAGS)
 
 EXTRA_PROGRAMS += evas_3d_pick
-evas_3d_pick_SOURCES = evas-3d-pick.c
+evas_3d_pick_SOURCES = evas-3d-pick.c evas-3d-primitives.c evas-3d-primitives.h
 evas_3d_pick_LDADD = $(ECORE_EVAS_COMMON_LDADD) @EFL_PTHREAD_LIBS@
 evas_3d_pick_CPPFLAGS = $(ECORE_EVAS_COMMON_CPPFLAGS)
 
@@ -220,32 +235,27 @@ evas_3d_ply_LDADD = $(ECORE_EVAS_COMMON_LDADD) @EFL_PTHREAD_LIBS@
 evas_3d_ply_CPPFLAGS = $(ECORE_EVAS_COMMON_CPPFLAGS)
 
 EXTRA_PROGRAMS += evas_3d_frustum
-evas_3d_frustum_SOURCES = evas-3d-frustum.c
+evas_3d_frustum_SOURCES = evas-3d-frustum.c evas-3d-primitives.c evas-3d-primitives.h
 evas_3d_frustum_LDADD = $(ECORE_EVAS_COMMON_LDADD) @EFL_PTHREAD_LIBS@
 evas_3d_frustum_CPPFLAGS = $(ECORE_EVAS_COMMON_CPPFLAGS)
 
-EXTRA_PROGRAMS += evas_3d_moon_space
-evas_3d_moon_space_SOURCES = evas-3d-moon-space.c
-evas_3d_moon_space_LDADD = $(ECORE_EVAS_COMMON_LDADD) @EFL_PTHREAD_LIBS@
-evas_3d_moon_space_CPPFLAGS = $(ECORE_EVAS_COMMON_CPPFLAGS)
-
 EXTRA_PROGRAMS += evas_3d_aabb
-evas_3d_aabb_SOURCES = evas-3d-aabb.c
+evas_3d_aabb_SOURCES = evas-3d-aabb.c evas-3d-primitives.c evas-3d-primitives.h
 evas_3d_aabb_LDADD = $(ECORE_EVAS_COMMON_LDADD) @EFL_PTHREAD_LIBS@
 evas_3d_aabb_CPPFLAGS = $(ECORE_EVAS_COMMON_CPPFLAGS)
 
 EXTRA_PROGRAMS += evas_3d_cube_rotate
-evas_3d_cube_rotate_SOURCES = evas-3d-cube-rotate.c
+evas_3d_cube_rotate_SOURCES = evas-3d-cube-rotate.c evas-3d-primitives.c evas-3d-primitives.h
 evas_3d_cube_rotate_LDADD = $(ECORE_EVAS_COMMON_LDADD) @EFL_PTHREAD_LIBS@
 evas_3d_cube_rotate_CPPFLAGS = $(ECORE_EVAS_COMMON_CPPFLAGS)
 
 EXTRA_PROGRAMS += evas_3d_shadows
-evas_3d_shadows_SOURCES = evas-3d-shadows.c
+evas_3d_shadows_SOURCES = evas-3d-shadows.c evas-3d-primitives.c evas-3d-primitives.h
 evas_3d_shadows_LDADD = $(ECORE_EVAS_COMMON_LDADD) @EFL_PTHREAD_LIBS@
 evas_3d_shadows_CPPFLAGS = $(ECORE_EVAS_COMMON_CPPFLAGS)
 
 EXTRA_PROGRAMS += evas_3d_shooter
-evas_3d_shooter_SOURCES = shooter/evas-3d-shooter.c shooter/evas-3d-shooter-header.c
+evas_3d_shooter_SOURCES = shooter/evas-3d-shooter.c shooter/evas-3d-shooter-header.c evas-3d-primitives.c evas-3d-primitives.h
 evas_3d_shooter_LDADD = $(ECORE_EVAS_COMMON_LDADD) @EFL_PTHREAD_LIBS@
 evas_3d_shooter_CPPFLAGS = $(ECORE_EVAS_COMMON_CPPFLAGS)
 
@@ -255,7 +265,7 @@ evas_3d_obj_LDADD = $(ECORE_EVAS_COMMON_LDADD) @EFL_PTHREAD_LIBS@
 evas_3d_obj_CPPFLAGS = $(ECORE_EVAS_COMMON_CPPFLAGS)
 
 EXTRA_PROGRAMS += evas_3d_blending
-evas_3d_blending_SOURCES = evas-3d-blending.c
+evas_3d_blending_SOURCES = evas-3d-blending.c evas-3d-primitives.c
 evas_3d_blending_LDADD = $(ECORE_EVAS_COMMON_LDADD) @EFL_PTHREAD_LIBS@
 evas_3d_blending_CPPFLAGS = $(ECORE_EVAS_COMMON_CPPFLAGS)
 
@@ -264,10 +274,30 @@ evas_3d_mmap_SOURCES = evas-3d-mmap-set.c
 evas_3d_mmap_LDADD = $(ECORE_EVAS_COMMON_LDADD) @EFL_PTHREAD_LIBS@
 evas_3d_mmap_CPPFLAGS = $(ECORE_EVAS_COMMON_CPPFLAGS)
 
+EXTRA_PROGRAMS += evas_3d_colorpick
+evas_3d_colorpick_SOURCES = evas-3d-colorpick.c evas-3d-primitives.c
+evas_3d_colorpick_LDADD = $(ECORE_EVAS_COMMON_LDADD) @EFL_PTHREAD_LIBS@
+evas_3d_colorpick_CPPFLAGS = $(ECORE_EVAS_COMMON_CPPFLAGS)
+
+EXTRA_PROGRAMS += evas_3d_parallax_occlusion
+evas_3d_parallax_occlusion_SOURCES = evas-3d-parallax-occlusion.c evas-3d-primitives.c
+evas_3d_parallax_occlusion_LDADD = $(ECORE_EVAS_COMMON_LDADD) @EFL_PTHREAD_LIBS@
+evas_3d_parallax_occlusion_CPPFLAGS = $(ECORE_EVAS_COMMON_CPPFLAGS)
+
 EXTRA_PROGRAMS += evas_gl
 evas_gl_SOURCES = evas-gl.c
 evas_gl_LDADD = $(ECORE_EVAS_COMMON_LDADD) @EFL_PTHREAD_LIBS@
 evas_gl_CPPFLAGS = $(ECORE_EVAS_COMMON_CPPFLAGS)
+
+EXTRA_PROGRAMS += evas_vg_simple
+evas_vg_simple_SOURCES = evas-vg-simple.c
+evas_vg_simple_LDADD = $(ECORE_EVAS_COMMON_LDADD)
+evas_vg_simple_CPPFLAGS = $(ECORE_EVAS_COMMON_CPPFLAGS)
+
+EXTRA_PROGRAMS += evas_vg_batman
+evas_vg_batman_SOURCES = evas-vg-batman.c
+evas_vg_batman_LDADD = $(ECORE_EVAS_COMMON_LDADD)
+evas_vg_batman_CPPFLAGS = $(ECORE_EVAS_COMMON_CPPFLAGS)
 
 .edc.edj:
 	$(AM_V_EDJ)$(EDJE_CC) $(EDJE_CC_FLAGS) $< $(builddir)/$(@F)
@@ -300,6 +330,7 @@ evas-hints.c \
 evas-images.c \
 evas-images2.c \
 evas-images3.c \
+evas-images4.c \
 evas-init-shutdown.c \
 evas-map-utils.c \
 evas-map-aa.c \
@@ -310,14 +341,66 @@ evas-smart-object.c \
 evas-stacking.c \
 evas-table.c \
 evas-multi-touch.c \
-evas-text.c
+evas-text.c \
+evas-vg-simple.c \
+evas-vg-batman.c
 
 DATA_FILES = \
-enlightenment.png \
-red.png \
-im1.png \
-cube1.png \
-Makefile.examples
+resources/images/enlightenment.png \
+resources/images/red.png \
+resources/images/im1.png \
+resources/images/cube1.png \
+resources/images/normal_lego.png \
+resources/images/sonic.png \
+resources/images/sweet_home_reversed.png \
+resources/images/wood.jpg \
+resources/images/rocks.jpg \
+resources/images/four_NM_height.tga \
+resources/images/rocks_NM_height.tga \
+resources/images/grid.png \
+resources/images/grid_n.png \
+resources/images/billboard.png \
+resources/models/mesh_for_mmap.eet \
+resources/models/mesh_for_mmap.md2 \
+resources/models/mesh_for_mmap.obj \
+resources/models/mesh_for_mmap.ply \
+resources/models/Normal_UVs_Colors.ply \
+resources/models/Normal_UVs_NoColors.ply \
+resources/models/Normal_NoUVs_Colors.ply \
+resources/models/Normal_NoUVs_NoColors.ply \
+resources/models/NoNormal_UVs_Colors.ply \
+resources/models/NoNormal_UVs_NoColors.ply \
+resources/models/NoNormal_NoUVs_Colors.ply \
+resources/models/NoNormal_NoUVs_NoColors.ply \
+resources/models/sonic.md2 \
+resources/models/sweet_home.obj \
+resources/models/sweet_home_only_vertex_coords.obj \
+resources/models/sweet_home_without_normals.obj \
+resources/models/sweet_home_without_tex_coords.obj \
+shooter/assets/images/brick-stone_n.jpg \
+shooter/assets/images/brick-stone.jpg \
+shooter/assets/images/bricks_n.jpg \
+shooter/assets/images/eagle.png \
+shooter/assets/images/snake.png \
+shooter/assets/images/snake_n.png \
+shooter/assets/images/bricks.jpg \
+shooter/assets/images/soldier.png \
+shooter/assets/images/gazebo.png \
+shooter/assets/images/warrior.png \
+shooter/assets/images/gazebo_t.png \
+shooter/assets/images/gazebo_t_t.png \
+shooter/assets/images/gazebo_t_n.png \
+shooter/assets/images/gazebo_b_n.png \
+shooter/assets/models/warrior.md2 \
+shooter/assets/models/gazebo_b.md2 \
+shooter/assets/models/gazebo_t.md2 \
+shooter/assets/models/eagle.md2 \
+shooter/assets/models/snake.md2 \
+shooter/assets/models/soldier_jump.md2 \
+shooter/assets/models/soldier.md2 \
+shooter/assets/models/tommy.ply \
+Makefile.examples \
+evas-common.h
 
 examples: $(EXTRA_PROGRAMS) $(EDJS)
 
@@ -325,7 +408,7 @@ clean-local:
 	rm -f $(EXTRA_PROGRAMS) $(EDJS)
 
 install-examples:
-	mkdir -p $(datadir)/evas/examples
+	$(MKDIR_P) $(datadir)/evas/examples
 	cd $(srcdir) && $(install_sh_DATA) -c $(SRCS) $(EDCS) $(DATA_FILES) $(datadir)/evas/examples
 
 uninstall-local:

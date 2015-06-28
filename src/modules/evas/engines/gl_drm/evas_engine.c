@@ -132,6 +132,8 @@ static const EVGL_Interface evgl_funcs =
    NULL, // PBuffer
    NULL, // OpenGL-ES 1
    NULL, // OpenGL-ES 1
+   NULL, // OpenGL-ES 1
+   NULL, // native_win_surface_config_check
 };
 
 /* local functions */
@@ -216,8 +218,15 @@ gl_extn_veto(Render_Engine *re)
    str = eglQueryString(eng_get_ob(re)->egl_disp, EGL_EXTENSIONS);
    if (str)
      {
+        const char *s;
         if (getenv("EVAS_GL_INFO"))
           printf("EGL EXTN:\n%s\n", str);
+        // Disable Partial Rendering
+        if ((s = getenv("EVAS_GL_PARTIAL_DISABLE")) && atoi(s))
+          {
+             extn_have_buffer_age = 0;
+             glsym_eglSwapBuffersWithDamage = NULL;
+          }
         if (!strstr(str, "EGL_EXT_buffer_age"))
           extn_have_buffer_age = 0;
         if (!strstr(str, "EGL_EXT_swap_buffers_with_damage"))
@@ -593,26 +602,18 @@ eng_setup(Evas *eo_e, void *in)
 
         if (!initted)
           {
-             evas_common_cpu_init();
-             evas_common_blend_init();
-             evas_common_image_init();
-             evas_common_convert_init();
-             evas_common_scale_init();
-             evas_common_rectangle_init();
-             evas_common_polygon_init();
-             evas_common_line_init();
-             evas_common_font_init();
-             evas_common_draw_init();
-             evas_common_tilebuf_init();
+             evas_common_init();
              glsym_evas_gl_preload_init();
           }
 
         if (!(info->info.gbm) || !(info->info.surface))
           return 0;
 
+#ifdef GL_DRM_DBG
         DBG("FD: %d, GBM_DEVICE: 0x%x, GBM_SURFACE: 0x%x",
             info->info.fd, (unsigned int)info->info.gbm,
             (unsigned int)info->info.surface);
+#endif
 
         re = calloc(1, sizeof(Render_Engine));
         if (!re) return 0;
@@ -734,9 +735,11 @@ eng_setup(Evas *eo_e, void *in)
                   if (!evas_drm_gbm_init(info, epd->output.w, epd->output.h))
                     return 0;
 
+#ifdef GL_DRM_DBG
                   DBG("FD: %d, GBM_DEVICE: 0x%x, GBM_SURFACE: 0x%x",
                       info->info.fd, (unsigned int)info->info.gbm,
                       (unsigned int)info->info.surface);
+#endif
 
                   ob = eng_window_new(info, eo_e, info->info.gbm,
                                       info->info.surface, info->info.screen,
@@ -815,8 +818,7 @@ eng_output_free(void *data)
    if ((initted == EINA_TRUE) && (gl_wins == 0))
      {
         glsym_evas_gl_preload_shutdown();
-        evas_common_image_shutdown();
-        evas_common_font_shutdown();
+        evas_common_shutdown();
         initted = EINA_FALSE;
      }
 }
@@ -891,7 +893,6 @@ _native_cb_bind(void *data EINA_UNUSED, void *image)
    else if (n->ns.type == EVAS_NATIVE_SURFACE_OPENGL)
      {
         glBindTexture(GL_TEXTURE_2D, n->ns.data.opengl.texture_id);
-        GLERR(__FUNCTION__, __FILE__, __LINE__, "");
      }
 }
 
@@ -907,12 +908,10 @@ _native_cb_unbind(void *data EINA_UNUSED, void *image)
    if (n->ns.type == EVAS_NATIVE_SURFACE_WL)
      {
         //glBindTexture(GL_TEXTURE_2D, 0); //really need?
-        GLERR(__FUNCTION__, __FILE__, __LINE__, "");
      }
    else if (n->ns.type == EVAS_NATIVE_SURFACE_OPENGL)
      {
         glBindTexture(GL_TEXTURE_2D, 0);
-        GLERR(__FUNCTION__, __FILE__, __LINE__, "");
      }
 }
 
@@ -1121,7 +1120,7 @@ eng_image_native_set(void *data, void *image, void *native)
 
                   if (!n->egl_surface)
                     {
-                       ERR("eglCreatePixmapSurface() for 0x%x failed", (unsigned int)wl_buf);
+                       ERR("eglCreatePixmapSurface() for %p failed", wl_buf);
                        eina_hash_del(ob->gl_context->shared->native_wl_hash, &wlid, img);
                        glsym_evas_gl_common_image_free(img);
                        free(n);

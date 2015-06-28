@@ -3,6 +3,8 @@ MAINTAINERCLEANFILES = Makefile.in
 AM_CPPFLAGS = \
 -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/eina \
+-I$(top_srcdir)/src/lib/eet \
+-I$(top_srcdir)/src/lib/emile \
 -I$(top_srcdir)/src/lib/eo \
 -I$(top_srcdir)/src/lib/evas \
 -I$(top_srcdir)/src/lib/ecore \
@@ -15,6 +17,8 @@ AM_CPPFLAGS = \
 -I$(top_srcdir)/src/lib/ecore_evas \
 -I$(top_srcdir)/src/lib/ecore_audio \
 -I$(top_builddir)/src/lib/eina \
+-I$(top_builddir)/src/lib/eet \
+-I$(top_builddir)/src/lib/emile \
 -I$(top_builddir)/src/lib/eo \
 -I$(top_builddir)/src/lib/evas \
 -I$(top_builddir)/src/lib/ecore \
@@ -65,12 +69,15 @@ ecore_server_bench \
 ecore_thread_example \
 ecore_time_functions_example \
 ecore_timer_example \
-ecore_getopt_example
+ecore_getopt_example \
+ecore_con_eet_client_example \
+ecore_con_eet_server_example
 
 ECORE_COMMON_LDADD = \
 $(top_builddir)/src/lib/ecore/libecore.la \
 $(top_builddir)/src/lib/eo/libeo.la \
 $(top_builddir)/src/lib/eina/libeina.la \
+$(top_builddir)/src/lib/emile/libemile.la \
 @ECORE_LDFLAGS@
 
 if HAVE_ECORE_AUDIO
@@ -234,6 +241,12 @@ ecore_timer_example_LDADD = $(ECORE_COMMON_LDADD)
 ecore_getopt_example_SOURCES = ecore_getopt_example.c
 ecore_getopt_example_LDADD = $(ECORE_COMMON_LDADD)
 
+ecore_con_eet_client_example_SOURCES = ecore_con_eet_client_example.c ecore_con_eet_descriptor_example.c
+ecore_con_eet_client_example_LDADD = $(ECORE_CON_COMMON_LDADD)
+
+ecore_con_eet_server_example_SOURCES = ecore_con_eet_server_example.c ecore_con_eet_descriptor_example.c
+ecore_con_eet_server_example_LDADD = $(ECORE_CON_COMMON_LDADD)
+
 SRCS = \
 ecore_animator_example.c \
 ecore_audio_custom.c \
@@ -276,7 +289,10 @@ ecore_server_bench.c \
 ecore_thread_example.c \
 ecore_time_functions_example.c \
 ecore_timer_example.c \
-ecore_getopt_example.c
+ecore_getopt_example.c \
+ecore_con_eet_client_example.c \
+ecore_con_eet_server_example.c \
+ecore_con_eet_descriptor_example.c 
 
 DATA_FILES = red.png Makefile.examples
 
@@ -288,7 +304,7 @@ clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 
 install-examples:
-	mkdir -p $(datadir)/ecore/examples
+	$(MKDIR_P) $(datadir)/ecore/examples
 	cd $(srcdir) && $(install_sh_DATA) -c $(SRCS) $(DATA_FILES) $(datadir)/ecore/examples
 
 uninstall-local:

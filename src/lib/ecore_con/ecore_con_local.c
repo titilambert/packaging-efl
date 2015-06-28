@@ -37,6 +37,24 @@
 
 static int _ecore_con_local_init_count = 0;
 
+static inline const char *_ecore_con_get_tmpdir()
+{
+   const char *tmpdir = "/tmp";
+   const char *dir = getenv("TMPDIR");
+
+   if (!dir) return tmpdir;
+   return dir;
+}
+
+static const char *_ecore_con_local_path_get()
+{
+   const char *homedir = getenv("XDG_RUNTIME_DIR");
+   if (!homedir) homedir = getenv("HOME");
+   if (!homedir) homedir = _ecore_con_get_tmpdir();
+
+   return homedir;
+}
+
 int
 ecore_con_local_init(void)
 {
@@ -77,33 +95,23 @@ ecore_con_local_connect(Ecore_Con_Server *obj,
 #if defined(HAVE_GETUID) && defined(HAVE_GETEUID)
         if (getuid() == geteuid())
 #endif
-          {
-             homedir = getenv("XDG_RUNTIME_DIR");
-             if (!homedir)
-               {
-                  homedir = getenv("HOME");
-                  if (!homedir)
-                    {
-                       homedir = getenv("TMP");
-                       if (!homedir) homedir = "/tmp";
-                    }
-               }
-             snprintf(buf, sizeof(buf), "%s/.ecore/%s/%i", homedir, svr->name,
-                      svr->port);
-          }
+          homedir = _ecore_con_local_path_get();
 #if defined(HAVE_GETUID) && defined(HAVE_GETEUID)
         else
           {
              struct passwd *pw = getpwent();
 
-             if ((!pw) || (!pw->pw_dir))
-               snprintf(buf, sizeof(buf), "/tmp/%s/%i", svr->name,
-                        svr->port);
-             else
-               snprintf(buf, sizeof(buf), "%s/.ecore/%s/%i", pw->pw_dir, svr->name,
-                        svr->port);
+             if ((!pw) || (!pw->pw_dir)) homedir = "/tmp";
+             else homedir = pw->pw_dir;
           }
 #endif
+
+        if (svr->port < 0)
+           snprintf(buf, sizeof(buf), "%s/.ecore/%s",
+                    homedir, svr->name);
+        else
+           snprintf(buf, sizeof(buf), "%s/.ecore/%s/%i",
+                    homedir, svr->name, svr->port);
      }
    else if ((svr->type & ECORE_CON_TYPE) == ECORE_CON_LOCAL_SYSTEM)
      {
@@ -115,18 +123,22 @@ ecore_con_local_connect(Ecore_Con_Server *obj,
                   buf[sizeof(buf) - 1] = 0;
                }
              else
-               snprintf(buf, sizeof(buf), "/tmp/.ecore_service|%s", svr->name);
+               {
+                  homedir = _ecore_con_get_tmpdir();
+                  snprintf(buf, sizeof(buf), "%s/.ecore_service|%s",
+                           homedir, svr->name);
+               }
           }
         else
           {
-             if (svr->name[0] ==
-                 '/')
-               snprintf(buf, sizeof(buf), "%s|%i", svr->name,
-                        svr->port);
+             if (svr->name[0] == '/')
+               snprintf(buf, sizeof(buf), "%s|%i", svr->name, svr->port);
              else
-               snprintf(buf, sizeof(buf), "/tmp/.ecore_service|%s|%i",
-                        svr->name,
-                        svr->port);
+               {
+                  homedir = _ecore_con_get_tmpdir();
+                  snprintf(buf, sizeof(buf), "%s/.ecore_service|%s|%i",
+                           homedir, svr->name, svr->port);
+               }
           }
      }
    else if ((svr->type & ECORE_CON_TYPE) == ECORE_CON_LOCAL_ABSTRACT)
@@ -228,18 +240,8 @@ ecore_con_local_listen(
 #if defined(HAVE_GETUID) && defined(HAVE_GETEUID)
         if (getuid() == geteuid())
 #endif
-          {
-             homedir = getenv("XDG_RUNTIME_DIR");
-             if (!homedir)
-               {
-                  homedir = getenv("HOME");
-                  if (!homedir)
-                    {
-                       homedir = getenv("TMP");
-                       if (!homedir) homedir = "/tmp";
-                    }
-               }
-          }
+          homedir = _ecore_con_local_path_get();
+
 #if defined(HAVE_GETUID) && defined(HAVE_GETEUID)
         else
           {
@@ -262,37 +264,43 @@ ecore_con_local_listen(
              if (mkdir(buf, mask) < 0) ERR("mkdir '%s' failed", buf);
           }
 
-        snprintf(buf,
-                 sizeof(buf),
-                 "%s/.ecore/%s/%i",
-                 homedir,
-                 svr->name,
-                 svr->port);
+        if (svr->port < 0)
+           snprintf(buf, sizeof(buf), "%s/.ecore/%s",
+                    homedir, svr->name);
+        else
+           snprintf(buf, sizeof(buf), "%s/.ecore/%s/%i",
+                    homedir, svr->name, svr->port);
+
         mask = S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IWOTH | S_IXOTH;
      }
    else if ((svr->type & ECORE_CON_TYPE) == ECORE_CON_LOCAL_SYSTEM)
      {
         mask = 0;
-        if (svr->name[0] == '/')
+        if (svr->port < 0)
           {
-             if (svr->port >= 0)
-               snprintf(buf,
-                        sizeof(buf),
-                        "%s|%i",
-                        svr->name,
-                        svr->port);
+             if (svr->name[0] == '/')
+               {
+                  strncpy(buf, svr->name, sizeof(buf) - 1);
+                  buf[sizeof(buf) - 1] = 0;
+               }
              else
-               snprintf(buf,
-                        sizeof(buf),
-                        "%s",
-                        svr->name);
+               {
+                  homedir = _ecore_con_get_tmpdir();
+                  snprintf(buf, sizeof(buf), "%s/.ecore_service|%s",
+                           homedir, svr->name);
+               }
           }
         else
-          snprintf(buf,
-                   sizeof(buf),
-                   "/tmp/.ecore_service|%s|%i",
-                   svr->name,
-                   svr->port);
+          {
+             if (svr->name[0] == '/')
+               snprintf(buf, sizeof(buf), "%s|%i", svr->name, svr->port);
+             else
+               {
+                  homedir = _ecore_con_get_tmpdir();
+                  snprintf(buf, sizeof(buf), "%s/.ecore_service|%s|%i",
+                           homedir, svr->name, svr->port);
+               }
+          }
      }
    else if ((svr->type & ECORE_CON_TYPE) == ECORE_CON_LOCAL_ABSTRACT)
      {

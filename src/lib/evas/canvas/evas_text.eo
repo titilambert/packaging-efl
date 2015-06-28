@@ -58,12 +58,12 @@ class Evas.Text (Evas.Object, Efl.Text, Efl.Text_Properties)
             /*@
             @brief Gets the ellipsis currently set on the text object.
 
-            @return The ellipsis set on the text object.
+            @return The ellipsis set on the text object. The ellipsis is -1.0.
             @see evas_object_text_ellipsis_set.
             @since 1.8 */
          }
          values {
-            double ellipsis; /*@ the ellipsis. */
+            double ellipsis(-1); /*@ the ellipsis. */
          }
       }
       bidi_delimiters {
@@ -320,7 +320,7 @@ class Evas.Text (Evas.Object, Efl.Text, Efl.Text_Properties)
    methods {
       last_up_to_pos @const {
          /*@ Returns the logical position of the last char in the text up to the pos given. this is NOT the position of the last char because of the possibility of RTL in the text. */
-         return: int;
+         return: int(-1);
          params {
             @in Evas_Coord x; /*@ in */
             @in Evas_Coord y; /*@ in */
@@ -362,7 +362,7 @@ class Evas.Text (Evas.Object, Efl.Text, Efl.Text_Properties)
       Eo.Base.constructor;
       Eo.Base.destructor;
       Eo.Base.dbg_info_get;
-      Evas.Object.size.set;
+      Efl.Gfx.Base.size.set;
       Efl.Text.text.set;
       Efl.Text.text.get;
       Efl.Text_Properties.font.get;

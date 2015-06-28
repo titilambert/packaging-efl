@@ -34,18 +34,7 @@ _output_setup(int  width,
      return NULL;
 
    /* if we haven't initialized - init (automatic abort if already done) */
-   evas_common_cpu_init();
-
-   evas_common_blend_init();
-   evas_common_image_init();
-   evas_common_convert_init();
-   evas_common_scale_init();
-   evas_common_rectangle_init();
-   evas_common_polygon_init();
-   evas_common_line_init();
-   evas_common_font_init();
-   evas_common_draw_init();
-   evas_common_tilebuf_init();
+   evas_common_init();
 
    evas_software_ddraw_outbuf_init();
 
@@ -154,8 +143,7 @@ eng_output_free(void *data)
    evas_render_engine_software_generic_clean(&re->generic);
    free(re);
 
-   evas_common_font_shutdown();
-   evas_common_image_shutdown();
+   evas_common_shutdown();
 }
 
 static Eina_Bool

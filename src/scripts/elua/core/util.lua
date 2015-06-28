@@ -12,53 +12,109 @@ local C = ffi.C
 local M = {}
 
 local getmetatable, setmetatable = getmetatable, setmetatable
+local dgetmt = debug.getmetatable
+
+-- multiple inheritance index with depth-first search
+local proto_lookup = function(protos, name)
+    if not protos then return nil end
+    for i = 1, #protos do
+        local proto = protos[i]
+        local v = proto[name]
+        if v ~= nil then
+            return v
+        end
+    end
+end
+
+local Object_MT = {
+    __index = function(self, name)
+        local v = proto_lookup(self.__mixins, name)
+        if v == nil then
+            return proto_lookup(self.__protos, name)
+        end
+    end,
+
+    __tostring = function(self)
+        local  f = self["__tostring"]
+        if not f then
+            return ("Object: %s"):format(self.name or "unnamed")
+        end
+        return f(self)
+    end,
+
+    __call = function(self, ...)
+        return self["__call"](self, ...)
+    end
+}
+
+local obj_gc = function(px)
+    local obj = dgetmt(px).__obj
+    local dtor = obj and obj.__dtor or nil
+    if dtor then dtor(obj) end
+end
 
 M.Object = {
+    __enable_dtor = false,
+
     __call = function(self, ...)
         local r = self:clone()
+        if self.__enable_dtor then
+            local px = newproxy(true)
+            local pxmt = dgetmt(px)
+            r.__gcproxy = px
+            pxmt.__gc = obj_gc
+            pxmt.__obj = r
+        end
         if self.__ctor then return r, self.__ctor(r, ...) end
         return r
     end,
 
     clone = function(self, o)
         o = o or {}
-        o.__index, o.__proto, o.__call = self, self, self.__call
-        if not o.__tostring then
-            o.__tostring = self.__tostring
-        end
-        setmetatable(o, o)
+        o.__protos, o.__mixins = { self }, {}
+        setmetatable(o, Object_MT)
         return o
     end,
 
     is_a = function(self, base)
         if self == base then return true end
-        local pt = self.__proto
-        local is = (pt == base)
-        while not is and pt do
-            pt = pt.__proto
-            is = (pt == base)
+        local protos = self.__protos
+        for i = 1, #protos do
+            if protos[i]:is_a(base) then
+                return true
+            end
         end
-        return is
+        return false
     end,
 
-    mixin = function(self, obj)
-        for k, v in pairs(obj) do self[k] = v end
+    add_parent = function(self, parent)
+        local protos = self.__protos
+        protos[#protos + 1] = parent
     end,
 
-    __tostring = function(self)
-        return ("Object: %s"):format(self.name or "unnamed")
+    add_mixin = function(self, mixin)
+        local mixins = self.__mixins
+        mixins[#mixins + 1] = mixin
     end
 }
 
 local newproxy = newproxy
+
+local robj_gc = function(px)
+    local dtor = px.__dtor
+    if dtor then dtor(px) end
+end
 
 M.Readonly_Object = M.Object:clone {}
 M.Readonly_Object.__call = function(self, ...)
     local r = newproxy(true)
     local rmt = getmetatable(r)
     rmt.__index = self
-    rmt.__tostring = self.__tostring
+    rmt.__tostring = Object_MT.__tostring
     rmt.__metatable = false
+    if self.__enable_dtor then
+        rmt.__gc = robj_gc
+    end
     if self.__ctor then return r, self.__ctor(r, rmt, ...) end
     return r
 end

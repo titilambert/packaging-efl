@@ -247,7 +247,6 @@ ecore_evas_wayland_shm_new_internal(const char *disp_name, unsigned int parent, 
 
  err:
    ecore_evas_free(ee);
-   _ecore_evas_wl_common_shutdown();
  ee_err:
    ecore_wl_shutdown();
    return NULL;
@@ -366,7 +365,6 @@ _ecore_evas_wl_hide(Ecore_Evas *ee)
    if (!ee->visible) return;
    ee->visible = 0;
    ee->should_be_visible = 0;
-   _ecore_evas_wl_common_frame_callback_clean(ee);
 
    if (ee->func.fn_hide) ee->func.fn_hide(ee);
 }
@@ -381,7 +379,7 @@ _ecore_evas_wayland_shm_alpha_do(Ecore_Evas *ee, int alpha)
    LOGFN(__FILE__, __LINE__, __FUNCTION__);
 
    if (!ee) return;
-   if ((ee->alpha == alpha)) return;
+   if (ee->alpha == alpha) return;
    ee->alpha = alpha;
    wdata = ee->engine.data;
 
@@ -420,7 +418,7 @@ _ecore_evas_wayland_shm_transparent_do(Ecore_Evas *ee, int transparent)
    LOGFN(__FILE__, __LINE__, __FUNCTION__);
 
    if (!ee) return;
-   if ((ee->transparent == transparent)) return;
+   if (ee->transparent == transparent) return;
    ee->transparent = transparent;
 
    wdata = ee->engine.data;

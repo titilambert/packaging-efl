@@ -27,6 +27,7 @@ bindings/eina_cxx/eina_ptrlist.hh \
 bindings/eina_cxx/eina_range_types.hh \
 bindings/eina_cxx/eina_ref.hh \
 bindings/eina_cxx/eina_stringshare.hh \
+bindings/eina_cxx/eina_string_view.hh \
 bindings/eina_cxx/eina_thread.hh \
 bindings/eina_cxx/eina_throw.hh \
 bindings/eina_cxx/eina_tuple.hh \
@@ -63,6 +64,7 @@ tests_eina_cxx_eina_cxx_suite_CXXFLAGS = -I$(top_builddir)/src/lib/efl \
 -DTESTS_BUILD_DIR=\"$(top_builddir)/src/tests/eina_cxx\" \
 @CHECK_CFLAGS@ \
 @EO_CFLAGS@ \
+@ECORE_CFLAGS@ \
 @EO_CXX_CFLAGS@ \
 @EINA_CXX_CFLAGS@
 tests_eina_cxx_eina_cxx_suite_LDADD = @CHECK_LIBS@ @USE_EINA_LIBS@ @USE_EO_LIBS@

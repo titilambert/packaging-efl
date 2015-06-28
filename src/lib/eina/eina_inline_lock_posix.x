@@ -144,8 +144,8 @@ static inline void
 eina_lock_debug(const Eina_Lock *mutex)
 {
 #ifdef EINA_HAVE_DEBUG_THREADS
-   printf("lock %p, locked: %i, by %i\n",
-          mutex, (int)mutex->locked, (int)mutex->lock_thread_id);
+   printf("lock %p, locked: %i, by %ti\n",
+          mutex, (int)mutex->locked, (ptrdiff_t)mutex->lock_thread_id);
    backtrace_symbols_fd((void **)mutex->lock_bt, mutex->lock_bt_num, 1);
 #else
    (void) mutex;
@@ -784,14 +784,31 @@ eina_semaphore_free(Eina_Semaphore *sem)
 static inline Eina_Bool
 eina_semaphore_lock(Eina_Semaphore *sem)
 {
+   Eina_Bool ok = EINA_FALSE;
+
    if (!sem)
      return EINA_FALSE;
 
+   for (;;)
+     {
+        if (
 #if defined(EINA_HAVE_OSX_SEMAPHORE)
-   return (sem_wait(sem->sema) == 0) ? EINA_TRUE : EINA_FALSE;
+            sem_wait(sem->sema)
 #else
-   return (sem_wait(sem) == 0) ? EINA_TRUE : EINA_FALSE;
+            sem_wait(sem)
 #endif
+            == 0)
+          {
+             ok = EINA_TRUE;
+             break;
+          }
+        else
+          {
+             if (errno != EINTR)
+               break;
+          }
+     }
+   return ok;
 }
 
 static inline Eina_Bool

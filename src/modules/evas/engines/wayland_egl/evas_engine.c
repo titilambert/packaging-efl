@@ -179,8 +179,15 @@ gl_extn_veto(Render_Engine *re)
    str = eglQueryString(eng_get_ob(re)->egl_disp, EGL_EXTENSIONS);
    if (str)
      {
+        const char *s;
         if (getenv("EVAS_GL_INFO"))
           printf("EGL EXTN:\n%s\n", str);
+        // Disable Partial Rendering
+        if ((s = getenv("EVAS_GL_PARTIAL_DISABLE")) && atoi(s))
+          {
+             extn_have_buffer_age = EINA_FALSE;
+             glsym_eglSwapBuffersWithDamage = NULL;
+          }
         if (!strstr(str, "EGL_EXT_buffer_age"))
           {
              extn_have_buffer_age = EINA_FALSE;
@@ -476,6 +483,8 @@ static const EVGL_Interface evgl_funcs =
    NULL, // PBuffer
    NULL, // OpenGL-ES 1
    NULL, // OpenGL-ES 1
+   NULL, // OpenGL-ES 1
+   NULL, // native_win_surface_config_check
 };
 
 /* engine functions */
@@ -593,17 +602,7 @@ eng_setup(Evas *evas, void *info)
         /* if we have not initialize gl & evas, do it */
         if (!initted)
           {
-             evas_common_cpu_init();
-             evas_common_blend_init();
-             evas_common_image_init();
-             evas_common_convert_init();
-             evas_common_scale_init();
-             evas_common_rectangle_init();
-             evas_common_polygon_init();
-             evas_common_line_init();
-             evas_common_font_init();
-             evas_common_draw_init();
-             evas_common_tilebuf_init();
+             evas_common_init();
              glsym_evas_gl_preload_init();
           }
 
@@ -760,8 +759,7 @@ eng_output_free(void *data)
    if ((initted == EINA_TRUE) && (gl_wins == 0))
      {
         glsym_evas_gl_preload_shutdown();
-        evas_common_image_shutdown();
-        evas_common_font_shutdown();
+        evas_common_shutdown();
         initted = EINA_FALSE;
      }
 }
@@ -791,7 +789,6 @@ _native_cb_bind(void *data EINA_UNUSED, void *image)
    if (n->ns.type == EVAS_NATIVE_SURFACE_OPENGL)
      {
         glBindTexture(GL_TEXTURE_2D, n->ns.data.opengl.texture_id);
-        GLERR(__FUNCTION__, __FILE__, __LINE__, "");
      }
 }
 
@@ -807,7 +804,6 @@ _native_cb_unbind(void *data EINA_UNUSED, void *image)
    if (n->ns.type == EVAS_NATIVE_SURFACE_OPENGL)
      {
         glBindTexture(GL_TEXTURE_2D, 0);
-        GLERR(__FUNCTION__, __FILE__, __LINE__, "");
      }
 }
 

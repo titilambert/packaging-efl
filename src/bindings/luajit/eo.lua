@@ -106,10 +106,12 @@ ffi.cdef [[
     Eina_Iterator *eo_children_iterator_new(void);
 
     const Eo_Class *eo_base_class_get(void);
+
+    extern const Eo_Event_Description _EO_BASE_EVENT_DEL;
 ]]
 
-local addr_d = ffi.typeof("union { double d; const Eo_Class *p; }")
-local eo_class_addr_get = function(x)
+local addr_d = ffi.typeof("union { double d; const Eo *p; }")
+local eo_obj_addr_get = function(x)
     local v = addr_d()
     v.p = x
     return tonumber(v.d)
@@ -125,38 +127,109 @@ local eo
 local classes = {}
 local eo_classes = {}
 
+-- event system
+
+local eo_callbacks, eo_cbidcache = {}, {}
+
+local eo_event_del, eo_event_cb
+
+local eo_event_del_fun = function(data, obj, desc, einfo)
+    local addr = eo_obj_addr_get(obj)
+    if  eo_callbacks[addr] then
+        eo_callbacks[addr], eo_cbidcache[addr] = nil, nil
+    end
+end
+
+local eo_event_cb_fun = function(data, obj, desc, einfo)
+    local  addr = eo_obj_addr_get(obj)
+    local  cbs  = eo_callbacks[addr]
+    assert(cbs)
+    local cidx = tonumber(ffi.cast("intptr_t", data))
+    local fun  = cbs[cidx]
+    assert(fun)
+    return fun() ~= false
+end
+
+local connect = function(self, ename, func, priority)
+    local ev = self.__events[ename]
+    if not ev then
+        return false, "attempt to connect an invalid event '" .. ename .. "'"
+    end
+    local cl = eo_classes["Eo_Base"]
+    -- add the callback to the respective array
+    local cdel = false
+    local addr = eo_obj_addr_get(self)
+    local  cbs = eo_callbacks[addr]
+    local  cbi = eo_cbidcache[addr]
+    if not cbs then
+        cbs, cbi = {}, {}
+        eo_callbacks[addr], eo_cbidcache[addr] = cbs, cbi
+        cdel = true
+    end
+    local cidx = #cbs + 1
+    cbs[cidx], cbi[func] = func, cidx
+    M.__do_start(self, cl)
+    eo.eo_event_callback_priority_add(ev, priority or 0,
+        eo_event_cb, ffi.cast("void *", cidx))
+    eo.eo_event_callback_priority_add(eo._EO_BASE_EVENT_DEL, 0, eo_event_del,
+        nil)
+    M.__do_end()
+    return true
+end
+
+local disconnect = function(self, ename, func)
+    local ev = self.__events[ename]
+    if not ev then
+        return false, "attempt to disconnect an invalid event '" .. ename .. "'"
+    end
+    local cl = eo_classes["Eo_Base"]
+    -- like connect, but the other way around
+    local addr = eo_obj_addr_get(self)
+    local  cbs = eo_callbacks[addr]
+    if not cbs then
+        return false
+    end
+    local  cbi = eo_cbidcache[addr]
+    assert(cbi)
+    local cidx = cbi[func]
+    if not cidx then
+        return false
+    end
+    cbs[cidx] = nil
+    cbi[func] = nil
+    M.__do_start(self, cl)
+    eo.eo_event_callback_del(ev, eo_event_cb, ffi.cast("void *", cidx))
+    M.__do_end()
+    return true
+end
+
 local init = function()
     eo = util.lib_load("eo")
     eo.eo_init()
     local eocl = eo.eo_base_class_get()
-    local addr = eo_class_addr_get(eocl)
+    local addr = eo_obj_addr_get(eocl)
     classes["Eo_Base"] = util.Object:clone {
-        connect = function(self, ename, func)
-            local ev = self.__events[ename]
-            if not ev then
-                error("invalid event '" .. ename .. "'", 2)
-            end
-            local cl = eo_classes["Eo_Base"]
-            M.__do_start(self, cl)
-            eo.eo_event_callback_priority_add(ev, 0,
-                function(data, obj, desc, einfo)
-                    return func(obj, einfo) ~= false
-                end,
-            nil)
-            M.__do_end()
-        end,
-
+        connect = connect,
+        disconnect = disconnect,
         __events = util.Object:clone {},
         __properties = util.Object:clone {}
     }
     classes[addr] = classes["Eo_Base"]
     eo_classes["Eo_Base"] = eocl
     eo_classes[addr] = eocl
+    eo_event_del = ffi.cast("Eo_Event_Cb", eo_event_del_fun)
+    eo_event_cb  = ffi.cast("Eo_Event_Cb", eo_event_cb_fun)
 end
 
 local shutdown = function()
-    M.class_unregister("Eo_Base")
+    classes, eo_classes = {}, {}
     eo.eo_shutdown()
+    eo_event_del:free()
+    eo_event_cb:free()
+    eo_event_del = nil
+    eo_event_cb  = nil
+    eo_callbacks = {}
+    eo_cbidcache = {}
     util.lib_unload("eo")
 end
 
@@ -174,49 +247,58 @@ M.eo_class_get = function(name)
     return eo_classes[name]
 end
 
-M.class_register = function(name, parent, body, eocl)
-    parent = classes[parent]
-    if body.__events then
-        body.__events = parent.__events:clone(body.__events)
+local inherit_meta = function(body, field, parents, mixins)
+    local o = body[field]
+    if o then
+        o = parents[1][field]:clone(o)
+        for i = 2, #parents do o:add_parent(parents[i][field]) end
+        for i = 1, #mixins  do o:add_mixin (mixins [i][field]) end
+        body[field] = o
     end
-    if body.__properties then
-        body.__properties = parent.__properties:clone(body.__properties)
+end
+
+M.class_register = function(name, parents, mixins, body, eocl)
+    -- map given names to objects
+    local pars = {}
+    for i = 1, #parents do pars[i] = classes[parents[i]] end
+    -- for mixins, we need to check if it hasn't already been mixed in
+    -- in some parent (doesn't matter how deep down the tree), because
+    -- if it has, we need to skip it (for proper inheritance lookup order)
+    local mins = {}
+    local midx = 1
+    for i = 1, #mixins do
+        local mixin = mixins[i]
+        local ck, hasmi = "__mixin_" .. mixin, false
+        if mixin[ck] then
+            for i = 1, #pars do
+                if pars[i][ck] then
+                    hasmi = true
+                    break
+                end
+            end
+        end
+        if not hasmi then
+            mins[midx] = mixin
+            midx       = midx + 1
+        end
     end
-    local addr = eo_class_addr_get(eocl)
-    classes[name] = parent:clone(body)
-    classes[addr] = classes[name]
-    eo_classes[name] = eocl
-    eo_classes[addr] = eocl
+
+    inherit_meta(body, "__events"    , pars, mins)
+    inherit_meta(body, "__properties", pars, mins)
+
+    local lcl = pars[1]:clone(body)
+    for i = 2, #pars do lcl:add_parent(pars[i]) end
+    for i = 1, #mins do lcl:add_mixin (mins[i]) end
+
+    local addr = eo_obj_addr_get(eocl)
+    classes   [name], classes   [addr] = lcl , lcl
+    eo_classes[name], eo_classes[addr] = eocl, eocl
 end
 
 M.class_unregister = function(name)
-    local addr = eo_class_addr_get(eo_classes[name])
-    classes[name] = nil
-    classes[addr] = nil
-    eo_classes[name] = nil
-    eo_classes[addr] = nil
-end
-
-local mixin_tbl = function(cl, mixin, field)
-    local mxt = mixin[field]
-    if mxt then
-        local clt = cl[field]
-        if not clt then
-            cl[field] = mxt
-        else
-            for k, v in pairs(mxt) do clt[k] = v end
-        end
-        mixin[field] = nil
-    end
-end
-
-M.class_mixin = function(name, mixin)
-    local cl = classes[name]
-    -- mixin properties/events
-    mixin_tbl(cl, mixin, "__properties")
-    mixin_tbl(cl, mixin, "__events")
-    -- mixin the rest
-    cl:mixin(classes[mixin])
+    local addr = eo_obj_addr_get(eo_classes[name])
+    classes   [name], classes   [addr] = nil
+    eo_classes[name], eo_classes[addr] = nil
 end
 
 local obj_gccb = function(obj)
@@ -257,7 +339,7 @@ end
 local get_obj_mt = function(obj)
     local cl = eo.eo_class_get(obj)
     if cl == nil then return nil end
-    return classes[eo_class_addr_get(cl)]
+    return classes[eo_obj_addr_get(cl)]
 end
 
 local prop_proxy_meta = {
@@ -281,6 +363,12 @@ local prop_proxy_meta = {
         local nkeys = self.nkeys
         if nkeys > 1 then
             -- ultra slow path, q66 failed optimizing this
+            -- if you ever get to touch this, increment this
+            -- counter to let others know you failed too.
+            --
+            -- failures: 1
+            --
+            -- fortunately this one is not very commonly used.
             local atbl
             if type(key) == "table" then
                 atbl = { unpack(key) }
@@ -307,10 +395,19 @@ local prop_proxy_meta = {
     -- provides alt syntax for getters with keys
     __call = function(self, ...)
         return self.mt[self.key .. "_get"](self.obj, ...)
-    end
+    end,
+
+    -- locks out the proxy
+    __metatable = false
 }
 
+-- each __properties field looks like this:
+--
+-- { NUMBER_OF_KEYS, NUMBER_OF_VALUES, GETTABLE, SETTABLE }
+--
+-- the last two are booleans (determining if the property can be get and set).
 ffi.metatype("Eo", {
+    -- handles property getting with no keys and also property setting with keys
     __index = function(self, key)
         local mt = get_obj_mt(self)
         if mt == nil then return nil end
@@ -319,14 +416,16 @@ ffi.metatype("Eo", {
         if not pp then
             return mt[key]
         end
-        if not pp[3] then
-            error("property '" .. key .. "' is not gettable", 2)
-        end
         local nkeys, nvals = pp[1], pp[2]
         if nkeys ~= 0 then
-            -- proxy - slow path... TODO: find a better way
+            -- proxy - slow path, but no way around it
+            -- basically the proxy is needed because we want nice syntax and
+            -- lua can't do it by default. so we help ourselves a bit with this
             return setmetatable({ nkeys = nkeys, nvals = nvals,
                 obj = self, key = key, mt = mt }, prop_proxy_meta)
+        end
+        if not pp[3] then
+            error("property '" .. key .. "' is not gettable", 2)
         end
         if nvals > 1 then
             return { mt[key .. "_get"](self) }
@@ -335,6 +434,7 @@ ffi.metatype("Eo", {
         end
     end,
 
+    -- handles property setting with no keys
     __newindex = function(self, key, val)
         local mt = get_obj_mt(self)
         if mt == nil then return nil end

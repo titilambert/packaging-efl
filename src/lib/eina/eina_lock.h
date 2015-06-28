@@ -97,11 +97,7 @@ typedef enum
  */
 typedef void (*Eina_TLS_Delete_Cb)(void *ptr);
 
-#ifdef _WIN32
-# include "eina_inline_lock_win32.x"
-#else
 # include "eina_inline_lock_posix.x"
-#endif
 
 /**
  * @brief A type definition for warning that a function was called from
@@ -562,10 +558,10 @@ static inline Eina_Bool eina_barrier_wait(Eina_Barrier *barrier);
  * @details This function initializes a new #Eina_Spinlock, if spinlocks are available. If
  *          spinlocks are not avialable, it creates a new #Eina_Lock.
  *
- *@note Spinlocks are only implemented on the POSIX platform and are only available
+ * @note Spinlocks are only implemented on the POSIX platform and are only available
  *      if #EINA_HAVE_POSIX_SPINLOCK is defined. you get a new #Eina_Lock on All other platforms.
  *
- * see eina_spinlock_free()
+ * @see eina_spinlock_free()
  */
 static inline Eina_Bool eina_spinlock_new(Eina_Spinlock *spinlock);
 

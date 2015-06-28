@@ -103,6 +103,12 @@ lib_ecore_libecore_la_LDFLAGS = @EFL_LTLIBRARY_FLAGS@
 if WANT_SYSTEMD
 ecoresystemdpkgdir = $(libdir)/ecore/system/systemd/$(MODULE_ARCH)
 ecoresystemdpkg_LTLIBRARIES = modules/ecore/system/systemd/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_ecoresystemdpkgLTLIBRARIES = install-ecoresystemdpkgLTLIBRARIES
+$(install_ecoresystemdpkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_ecore_system_systemd_module_la_SOURCES = \
 modules/ecore/system/systemd/ecore_system_systemd.c
 modules_ecore_system_systemd_module_la_CPPFLAGS = \
@@ -123,6 +129,12 @@ endif
 if ! HAVE_WIN32
 ecoreupowerpkgdir = $(libdir)/ecore/system/upower/$(MODULE_ARCH)
 ecoreupowerpkg_LTLIBRARIES = modules/ecore/system/upower/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_ecoreupowerpkgLTLIBRARIES = install-ecoreupowerpkgLTLIBRARIES
+$(install_ecoreupowerpkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_ecore_system_upower_module_la_SOURCES = \
 modules/ecore/system/upower/ecore_system_upower.c
 modules_ecore_system_upower_module_la_CPPFLAGS = \
@@ -144,6 +156,12 @@ endif
 if HAVE_TIZEN_CONFIGURATION_MANAGER
 ecoretizenpkgdir = $(libdir)/ecore/system/tizen/$(MODULE_ARCH)
 ecoretizenpkg_LTLIBRARIES = modules/ecore/system/tizen/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_ecoretizenpkgLTLIBRARIES = install-ecoretizenpkgLTLIBRARIES
+$(install_ecoretizenpkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_ecore_system_tizen_module_la_SOURCES = \
 modules/ecore/system/tizen/ecore_system_tizen.c
 modules_ecore_system_tizen_module_la_CPPFLAGS = \
@@ -169,8 +187,6 @@ TESTS += tests/ecore/ecore_suite
 tests_ecore_ecore_suite_SOURCES = \
 tests/ecore/ecore_suite.c \
 tests/ecore/ecore_test_ecore.c \
-tests/ecore/ecore_test_ecore_con.c \
-tests/ecore/ecore_test_ecore_con_url.c \
 tests/ecore/ecore_test_ecore_imf.c \
 tests/ecore/ecore_test_timer.c \
 tests/ecore/ecore_test_ecore_evas.c \
@@ -180,17 +196,12 @@ tests/ecore/ecore_test_ecore_input.c \
 tests/ecore/ecore_test_ecore_file.c \
 tests/ecore/ecore_suite.h
 
-if HAVE_ECORE_X
-tests_ecore_ecore_suite_SOURCES += tests/ecore/ecore_test_ecore_x.c
-endif
-
 tests_ecore_ecore_suite_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -DTESTS_SRC_DIR=\"$(top_srcdir)/src/tests/ecore\" \
 -DTESTS_BUILD_DIR=\"$(top_builddir)/src/tests/ecore\" \
 @CHECK_CFLAGS@ \
 @ECORE_CFLAGS@ \
 @ECORE_AUDIO_CFLAGS@ \
-@ECORE_CON_CFLAGS@ \
 @ECORE_FILE_CFLAGS@ \
 @ECORE_X_CFLAGS@ \
 @ECORE_IMF_CFLAGS@ \
@@ -205,7 +216,6 @@ tests_ecore_ecore_suite_LDADD = \
 @CHECK_LIBS@ \
 @USE_ECORE_LIBS@ \
 @USE_ECORE_AUDIO_LIBS@ \
-@USE_ECORE_CON_LIBS@ \
 @USE_ECORE_FILE_LIBS@ \
 @USE_ECORE_X_LIBS@ \
 @USE_ECORE_IMF_LIBS@ \
@@ -218,7 +228,6 @@ tests_ecore_ecore_suite_LDADD = \
 tests_ecore_ecore_suite_DEPENDENCIES = \
 @USE_ECORE_INTERNAL_LIBS@ \
 @USE_ECORE_AUDIO_INTERNAL_LIBS@ \
-@USE_ECORE_CON_INTERNAL_LIBS@ \
 @USE_ECORE_FILE_INTERNAL_LIBS@ \
 @USE_ECORE_X_INTERNAL_LIBS@ \
 @USE_ECORE_IMF_INTERNAL_LIBS@ \
@@ -227,6 +236,10 @@ tests_ecore_ecore_suite_DEPENDENCIES = \
 @USE_ECORE_DRM_INTERNAL_LIBS@ \
 @USE_ECORE_FB_INTERNAL_LIBS@ \
 @USE_ECORE_INPUT_INTERNAL_LIBS@
+
+if HAVE_ECORE_X
+tests_ecore_ecore_suite_SOURCES += tests/ecore/ecore_test_ecore_x.c
+endif
 
 if HAVE_ECORE_AUDIO
 tests_ecore_ecore_suite_SOURCES += tests/ecore/ecore_test_ecore_audio.c

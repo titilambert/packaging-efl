@@ -15,6 +15,7 @@ struct _E3D_Renderer
    Eina_Bool      vertex_attrib_enable[E3D_MAX_VERTEX_ATTRIB_COUNT];
    Eina_Bool      depth_test_enable;
    GLuint         texDepth;
+   GLint         smap_sampler;
 };
 
 static inline GLenum
@@ -80,6 +81,34 @@ _gl_blend_func_get(Evas_3D_Blend_Func blend_func)
          return GL_ZERO;
      }
 }
+
+#ifndef GL_GLES
+static inline GLenum
+_gl_comparison_func_get(Evas_3D_Comparison comparison_func)
+{
+   switch (comparison_func)
+     {
+      case EVAS_3D_COMPARISON_NEVER:
+         return GL_NEVER;
+      case EVAS_3D_COMPARISON_LESS:
+         return GL_LESS;
+      case EVAS_3D_COMPARISON_EQUAL:
+         return GL_EQUAL;
+      case EVAS_3D_COMPARISON_LEQUAL:
+         return GL_LEQUAL;
+      case EVAS_3D_COMPARISON_GREATER:
+         return GL_GREATER;
+      case EVAS_3D_COMPARISON_NOTEQUAL:
+         return GL_NOTEQUAL;
+      case EVAS_3D_COMPARISON_GEQUAL:
+         return GL_GEQUAL;
+      case EVAS_3D_COMPARISON_ALWAYS:
+         return GL_ALWAYS;
+      default:
+         return GL_ALWAYS;
+     }
+}
+#endif
 
 static inline void
 _renderer_vertex_attrib_array_enable(E3D_Renderer *renderer, int index)
@@ -173,8 +202,12 @@ _renderer_texture_bind(E3D_Renderer *renderer, E3D_Draw_Data *data)
                }
           }
      }
-     glActiveTexture(GL_TEXTURE0 + data->smap_sampler);
-     glBindTexture(GL_TEXTURE_2D, renderer->texDepth);
+   if ((data->flags & E3D_SHADER_FLAG_SHADOWED) && (renderer->smap_sampler != data->smap_sampler))
+     {
+        glActiveTexture(GL_TEXTURE0 + data->smap_sampler);
+        glBindTexture(GL_TEXTURE_2D, renderer->texDepth);
+        renderer->smap_sampler = data->smap_sampler;
+     }
 }
 
 static inline void
@@ -279,7 +312,6 @@ e3d_renderer_draw(E3D_Renderer *renderer, E3D_Draw_Data *data)
 
    _renderer_program_use(renderer, program);
    e3d_program_uniform_upload(program, data);
-   if (data->mode != EVAS_3D_SHADE_MODE_SHADOW_MAP_RENDER)
    _renderer_texture_bind(renderer, data);
 
    /* Set up vertex attrib pointers. */
@@ -317,6 +349,16 @@ e3d_renderer_draw(E3D_Renderer *renderer, E3D_Draw_Data *data)
         glBlendFunc(_gl_blend_func_get(data->blend_sfactor), _gl_blend_func_get(data->blend_dfactor));
      }
    else glDisable(GL_BLEND);
+
+#ifndef GL_GLES
+   if (data->alpha_test_enabled)
+     {
+        glEnable(GL_ALPHA_TEST);
+        glAlphaFunc(_gl_comparison_func_get(data->alpha_comparison),
+                    (GLclampf)data->alpha_ref_value);
+     }
+   else glDisable(GL_ALPHA_TEST);
+#endif
 
    if (data->indices)
      {

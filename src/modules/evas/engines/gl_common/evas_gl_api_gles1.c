@@ -1,3 +1,4 @@
+#define GL_ERRORS_NODEF 1
 #include "evas_gl_core_private.h"
 
 #include <dlfcn.h>
@@ -7,7 +8,7 @@
    _func_begin_debug(__FUNCTION__); \
 }
 
-#define EVGL_FUNC_END()
+#define EVGL_FUNC_END() GLERRV(__FUNCTION__)
 
 static void *_gles1_handle = NULL;
 static Evas_GL_API _gles1_api;
@@ -1015,11 +1016,62 @@ _evgl_gles1_glGetPointerv(GLenum pname, GLvoid **params)
 static const GLubyte *
 _evgl_gles1_glGetString(GLenum name)
 {
-   const GLubyte * ret;
+   static char _version[128] = {0};
+   EVGL_Resource *rsc;
+   const GLubyte *ret;
+
    if (!_gles1_api.glGetString)
      return NULL;
-   ret = _gles1_api.glGetString(name);
-   return ret;
+
+   if ((!(rsc = _evgl_tls_resource_get())) || !rsc->current_ctx)
+     {
+        ERR("Current context is NULL, not calling glGetString");
+        // This sets evas_gl_error_get instead of glGetError...
+        evas_gl_common_error_set(NULL, EVAS_GL_BAD_CONTEXT);
+        return NULL;
+     }
+
+   if (rsc->current_ctx->version != EVAS_GL_GLES_1_X)
+     {
+        ERR("Invalid context version %d", (int) rsc->current_ctx->version);
+        evas_gl_common_error_set(NULL, EVAS_GL_BAD_MATCH);
+        return NULL;
+     }
+
+   switch (name)
+     {
+      case GL_VENDOR:
+      case GL_RENDERER:
+      case GL_SHADING_LANGUAGE_VERSION:
+        break;
+      case GL_VERSION:
+        ret = glGetString(GL_VERSION);
+        if (!ret) return NULL;
+#ifdef GL_GLES
+        if (ret[13] != (GLubyte) '1')
+          {
+             // We try not to remove the vendor fluff
+             snprintf(_version, sizeof(_version), "OpenGL ES-CM 1.1 Evas GL (%s)", ((char *) ret) + 10);
+             _version[sizeof(_version) - 1] = '\0';
+             return (const GLubyte *) _version;
+          }
+        return ret;
+#else
+        // Desktop GL, we still keep the official name
+        snprintf(_version, sizeof(_version), "OpenGL ES-CM 1.1 Evas GL (%s)", (char *) ret);
+        _version[sizeof(_version) - 1] = '\0';
+        return (const GLubyte *) _version;
+#endif
+
+      case GL_EXTENSIONS:
+        return (GLubyte *) evgl_api_ext_string_get(EINA_TRUE, EVAS_GL_GLES_1_X);
+
+      default:
+        WRN("Unknown string requested: %x", (unsigned int) name);
+        break;
+     }
+
+   return _gles1_api.glGetString(name);
 }
 
 static void
@@ -1692,6 +1744,11 @@ _evgl_gles1_glViewport(GLint x, GLint y, GLsizei width, GLsizei height)
                   _gles1_api.glViewport(nc[0], nc[1], nc[2], nc[3]);
                }
 
+             ctx->viewport_direct[0] = nc[0];
+             ctx->viewport_direct[1] = nc[1];
+             ctx->viewport_direct[2] = nc[2];
+             ctx->viewport_direct[3] = nc[3];
+
              // Keep a copy of the original coordinates
              ctx->viewport_coord[0] = x;
              ctx->viewport_coord[1] = y;
@@ -1733,7 +1790,6 @@ _evgld_gles1_glAlphaFunc(GLenum func, GLclampf ref)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glAlphaFunc(func, ref);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -1747,7 +1803,6 @@ _evgld_gles1_glClearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf 
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glClearColor(red, green, blue, alpha);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -1761,7 +1816,6 @@ _evgld_gles1_glClearDepthf(GLclampf depth)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glClearDepthf(depth);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -1775,7 +1829,6 @@ _evgld_gles1_glClipPlanef(GLenum plane, const GLfloat *equation)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glClipPlanef(plane, equation);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -1789,7 +1842,6 @@ _evgld_gles1_glColor4f(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glColor4f(red, green, blue, alpha);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -1803,7 +1855,6 @@ _evgld_gles1_glDepthRangef(GLclampf zNear, GLclampf zFar)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glDepthRangef(zNear, zFar);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -1817,7 +1868,6 @@ _evgld_gles1_glFogf(GLenum pname, GLfloat param)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glFogf(pname, param);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -1831,7 +1881,6 @@ _evgld_gles1_glFogfv(GLenum pname, const GLfloat *params)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glFogfv(pname, params);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -1845,7 +1894,6 @@ _evgld_gles1_glFrustumf(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glFrustumf(left, right, bottom, top, zNear, zFar);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -1859,7 +1907,6 @@ _evgld_gles1_glGetClipPlanef(GLenum pname, GLfloat eqn[4])
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glGetClipPlanef(pname, eqn);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -1873,7 +1920,6 @@ _evgld_gles1_glGetFloatv(GLenum pname, GLfloat *params)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glGetFloatv(pname, params);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -1887,7 +1933,6 @@ _evgld_gles1_glGetLightfv(GLenum light, GLenum pname, GLfloat *params)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glGetLightfv(light, pname, params);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -1901,7 +1946,6 @@ _evgld_gles1_glGetMaterialfv(GLenum face, GLenum pname, GLfloat *params)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glGetMaterialfv(face, pname, params);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -1915,7 +1959,6 @@ _evgld_gles1_glGetTexEnvfv(GLenum env, GLenum pname, GLfloat *params)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glGetTexEnvfv(env, pname, params);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -1929,7 +1972,6 @@ _evgld_gles1_glGetTexParameterfv(GLenum target, GLenum pname, GLfloat *params)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glGetTexParameterfv(target, pname, params);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -1943,7 +1985,6 @@ _evgld_gles1_glLightModelf(GLenum pname, GLfloat param)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glLightModelf(pname, param);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -1957,7 +1998,6 @@ _evgld_gles1_glLightModelfv(GLenum pname, const GLfloat *params)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glLightModelfv(pname, params);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -1971,7 +2011,6 @@ _evgld_gles1_glLightf(GLenum light, GLenum pname, GLfloat param)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glLightf(light, pname, param);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -1985,7 +2024,6 @@ _evgld_gles1_glLightfv(GLenum light, GLenum pname, const GLfloat *params)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glLightfv(light, pname, params);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -1999,7 +2037,6 @@ _evgld_gles1_glLineWidth(GLfloat width)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glLineWidth(width);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2013,7 +2050,6 @@ _evgld_gles1_glLoadMatrixf(const GLfloat *m)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glLoadMatrixf(m);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2027,7 +2063,6 @@ _evgld_gles1_glMaterialf(GLenum face, GLenum pname, GLfloat param)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glMaterialf(face, pname, param);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2041,7 +2076,6 @@ _evgld_gles1_glMaterialfv(GLenum face, GLenum pname, const GLfloat *params)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glMaterialfv(face, pname, params);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2055,7 +2089,6 @@ _evgld_gles1_glMultMatrixf(const GLfloat *m)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glMultMatrixf(m);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2069,7 +2102,6 @@ _evgld_gles1_glMultiTexCoord4f(GLenum target, GLfloat s, GLfloat t, GLfloat r, G
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glMultiTexCoord4f(target, s, t, r, q);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2083,7 +2115,6 @@ _evgld_gles1_glNormal3f(GLfloat nx, GLfloat ny, GLfloat nz)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glNormal3f(nx, ny, nz);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2097,7 +2128,6 @@ _evgld_gles1_glOrthof(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, 
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glOrthof(left, right, bottom, top, zNear, zFar);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2111,7 +2141,6 @@ _evgld_gles1_glPointParameterf(GLenum pname, GLfloat param)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glPointParameterf(pname, param);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2125,7 +2154,6 @@ _evgld_gles1_glPointParameterfv(GLenum pname, const GLfloat *params)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glPointParameterfv(pname, params);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2139,7 +2167,6 @@ _evgld_gles1_glPointSize(GLfloat size)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glPointSize(size);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2153,7 +2180,6 @@ _evgld_gles1_glPointSizePointerOES(GLenum type, GLsizei stride, const GLvoid *po
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glPointSizePointerOES(type, stride, pointer);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2167,7 +2193,6 @@ _evgld_gles1_glPolygonOffset(GLfloat factor, GLfloat units)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glPolygonOffset(factor, units);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2181,7 +2206,6 @@ _evgld_gles1_glRotatef(GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glRotatef(angle, x, y, z);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2195,7 +2219,6 @@ _evgld_gles1_glScalef(GLfloat x, GLfloat y, GLfloat z)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glScalef(x, y, z);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2209,7 +2232,6 @@ _evgld_gles1_glTexEnvf(GLenum target, GLenum pname, GLfloat param)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glTexEnvf(target, pname, param);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2223,7 +2245,6 @@ _evgld_gles1_glTexEnvfv(GLenum target, GLenum pname, const GLfloat *params)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glTexEnvfv(target, pname, params);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2237,7 +2258,6 @@ _evgld_gles1_glTexParameterf(GLenum target, GLenum pname, GLfloat param)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glTexParameterf(target, pname, param);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2251,7 +2271,6 @@ _evgld_gles1_glTexParameterfv(GLenum target, GLenum pname, const GLfloat *params
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glTexParameterfv(target, pname, params);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2265,7 +2284,6 @@ _evgld_gles1_glTranslatef(GLfloat x, GLfloat y, GLfloat z)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glTranslatef(x, y, z);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2279,7 +2297,6 @@ _evgld_gles1_glActiveTexture(GLenum texture)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glActiveTexture(texture);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2293,7 +2310,6 @@ _evgld_gles1_glAlphaFuncx(GLenum func, GLclampx ref)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glAlphaFuncx(func, ref);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2307,7 +2323,6 @@ _evgld_gles1_glBindBuffer(GLenum target, GLuint buffer)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glBindBuffer(target, buffer);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2321,7 +2336,6 @@ _evgld_gles1_glBindTexture(GLenum target, GLuint texture)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glBindTexture(target, texture);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2335,7 +2349,6 @@ _evgld_gles1_glBlendFunc(GLenum sfactor, GLenum dfactor)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glBlendFunc(sfactor, dfactor);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2349,7 +2362,6 @@ _evgld_gles1_glBufferData(GLenum target, GLsizeiptr size, const GLvoid *data, GL
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glBufferData(target, size, data, usage);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2363,7 +2375,6 @@ _evgld_gles1_glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, co
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glBufferSubData(target, offset, size, data);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2377,7 +2388,6 @@ _evgld_gles1_glClear(GLbitfield mask)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glClear(mask);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2391,7 +2401,6 @@ _evgld_gles1_glClearColorx(GLclampx red, GLclampx green, GLclampx blue, GLclampx
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glClearColorx(red, green, blue, alpha);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2405,7 +2414,6 @@ _evgld_gles1_glClearDepthx(GLclampx depth)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glClearDepthx(depth);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2419,7 +2427,6 @@ _evgld_gles1_glClearStencil(GLint s)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glClearStencil(s);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2433,7 +2440,6 @@ _evgld_gles1_glClientActiveTexture(GLenum texture)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glClientActiveTexture(texture);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2447,7 +2453,6 @@ _evgld_gles1_glClipPlanex(GLenum plane, const GLfixed *equation)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glClipPlanex(plane, equation);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2461,7 +2466,6 @@ _evgld_gles1_glColor4ub(GLubyte red, GLubyte green, GLubyte blue, GLubyte alpha)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glColor4ub(red, green, blue, alpha);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2475,7 +2479,6 @@ _evgld_gles1_glColor4x(GLfixed red, GLfixed green, GLfixed blue, GLfixed alpha)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glColor4x(red, green, blue, alpha);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2489,7 +2492,6 @@ _evgld_gles1_glColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboole
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glColorMask(red, green, blue, alpha);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2503,7 +2505,6 @@ _evgld_gles1_glColorPointer(GLint size, GLenum type, GLsizei stride, const GLvoi
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glColorPointer(size, type, stride, pointer);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2517,7 +2518,6 @@ _evgld_gles1_glCompressedTexImage2D(GLenum target, GLint level, GLenum internalf
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glCompressedTexImage2D(target, level, internalformat, width, height, border, imageSize, data);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2531,7 +2531,6 @@ _evgld_gles1_glCompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glCompressedTexSubImage2D(target, level, xoffset, yoffset, width, height, format, imageSize, data);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2545,7 +2544,6 @@ _evgld_gles1_glCopyTexImage2D(GLenum target, GLint level, GLenum internalformat,
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glCopyTexImage2D(target, level, internalformat, x, y, width, height, border);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2559,7 +2557,6 @@ _evgld_gles1_glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLin
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glCopyTexSubImage2D(target, level, xoffset, yoffset, x, y, width, height);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2573,7 +2570,6 @@ _evgld_gles1_glCullFace(GLenum mode)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glCullFace(mode);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2587,7 +2583,6 @@ _evgld_gles1_glDeleteBuffers(GLsizei n, const GLuint *buffers)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glDeleteBuffers(n, buffers);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2601,7 +2596,6 @@ _evgld_gles1_glDeleteTextures(GLsizei n, const GLuint *textures)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glDeleteTextures(n, textures);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2615,7 +2609,6 @@ _evgld_gles1_glDepthFunc(GLenum func)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glDepthFunc(func);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2629,7 +2622,6 @@ _evgld_gles1_glDepthMask(GLboolean flag)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glDepthMask(flag);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2643,7 +2635,6 @@ _evgld_gles1_glDepthRangex(GLclampx zNear, GLclampx zFar)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glDepthRangex(zNear, zFar);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2657,7 +2648,6 @@ _evgld_gles1_glDisable(GLenum cap)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glDisable(cap);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2671,7 +2661,6 @@ _evgld_gles1_glDisableClientState(GLenum array)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glDisableClientState(array);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2685,7 +2674,6 @@ _evgld_gles1_glDrawArrays(GLenum mode, GLint first, GLsizei count)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glDrawArrays(mode, first, count);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2699,7 +2687,6 @@ _evgld_gles1_glDrawElements(GLenum mode, GLsizei count, GLenum type, const GLvoi
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glDrawElements(mode, count, type, indices);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2713,7 +2700,6 @@ _evgld_gles1_glEnable(GLenum cap)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glEnable(cap);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2727,7 +2713,6 @@ _evgld_gles1_glEnableClientState(GLenum array)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glEnableClientState(array);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2741,7 +2726,6 @@ _evgld_gles1_glFinish(void)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glFinish();
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2755,7 +2739,6 @@ _evgld_gles1_glFlush(void)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glFlush();
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2769,7 +2752,6 @@ _evgld_gles1_glFogx(GLenum pname, GLfixed param)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glFogx(pname, param);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2783,7 +2765,6 @@ _evgld_gles1_glFogxv(GLenum pname, const GLfixed *params)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glFogxv(pname, params);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2797,7 +2778,6 @@ _evgld_gles1_glFrontFace(GLenum mode)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glFrontFace(mode);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2811,7 +2791,6 @@ _evgld_gles1_glFrustumx(GLfixed left, GLfixed right, GLfixed bottom, GLfixed top
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glFrustumx(left, right, bottom, top, zNear, zFar);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2825,7 +2804,6 @@ _evgld_gles1_glGetBooleanv(GLenum pname, GLboolean *params)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glGetBooleanv(pname, params);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2839,7 +2817,6 @@ _evgld_gles1_glGetBufferParameteriv(GLenum target, GLenum pname, GLint *params)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glGetBufferParameteriv(target, pname, params);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2853,7 +2830,6 @@ _evgld_gles1_glGetClipPlanex(GLenum pname, GLfixed eqn[4])
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glGetClipPlanex(pname, eqn);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2867,7 +2843,6 @@ _evgld_gles1_glGenBuffers(GLsizei n, GLuint *buffers)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glGenBuffers(n, buffers);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2881,7 +2856,6 @@ _evgld_gles1_glGenTextures(GLsizei n, GLuint *textures)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glGenTextures(n, textures);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2896,7 +2870,6 @@ _evgld_gles1_glGetError(void)
      }
    EVGL_FUNC_BEGIN();
    ret = _evgl_gles1_glGetError();
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
    return ret;
 }
@@ -2911,7 +2884,6 @@ _evgld_gles1_glGetFixedv(GLenum pname, GLfixed *params)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glGetFixedv(pname, params);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2925,7 +2897,6 @@ _evgld_gles1_glGetIntegerv(GLenum pname, GLint *params)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glGetIntegerv(pname, params);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2939,7 +2910,6 @@ _evgld_gles1_glGetLightxv(GLenum light, GLenum pname, GLfixed *params)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glGetLightxv(light, pname, params);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2953,7 +2923,6 @@ _evgld_gles1_glGetMaterialxv(GLenum face, GLenum pname, GLfixed *params)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glGetMaterialxv(face, pname, params);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2967,7 +2936,6 @@ _evgld_gles1_glGetPointerv(GLenum pname, GLvoid **params)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glGetPointerv(pname, params);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -2982,7 +2950,6 @@ _evgld_gles1_glGetString(GLenum name)
      }
    EVGL_FUNC_BEGIN();
    ret = _evgl_gles1_glGetString(name);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
    return ret;
 }
@@ -2997,7 +2964,6 @@ _evgld_gles1_glGetTexEnviv(GLenum env, GLenum pname, GLint *params)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glGetTexEnviv(env, pname, params);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3011,7 +2977,6 @@ _evgld_gles1_glGetTexEnvxv(GLenum env, GLenum pname, GLfixed *params)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glGetTexEnvxv(env, pname, params);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3025,7 +2990,6 @@ _evgld_gles1_glGetTexParameteriv(GLenum target, GLenum pname, GLint *params)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glGetTexParameteriv(target, pname, params);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3039,7 +3003,6 @@ _evgld_gles1_glGetTexParameterxv(GLenum target, GLenum pname, GLfixed *params)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glGetTexParameterxv(target, pname, params);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3053,7 +3016,6 @@ _evgld_gles1_glHint(GLenum target, GLenum mode)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glHint(target, mode);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3068,7 +3030,6 @@ _evgld_gles1_glIsBuffer(GLuint buffer)
      }
    EVGL_FUNC_BEGIN();
    ret = _evgl_gles1_glIsBuffer(buffer);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
    return ret;
 }
@@ -3084,7 +3045,6 @@ _evgld_gles1_glIsEnabled(GLenum cap)
      }
    EVGL_FUNC_BEGIN();
    ret = _evgl_gles1_glIsEnabled(cap);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
    return ret;
 }
@@ -3100,7 +3060,6 @@ _evgld_gles1_glIsTexture(GLuint texture)
      }
    EVGL_FUNC_BEGIN();
    ret = _evgl_gles1_glIsTexture(texture);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
    return ret;
 }
@@ -3115,7 +3074,6 @@ _evgld_gles1_glLightModelx(GLenum pname, GLfixed param)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glLightModelx(pname, param);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3129,7 +3087,6 @@ _evgld_gles1_glLightModelxv(GLenum pname, const GLfixed *params)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glLightModelxv(pname, params);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3143,7 +3100,6 @@ _evgld_gles1_glLightx(GLenum light, GLenum pname, GLfixed param)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glLightx(light, pname, param);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3157,7 +3113,6 @@ _evgld_gles1_glLightxv(GLenum light, GLenum pname, const GLfixed *params)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glLightxv(light, pname, params);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3171,7 +3126,6 @@ _evgld_gles1_glLineWidthx(GLfixed width)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glLineWidthx(width);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3185,7 +3139,6 @@ _evgld_gles1_glLoadIdentity(void)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glLoadIdentity();
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3199,7 +3152,6 @@ _evgld_gles1_glLoadMatrixx(const GLfixed *m)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glLoadMatrixx(m);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3213,7 +3165,6 @@ _evgld_gles1_glLogicOp(GLenum opcode)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glLogicOp(opcode);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3227,7 +3178,6 @@ _evgld_gles1_glMaterialx(GLenum face, GLenum pname, GLfixed param)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glMaterialx(face, pname, param);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3241,7 +3191,6 @@ _evgld_gles1_glMaterialxv(GLenum face, GLenum pname, const GLfixed *params)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glMaterialxv(face, pname, params);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3255,7 +3204,6 @@ _evgld_gles1_glMatrixMode(GLenum mode)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glMatrixMode(mode);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3269,7 +3217,6 @@ _evgld_gles1_glMultMatrixx(const GLfixed *m)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glMultMatrixx(m);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3283,7 +3230,6 @@ _evgld_gles1_glMultiTexCoord4x(GLenum target, GLfixed s, GLfixed t, GLfixed r, G
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glMultiTexCoord4x(target, s, t, r, q);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3297,7 +3243,6 @@ _evgld_gles1_glNormal3x(GLfixed nx, GLfixed ny, GLfixed nz)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glNormal3x(nx, ny, nz);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3311,7 +3256,6 @@ _evgld_gles1_glNormalPointer(GLenum type, GLsizei stride, const GLvoid *pointer)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glNormalPointer(type, stride, pointer);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3325,7 +3269,6 @@ _evgld_gles1_glOrthox(GLfixed left, GLfixed right, GLfixed bottom, GLfixed top, 
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glOrthox(left, right, bottom, top, zNear, zFar);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3339,7 +3282,6 @@ _evgld_gles1_glPixelStorei(GLenum pname, GLint param)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glPixelStorei(pname, param);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3353,7 +3295,6 @@ _evgld_gles1_glPointParameterx(GLenum pname, GLfixed param)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glPointParameterx(pname, param);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3367,7 +3308,6 @@ _evgld_gles1_glPointParameterxv(GLenum pname, const GLfixed *params)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glPointParameterxv(pname, params);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3381,7 +3321,6 @@ _evgld_gles1_glPointSizex(GLfixed size)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glPointSizex(size);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3395,7 +3334,6 @@ _evgld_gles1_glPolygonOffsetx(GLfixed factor, GLfixed units)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glPolygonOffsetx(factor, units);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3409,7 +3347,6 @@ _evgld_gles1_glPopMatrix(void)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glPopMatrix();
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3423,7 +3360,6 @@ _evgld_gles1_glPushMatrix(void)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glPushMatrix();
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3437,7 +3373,6 @@ _evgld_gles1_glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenu
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glReadPixels(x, y, width, height, format, type, pixels);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3451,7 +3386,6 @@ _evgld_gles1_glRotatex(GLfixed angle, GLfixed x, GLfixed y, GLfixed z)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glRotatex(angle, x, y, z);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3465,7 +3399,6 @@ _evgld_gles1_glSampleCoverage(GLclampf value, GLboolean invert)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glSampleCoverage(value, invert);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3479,7 +3412,6 @@ _evgld_gles1_glSampleCoveragex(GLclampx value, GLboolean invert)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glSampleCoveragex(value, invert);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3493,7 +3425,6 @@ _evgld_gles1_glScalex(GLfixed x, GLfixed y, GLfixed z)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glScalex(x, y, z);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3507,7 +3438,6 @@ _evgld_gles1_glScissor(GLint x, GLint y, GLsizei width, GLsizei height)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glScissor(x, y, width, height);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3521,7 +3451,6 @@ _evgld_gles1_glShadeModel(GLenum mode)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glShadeModel(mode);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3535,7 +3464,6 @@ _evgld_gles1_glStencilFunc(GLenum func, GLint ref, GLuint mask)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glStencilFunc(func, ref, mask);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3549,7 +3477,6 @@ _evgld_gles1_glStencilMask(GLuint mask)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glStencilMask(mask);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3563,7 +3490,6 @@ _evgld_gles1_glStencilOp(GLenum fail, GLenum zfail, GLenum zpass)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glStencilOp(fail, zfail, zpass);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3577,7 +3503,6 @@ _evgld_gles1_glTexCoordPointer(GLint size, GLenum type, GLsizei stride, const GL
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glTexCoordPointer(size, type, stride, pointer);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3591,7 +3516,6 @@ _evgld_gles1_glTexEnvi(GLenum target, GLenum pname, GLint param)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glTexEnvi(target, pname, param);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3605,7 +3529,6 @@ _evgld_gles1_glTexEnvx(GLenum target, GLenum pname, GLfixed param)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glTexEnvx(target, pname, param);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3619,7 +3542,6 @@ _evgld_gles1_glTexEnviv(GLenum target, GLenum pname, const GLint *params)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glTexEnviv(target, pname, params);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3633,7 +3555,6 @@ _evgld_gles1_glTexEnvxv(GLenum target, GLenum pname, const GLfixed *params)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glTexEnvxv(target, pname, params);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3647,7 +3568,6 @@ _evgld_gles1_glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsi
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3661,7 +3581,6 @@ _evgld_gles1_glTexParameteri(GLenum target, GLenum pname, GLint param)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glTexParameteri(target, pname, param);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3675,7 +3594,6 @@ _evgld_gles1_glTexParameterx(GLenum target, GLenum pname, GLfixed param)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glTexParameterx(target, pname, param);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3689,7 +3607,6 @@ _evgld_gles1_glTexParameteriv(GLenum target, GLenum pname, const GLint *params)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glTexParameteriv(target, pname, params);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3703,7 +3620,6 @@ _evgld_gles1_glTexParameterxv(GLenum target, GLenum pname, const GLfixed *params
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glTexParameterxv(target, pname, params);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3717,7 +3633,6 @@ _evgld_gles1_glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yo
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glTexSubImage2D(target, level, xoffset, yoffset, width, height, format, type, pixels);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3731,7 +3646,6 @@ _evgld_gles1_glTranslatex(GLfixed x, GLfixed y, GLfixed z)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glTranslatex(x, y, z);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3745,7 +3659,6 @@ _evgld_gles1_glVertexPointer(GLint size, GLenum type, GLsizei stride, const GLvo
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glVertexPointer(size, type, stride, pointer);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3759,7 +3672,6 @@ _evgld_gles1_glViewport(GLint x, GLint y, GLsizei width, GLsizei height)
      }
    EVGL_FUNC_BEGIN();
    _evgl_gles1_glViewport(x, y, width, height);
-   GLERR(__FUNCTION__, __FILE__, __LINE__, "");
    EVGL_FUNC_END();
 }
 
@@ -3928,11 +3840,22 @@ _evgl_gles1_api_init(void)
    if (_initialized) return EINA_TRUE;
 
    memset(&_gles1_api, 0, sizeof(_gles1_api));
+
+#ifdef GL_GLES
    _gles1_handle = dlopen("libGLES_CM.so", RTLD_NOW);
    if (!_gles1_handle) _gles1_handle = dlopen("libGLES_CM.so.1", RTLD_NOW);
    if (!_gles1_handle) _gles1_handle = dlopen("libGLES_CM.so.1.1", RTLD_NOW);
    if (!_gles1_handle) _gles1_handle = dlopen("libGLESv1_CM.so", RTLD_NOW);
    if (!_gles1_handle) _gles1_handle = dlopen("libGLESv1_CM.so.1", RTLD_NOW);
+#else
+   _gles1_handle = dlopen("libGL.so", RTLD_NOW);
+   if (!_gles1_handle) _gles1_handle = dlopen("libGL.so.4", RTLD_NOW);
+   if (!_gles1_handle) _gles1_handle = dlopen("libGL.so.3", RTLD_NOW);
+   if (!_gles1_handle) _gles1_handle = dlopen("libGL.so.2", RTLD_NOW);
+   if (!_gles1_handle) _gles1_handle = dlopen("libGL.so.1", RTLD_NOW);
+   if (!_gles1_handle) _gles1_handle = dlopen("libGL.so.0", RTLD_NOW);
+#endif
+
    if (!_gles1_handle)
      {
         WRN("OpenGL ES 1 was not found on this system. Evas GL will not support GLES 1 contexts.");

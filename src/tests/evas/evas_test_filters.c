@@ -137,17 +137,21 @@ START_TEST(evas_filter_parser)
       NULL
    };
 
+   fprintf(stderr, "Evas filters tests: start invalid cases. Ignore the following ERRs.\n");
    fail_if(evas_filter_program_parse(NULL, "blend()"));
 
    pgm = evas_filter_program_new("evas_suite", EINA_TRUE);
-   fail_if(evas_filter_program_parse(NULL, NULL));
+   fail_if(evas_filter_program_parse(pgm, NULL));
+   fprintf(stderr, "Evas filters tests: end of invalid cases.\n");
    evas_filter_program_del(pgm);
 
    for (int k = 0; good[k]; k++)
      CHKGOOD(good[k]);
 
+   fprintf(stderr, "Evas filters tests: start invalid cases. Ignore the following ERRs.\n");
    for (int k = 0; bad[k]; k++)
      CHKBAAD(bad[k]);
+   fprintf(stderr, "Evas filters tests: end of invalid cases.\n");
 
    // All colors
    static const char *colors [] = {
@@ -193,12 +197,14 @@ START_TEST(evas_filter_parser)
         CHKGOOD(buf);
      }
 
+   fprintf(stderr, "Evas filters tests: start invalid cases. Ignore the following ERRs.\n");
    for (size_t c = 0; c < sizeof(colors_bad) / sizeof(colors_bad[0]); c++)
      {
         char buf[64];
         sprintf(buf, "blend { color = '%s' }", colors_bad[c]);
         CHKBAAD(buf);
      }
+   fprintf(stderr, "Evas filters tests: end of invalid cases.\n");
 
    // fillmodes are parsed when converting from instructions to commands
 }
@@ -252,7 +258,7 @@ static struct Filter_Test_Case _test_cases[] = {
    { 0, 0, 0, 0, "a = buffer ({ 'alpha' }) blend ({ dst = a }) bump ({ a,compensate=yes,specular=10.0 })", NULL },
 
    { 7, 7, 7, 7, "a = buffer ({ 'alpha' }) b = buffer ({ 'rgba' }) blend ({ dst = b, color = '#330' }) displace ({ map = b, src = input, dst = a, intensity = 7 }) blend ({ a })", NULL },
-   { 7, 7, 7, 7, "a = buffer ({ 'alpha' }) b = buffer ({ 'rgba' }) blend ({ dst = b, color = '#330' }) blend ({ dst = a }) displace ({ map = b, src = a, intensity = 7 })", NULL },
+   { 7, 7, 7, 7, "a = buffer ({ 'rgba' }) b = buffer ({ 'rgba' }) blend ({ dst = b, color = '#330' }) blend ({ dst = a }) displace ({ map = b, src = a, intensity = 7 })", NULL },
    { 7, 7, 7, 7, "a = buffer ({ 'rgba' }) b = buffer ({ 'rgba' }) blend ({ dst = b, color = '#330' }) blend ({ dst = a }) displace ({ map = b, src = a, intensity = 7 })", NULL },
    { 7, 7, 7, 7, "a = buffer ({ 'rgba' }) b = buffer ({ 'rgba' }) blend ({ dst = b, color = '#330' }) blend ({ dst = a }) displace ({ map = b, src = a, intensity = 7, flags = 'default' })", NULL },
    { 7, 7, 7, 7, "a = buffer ({ 'rgba' }) b = buffer ({ 'rgba' }) blend ({ dst = b, color = '#330' }) blend ({ dst = a }) displace ({ map = b, src = a, intensity = 7, flags = 'nearest' })", NULL },
@@ -290,7 +296,7 @@ START_TEST(evas_filter_text_padding_test)
    int l, r, t, b;
 
    evas_object_geometry_get(to, &x, &y, &w, &h);
-   printf("Geometry: %dx%d+%d,%d\n", w, h, x, y);
+   //fprintf(stderr, "Geometry: %dx%d+%d,%d\n", w, h, x, y);
 
    for (int k = 0; k < _test_cases_count; k++)
      {
@@ -303,7 +309,7 @@ START_TEST(evas_filter_text_padding_test)
         eo_do(to, evas_obj_text_filter_program_set(tc->code));
         evas_object_text_style_pad_get(to, &l, &r, &t, &b);
         evas_object_geometry_get(to, NULL, NULL, &W, &H);
-        printf("Case %d: %dx%d for padding %d,%d,%d,%d\n", k, W, H, l, r, t, b);
+        //fprintf(stderr, "Case %d: %dx%d for padding %d,%d,%d,%d\n", k, W, H, l, r, t, b);
 
         if ((l != tc->l) || (r != tc->r) || (t != tc->t) || (b != tc->b))
           fail("Failed on invalid padding with '%s'\n", tc->code);
@@ -340,12 +346,12 @@ _ecore_evas_pixels_check(Ecore_Evas *ee)
             || (rgba[ALPHA] < rgba[GREEN])
             || (rgba[ALPHA] < rgba[BLUE]))
           {
-             printf("Invalid RGBA values!\n");
+             fprintf(stderr, "Invalid RGBA values!\n");
              return EINA_FALSE;
           }
      }
 
-   if (!nonzero) printf("All pixels are empty!\n");
+   if (!nonzero) fprintf(stderr, "All pixels are empty!\n");
    return nonzero;
 }
 
@@ -387,14 +393,14 @@ START_TEST(evas_filter_text_render_test)
              evas_object_resize(o, 10, 10);
              evas_object_show(o);
              eo_do(to,
-                   evas_obj_color_set(255, 255, 255, 255),
+                   efl_gfx_color_set(255, 255, 255, 255),
                    evas_obj_text_filter_source_set(tc->source, o),
                    evas_obj_text_filter_program_set(tc->code));
           }
         else
           {
              eo_do(to,
-                   evas_obj_color_set(255, 255, 255, 255),
+                   efl_gfx_color_set(255, 255, 255, 255),
                    evas_obj_text_filter_program_set(tc->code));
           }
 

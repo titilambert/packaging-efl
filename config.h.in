@@ -232,6 +232,12 @@
 /* Define to 1 if using `alloca.c'. */
 #undef C_ALLOCA
 
+/* Ftp url for testing */
+#undef ECORE_CON_FTP_TEST_URL
+
+/* Http url for testing */
+#undef ECORE_CON_HTTP_TEST_URL
+
 /* Build support for XCB composite */
 #undef ECORE_XCB_COMPOSITE
 
@@ -270,9 +276,6 @@
 
 /* Build support for XCB Present */
 #undef ECORE_XCB_XPRESENT
-
-/* Build support for XCB xprint */
-#undef ECORE_XCB_XPRINT
 
 /* Build support for XCB xtest */
 #undef ECORE_XCB_XTEST
@@ -352,17 +355,11 @@
 /* Define to mention that OSX spinlocks are supported */
 #undef EFL_HAVE_OSX_SPINLOCK
 
-/* Define to mention that POSIX threads are supported */
-#undef EFL_HAVE_POSIX_THREADS
-
 /* Define to mention that POSIX threads spinlocks are supported */
 #undef EFL_HAVE_POSIX_THREADS_SPINLOCK
 
 /* Define to mention that POSIX or Win32 threads are supported */
 #undef EFL_HAVE_THREADS
-
-/* Define to mention that Win32 threads are supported */
-#undef EFL_HAVE_WIN32_THREADS
 
 /* Set to 1 if static is built */
 #undef EINA_BUILD_CHAINED_POOL
@@ -545,6 +542,9 @@
 /* Build XPM image loader inside libevas */
 #undef EVAS_STATIC_BUILD_XPM
 
+/* Suffix for binary objects */
+#undef EXEEXT
+
 /* Imagination SGX GLES2 support */
 #undef GLES_VARIETY_SGX
 
@@ -645,9 +645,6 @@
 /* Have `drm' pkg-config installed. */
 #undef HAVE_DRM
 
-/* Enabled drm hardware accelerated rendering */
-#undef HAVE_DRM_HW_ACCEL
-
 /* optional EFL Ecore_Audio is enabled */
 #undef HAVE_ECORE_AUDIO
 
@@ -657,23 +654,11 @@
 /* optional EFL Ecore_Drm is enabled */
 #undef HAVE_ECORE_DRM
 
-/* optional EFL Ecore_Evas is enabled */
-#undef HAVE_ECORE_EVAS
-
 /* optional EFL Ecore_FB is enabled */
 #undef HAVE_ECORE_FB
 
 /* Ecore IMF Support */
 #undef HAVE_ECORE_IMF
-
-/* optional EFL Ecore_Imf_Evas is enabled */
-#undef HAVE_ECORE_IMF_EVAS
-
-/* optional EFL Ecore_Input is enabled */
-#undef HAVE_ECORE_INPUT
-
-/* optional EFL Ecore_Input_Evas is enabled */
-#undef HAVE_ECORE_INPUT_EVAS
 
 /* optional EFL Ecore_Psl1ght is enabled */
 #undef HAVE_ECORE_PSL1GHT
@@ -702,9 +687,6 @@
 /* Defined to 1 if Xlib is enabled. */
 #undef HAVE_ECORE_X_XLIB
 
-/* optional EFL Edje is enabled */
-#undef HAVE_EDJE
-
 /* optional EFL Eeze is enabled */
 #undef HAVE_EEZE
 
@@ -716,9 +698,6 @@
 
 /* optional EFL Elua is enabled */
 #undef HAVE_ELUA
-
-/* optional EFL Emotion is enabled */
-#undef HAVE_EMOTION
 
 /* Have `emotion_module_gstreamer' pkg-config installed. */
 #undef HAVE_EMOTION_MODULE_GSTREAMER
@@ -737,15 +716,6 @@
 
 /* optional EFL Escape is enabled */
 #undef HAVE_ESCAPE
-
-/* optional EFL Ethumb is enabled */
-#undef HAVE_ETHUMB
-
-/* optional EFL Ethumb_Client is enabled */
-#undef HAVE_ETHUMB_CLIENT
-
-/* optional EFL Evas is enabled */
-#undef HAVE_EVAS
 
 /* optional EFL Evil is enabled */
 #undef HAVE_EVIL
@@ -881,6 +851,9 @@
 
 /* Define to 1 if you have the <net/if.h> header file. */
 #undef HAVE_NET_IF_H
+
+/* File monitoring with fsevent notification */
+#undef HAVE_NOTIFY_COCOA
 
 /* File monitoring with Windows notification */
 #undef HAVE_NOTIFY_WIN32
@@ -1067,9 +1040,6 @@
 /* Define to 1 if you need <sys/param.h> to define MAXHOSTNAMELEN */
 #undef NEED_SYS_PARAM_H
 
-/* Define to 1 if your C compiler doesn't accept -c and -o together. */
-#undef NO_MINUS_C_MINUS_O
-
 /* Valgrind support disabled */
 #undef NVALGRIND
 
@@ -1255,6 +1225,9 @@
 #  undef WORDS_BIGENDIAN
 # endif
 #endif
+
+/* xattr enabled directory */
+#undef XATTR_TEST_DIR
 
 /* good xrandr */
 #undef XRANDR_GOOD

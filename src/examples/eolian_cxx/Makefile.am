@@ -21,6 +21,8 @@ AM_CXXFLAGS = \
 	-I$(top_builddir)/src/lib/efl/interfaces \
 	-I$(top_srcdir)/src/lib/eina \
 	-I$(top_builddir)/src/lib/eina \
+	-I$(top_srcdir)/src/lib/emile \
+	-I$(top_builddir)/src/lib/emile \
 	-I$(top_srcdir)/src/lib/eo \
 	-I$(top_builddir)/src/lib/eo \
 	-I$(top_srcdir)/src/bindings/eo_cxx \
@@ -45,6 +47,7 @@ AM_CFLAGS = $(AM_CXXFLAGS)
 AM_LDFLAGS = \
 	-L$(top_builddir)/src/lib/efl \
 	-L$(top_builddir)/src/lib/eina \
+	-L$(top_builddir)/src/lib/emile \
 	-L$(top_builddir)/src/lib/eo \
   -L$(top_builddir)/src/lib/evas \
 	-L$(top_builddir)/src/lib/ecore \
@@ -55,6 +58,7 @@ LDADD = \
 	$(top_builddir)/src/lib/efl/libefl.la \
 	$(top_builddir)/src/lib/eo/libeo.la \
 	$(top_builddir)/src/lib/eina/libeina.la \
+	$(top_builddir)/src/lib/emile/libemile.la \
 	$(top_builddir)/src/lib/evas/libevas.la \
 	$(top_builddir)/src/lib/ecore_evas/libecore_evas.la
 
@@ -62,9 +66,11 @@ GENERATED = \
 	colourable.eo.c \
 	colourable.eo.h \
 	colourable.eo.hh \
+	colourable.eo.impl.hh \
 	colourablesquare.eo.c \
 	colourablesquare.eo.h \
-	colourablesquare.eo.hh
+	colourablesquare.eo.hh \
+	colourablesquare.eo.impl.hh
 
 BUILT_SOURCES = $(GENERATED)
 CLEANFILES += $(BUILT_SOURCES)
@@ -131,6 +137,9 @@ eolian_cxx_complex_types_01_SOURCES = eolian_cxx_complex_types_01.cc
 %.eo.hh: %.eo
 	$(AM_V_EOLCXX)$(EOLIAN_CXX) $(EOLIAN_FLAGS) -I${abs_srcdir} -o $@ $<
 
+%.eo.impl.hh: %.eo.hh
+	true $<
+
 %.eo.c: %.eo
 	$(AM_V_EOL)$(EOLIAN_GEN) --eo --legacy $(EOLIAN_FLAGS) --gc -o $@ $<
 
@@ -143,7 +152,7 @@ clean-local:
 	rm -f $(EXTRA_PROGRAMS) $(GENERATED)
 
 install-examples:
-	mkdir -p $(datadir)/eolian_cxx/examples
+	$(MKDIR_P) $(datadir)/eolian_cxx/examples
 	cd $(abs_srcdir) && $(install_sh_DATA) -c $(SRCS) $(DATA_FILES) $(datadir)/eolian_cxx/examples
 
 uninstall-local:

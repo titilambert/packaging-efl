@@ -37,9 +37,16 @@ evas_object_below_get_internal(const Evas_Object_Protected_Data *obj)
    return NULL;
 }
 
-EOLIAN void
-_evas_object_raise(Eo *eo_obj, Evas_Object_Protected_Data *obj)
+EAPI void
+evas_object_raise(Evas_Object *obj)
 {
+   eo_do((Evas_Object *)obj, efl_gfx_stack_raise());
+}
+
+EOLIAN void
+_evas_object_efl_gfx_stack_raise(Eo *eo_obj, Evas_Object_Protected_Data *obj)
+{
+   evas_object_async_block(obj);
    if (evas_object_intercept_call_raise(eo_obj, obj)) return;
 
    if (!((EINA_INLIST_GET(obj))->next))
@@ -83,9 +90,16 @@ _evas_object_raise(Eo *eo_obj, Evas_Object_Protected_Data *obj)
      }
 }
 
-EOLIAN void
-_evas_object_lower(Eo *eo_obj, Evas_Object_Protected_Data *obj)
+EAPI void
+evas_object_lower(Evas_Object *obj)
 {
+   eo_do((Evas_Object *)obj, efl_gfx_stack_lower());
+}
+
+EOLIAN void
+_evas_object_efl_gfx_stack_lower(Eo *eo_obj, Evas_Object_Protected_Data *obj)
+{
+   evas_object_async_block(obj);
    if (evas_object_intercept_call_lower(eo_obj, obj)) return;
 
    if (!((EINA_INLIST_GET(obj))->prev))
@@ -130,9 +144,16 @@ _evas_object_lower(Eo *eo_obj, Evas_Object_Protected_Data *obj)
      }
 }
 
-EOLIAN void
-_evas_object_stack_above(Eo *eo_obj, Evas_Object_Protected_Data *obj, Evas_Object *eo_above)
+EAPI void
+evas_object_stack_above(Evas_Object *obj, Evas_Object *above)
 {
+   eo_do((Evas_Object *)obj, efl_gfx_stack_above(above));
+}
+
+EOLIAN void
+_evas_object_efl_gfx_stack_stack_above(Eo *eo_obj, Evas_Object_Protected_Data *obj, Efl_Gfx_Stack *eo_above)
+{
+   evas_object_async_block(obj);
    if (!eo_above)
      {
         evas_object_raise(eo_obj);
@@ -150,7 +171,7 @@ _evas_object_stack_above(Eo *eo_obj, Evas_Object_Protected_Data *obj, Evas_Objec
      {
         if (obj->smart.parent != above->smart.parent)
           {
-             ERR("BITCH! evas_object_stack_above(), %p not inside same smart as %p!", eo_obj, eo_above);
+             ERR("COMPLAIN! evas_object_stack_above(), %p not inside same smart as %p!", eo_obj, eo_above);
              return;
           }
         evas_object_smart_member_stack_above(eo_obj, eo_above);
@@ -159,12 +180,12 @@ _evas_object_stack_above(Eo *eo_obj, Evas_Object_Protected_Data *obj, Evas_Objec
      {
         if (above->smart.parent)
           {
-             ERR("BITCH! evas_object_stack_above(), %p stack above %p, but above has smart parent, obj does not", eo_obj, eo_above);
+             ERR("COMPLAIN! evas_object_stack_above(), %p stack above %p, but above has smart parent, obj does not", eo_obj, eo_above);
              return;
           }
         if (obj->layer != above->layer)
           {
-             ERR("BITCH! evas_object_stack_above(), %p stack above %p, not matching layers", eo_obj, eo_above);
+             ERR("COMPLAIN! evas_object_stack_above(), %p stack above %p, not matching layers", eo_obj, eo_above);
              return;
           }
         if (obj->in_layer)
@@ -205,9 +226,16 @@ _evas_object_stack_above(Eo *eo_obj, Evas_Object_Protected_Data *obj, Evas_Objec
      }
 }
 
-EOLIAN void
-_evas_object_stack_below(Eo *eo_obj, Evas_Object_Protected_Data *obj, Evas_Object *eo_below)
+EAPI void
+evas_object_stack_below(Evas_Object *obj, Evas_Object *below)
 {
+   eo_do((Evas_Object *)obj, efl_gfx_stack_below(below));
+}
+
+EOLIAN void
+_evas_object_efl_gfx_stack_stack_below(Eo *eo_obj, Evas_Object_Protected_Data *obj, Efl_Gfx_Stack *eo_below)
+{
+   evas_object_async_block(obj);
    if (!eo_below)
      {
         evas_object_lower(eo_obj);
@@ -225,7 +253,7 @@ _evas_object_stack_below(Eo *eo_obj, Evas_Object_Protected_Data *obj, Evas_Objec
      {
         if (obj->smart.parent != below->smart.parent)
           {
-             ERR("BITCH! evas_object_stack_below(), %p not inside same smart as %p!", eo_obj, eo_below);
+             ERR("COMPLAIN! evas_object_stack_below(), %p not inside same smart as %p!", eo_obj, eo_below);
              return;
           }
         evas_object_smart_member_stack_below(eo_obj, eo_below);
@@ -234,12 +262,12 @@ _evas_object_stack_below(Eo *eo_obj, Evas_Object_Protected_Data *obj, Evas_Objec
      {
         if (below->smart.parent)
           {
-             ERR("BITCH! evas_object_stack_below(), %p stack below %p, but below has smart parent, obj does not", eo_obj, eo_below);
+             ERR("COMPLAIN! evas_object_stack_below(), %p stack below %p, but below has smart parent, obj does not", eo_obj, eo_below);
              return;
           }
         if (obj->layer != below->layer)
           {
-             ERR("BITCH! evas_object_stack_below(), %p stack below %p, not matching layers", eo_obj, eo_below);
+             ERR("COMPLAIN! evas_object_stack_below(), %p stack below %p, not matching layers", eo_obj, eo_below);
              return;
           }
         if (obj->in_layer)
@@ -280,8 +308,17 @@ _evas_object_stack_below(Eo *eo_obj, Evas_Object_Protected_Data *obj, Evas_Objec
      }
 }
 
-EOLIAN Evas_Object *
-_evas_object_above_get(Eo *eo_obj EINA_UNUSED, Evas_Object_Protected_Data *obj)
+EAPI Evas_Object *
+evas_object_above_get(const Evas_Object *obj)
+{
+   Evas_Object *ret;
+
+   return eo_do_ret((Evas_Object *)obj, ret, efl_gfx_stack_above_get());
+}
+
+EOLIAN Efl_Gfx_Stack *
+_evas_object_efl_gfx_stack_above_get(Eo *eo_obj EINA_UNUSED,
+                                     Evas_Object_Protected_Data *obj)
 {
    if (obj->smart.parent)
      {
@@ -302,8 +339,17 @@ _evas_object_above_get(Eo *eo_obj EINA_UNUSED, Evas_Object_Protected_Data *obj)
    return NULL;
 }
 
-EOLIAN Evas_Object *
-_evas_object_below_get(Eo *eo_obj EINA_UNUSED, Evas_Object_Protected_Data *obj)
+EAPI Evas_Object *
+evas_object_below_get(const Evas_Object *obj)
+{
+   Evas_Object *ret;
+
+   return eo_do_ret((Evas_Object *)obj, ret, efl_gfx_stack_below_get());
+}
+
+EOLIAN Efl_Gfx_Stack *
+_evas_object_efl_gfx_stack_below_get(Eo *eo_obj EINA_UNUSED,
+                                     Evas_Object_Protected_Data *obj)
 {
    if (obj->smart.parent)
      {

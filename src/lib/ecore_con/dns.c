@@ -3437,10 +3437,11 @@ struct dns_hosts *dns_hosts_local(int *error_) {
 
 	if (!(hosts = dns_hosts_open(&error)))
 		goto error;
-		
+
+#ifndef _WIN32
 	if ((error = dns_hosts_loadpath(hosts, "/etc/hosts")))
 		goto error;
-
+#endif
 	return hosts;
 error:
 	*error_	= error;
@@ -3746,6 +3747,7 @@ struct dns_resolv_conf *dns_resconf_local(int *error_) {
 	if (!(resconf = dns_resconf_open(&error)))
 		goto error;
 
+#ifndef _WIN32
 	if ((error = dns_resconf_loadpath(resconf, "/etc/resolv.conf")))
 		goto error;
 
@@ -3753,6 +3755,7 @@ struct dns_resolv_conf *dns_resconf_local(int *error_) {
 		if (error != ENOENT)
 			goto error;
 	}
+#endif
 
 	return resconf;
 error:

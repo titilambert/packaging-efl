@@ -4,6 +4,8 @@
 
 #include "ecore_drm_private.h"
 
+EAPI int ECORE_DRM_EVENT_SEAT_ADD = -1;
+
 /* local functions */
 static int 
 _cb_open_restricted(const char *path, int flags, void *data)
@@ -59,6 +61,26 @@ _cb_close_restricted(int fd, void *data)
 }
 
 static Ecore_Drm_Seat *
+_seat_create(Ecore_Drm_Input *input, const char *seat)
+{
+   Ecore_Drm_Seat *s;
+
+   /* try to allocate space for new seat */
+   if (!(s = calloc(1, sizeof(Ecore_Drm_Seat))))
+     return NULL;
+
+   s->input = input;
+   s->name = eina_stringshare_add(seat);
+
+   /* add this new seat to list */
+   input->dev->seats = eina_list_append(input->dev->seats, s);
+
+   ecore_event_add(ECORE_DRM_EVENT_SEAT_ADD, NULL, NULL, NULL);
+
+   return s;
+}
+
+static Ecore_Drm_Seat *
 _seat_get(Ecore_Drm_Input *input, const char *seat)
 {
    Ecore_Drm_Seat *s;
@@ -68,17 +90,7 @@ _seat_get(Ecore_Drm_Input *input, const char *seat)
    EINA_LIST_FOREACH(input->dev->seats, l, s)
      if (!strcmp(s->name, seat)) return s;
 
-   /* try to allocate space for new seat */
-   if (!(s = calloc(1, sizeof(Ecore_Drm_Seat)))) 
-     return NULL;
-
-   s->input = input;
-   s->name = eina_stringshare_add(seat);
-
-   /* add this new seat to list */
-   input->dev->seats = eina_list_append(input->dev->seats, s);
-
-   return s;
+   return _seat_create(input, seat);
 }
 
 static void 
@@ -121,6 +133,9 @@ _device_removed(Ecore_Drm_Input *input EINA_UNUSED, struct libinput_device *devi
 
    /* remove this evdev from the seat's list of devices */
    edev->seat->devices = eina_list_remove(edev->seat->devices, edev);
+
+   /* tell launcher to release device */
+   _ecore_drm_launcher_device_close(edev->path, edev->fd);
 
    /* destroy this evdev */
    _ecore_drm_evdev_device_destroy(edev);
@@ -199,7 +214,7 @@ EAPI Eina_Bool
 ecore_drm_inputs_create(Ecore_Drm_Device *dev)
 {
    Ecore_Drm_Input *input;
-   int level, priority = LIBINPUT_LOG_PRIORITY_INFO;
+   int level, priority = LIBINPUT_LOG_PRIORITY_ERROR;
 
    /* check for valid device */
    EINA_SAFETY_ON_NULL_RETURN_VAL(dev, EINA_FALSE);
@@ -277,10 +292,14 @@ ecore_drm_inputs_destroy(Ecore_Drm_Device *dev)
    Ecore_Drm_Seat *seat;
    Ecore_Drm_Evdev *edev;
 
+   EINA_SAFETY_ON_NULL_RETURN(dev);
    EINA_LIST_FREE(dev->seats, seat)
      {
         EINA_LIST_FREE(seat->devices, edev)
-          _ecore_drm_evdev_device_destroy(edev);
+          {
+             _ecore_drm_launcher_device_close(edev->path, edev->fd);
+             _ecore_drm_evdev_device_destroy(edev);
+          }
 
         if (seat->name) eina_stringshare_del(seat->name);
         free(seat);

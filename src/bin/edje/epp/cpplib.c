@@ -16,8 +16,7 @@
  * GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  * 
  * In other words, you are welcome to use, share and improve this program.
  * You are forbidden to forbid anyone else to use, share and improve
@@ -501,7 +500,7 @@ unsigned char       is_hor_space[256];
 /* table to tell if c is horizontal or vertical space.  */
 static unsigned char is_space[256];
 
-static int           anotate = 0;
+static int           annotate = 0;
 
 /* Initialize syntactic classifications of characters.  */
 
@@ -6503,10 +6502,10 @@ cpp_handle_options(cpp_reader * pfile, int argc, char **argv)
 		  /* The style of the choices here is a bit mixed.
 		   * The chosen scheme is a hybrid of keeping all options in one string
 		   * and specifying each option in a separate argument:
-		   * -M|-MM|-MD file|-MMD file [-MG].  An alternative is:
-		   * -M|-MM|-MD file|-MMD file|-MG|-MMG; or more concisely:
-		   * -M[M][G][D file].  This is awkward to handle in specs, and is not
-		   * as extensible.  */
+		   * -M|-MM|-MT file|-MD file|-MMD file [-MG].  An alternative is:
+		   * -M|-MM|-MT file|-MD file|-MMD file|-MG|-MMG; or more concisely:
+		   * -M[M][G][D file][T file].  This is awkward to handle in specs, and is
+		   * not as extensible.  */
 		  /* ??? -MG must be specified in addition to one of -M or -MM.
 		   * This can be relaxed in the future without breaking anything.
 		   * The converse isn't true.  */
@@ -6532,6 +6531,15 @@ cpp_handle_options(cpp_reader * pfile, int argc, char **argv)
 			  cpp_fatal("Filename missing after %s option",
 				    argv[i]);
 		       opts->deps_file = argv[++i];
+		    }
+		  /* For MT option, use file named by next arg as Target-name to write
+		   * with the dependency information.  */
+		  else if (!strcmp(argv[i], "-MT"))
+		    {
+		       if (i + 1 == argc)
+			  cpp_fatal("Filename missing after %s option",
+				    argv[i]);
+		       opts->deps_target = argv[++i];
 		    }
 		  else
 		    {
@@ -6604,9 +6612,9 @@ cpp_handle_options(cpp_reader * pfile, int argc, char **argv)
                                opts->watchfile = argv[i];
                             }
                        }
-                     else if (!strcmp(argv[i], "-anotate"))
+                     else if (!strcmp(argv[i], "-annotate"))
                        {
-                          anotate = 1;
+                          annotate = 1;
                        }
 		     break;
                   }
@@ -6767,7 +6775,6 @@ cpp_finish(cpp_reader * pfile)
 	     else if (!(deps_stream = fopen(opts->deps_file, deps_mode)))
 		cpp_pfatal_with_name(pfile, opts->deps_file);
 	     fputs(pfile->deps_buffer, deps_stream);
-	     putc('\n', deps_stream);
 	     if (opts->deps_file)
 	       {
 		  if (ferror(deps_stream) || fclose(deps_stream) != 0)
@@ -7487,7 +7494,7 @@ using_file(const char *filename, const char type)
    if (!options.watchfile) return;
    f = fopen(options.watchfile, "a");
    if (!f) return;
-   if (anotate)
+   if (annotate)
      {
         fprintf(f, "%c: %s\n", type, filename);
      }

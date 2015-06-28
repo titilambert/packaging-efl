@@ -1,28 +1,38 @@
 /**
-* Simple Evas example illustrating .eet import/export
-*
-* Take mesh from md2.
-* Set material to it.
-* Show it in left side.
-* Save the first frame of this mesh to eet. (static only)
-* Take result to another mesh from eet.
-* Show it in right side.
-*
-* @verbatim
-* gcc -o evas-3d-eet evas-3d-eet.c `pkg-config --libs --cflags efl eina evas ecore ecore-evas eo`
-* @endverbatim
-*/
+ * Simple Evas example illustrating .eet import/export
+ *
+ * Take mesh from md2.
+ * Set material to it.
+ * Show it in left side.
+ * Save the first frame of this mesh to eet. (static only)
+ * Take result to another mesh from eet.
+ * Show it in right side.
+ *
+ * @verbatim
+ * gcc -o evas-3d-eet evas-3d-eet.c `pkg-config --libs --cflags efl eina evas ecore ecore-evas ecore-file eo`
+ * @endverbatim
+ */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#else
+#define PACKAGE_EXAMPLES_DIR "."
 #define EFL_EO_API_SUPPORT
 #define EFL_BETA_API_SUPPORT
+#endif
 
 #include <Eo.h>
 #include <Evas.h>
 #include <Ecore.h>
 #include <Ecore_Evas.h>
+#include <Ecore_File.h>
+#include "evas-common.h"
 
 #define  WIDTH 1024
 #define  HEIGHT 1024
+
+static const char *input_model_path = PACKAGE_EXAMPLES_DIR EVAS_MODEL_FOLDER "/sonic.md2";
+static const char *output_model_path = PACKAGE_EXAMPLES_DIR EVAS_SAVED_FILES "/saved_Sonic_EET.eet";
 
 Ecore_Evas *ecore_evas = NULL;
 Evas *evas = NULL;
@@ -83,8 +93,8 @@ _on_canvas_resize(Ecore_Evas *ee)
    int w, h;
 
    ecore_evas_geometry_get(ee, NULL, NULL, &w, &h);
-   eo_do(background, evas_obj_size_set(w, h));
-   eo_do(image, evas_obj_size_set(w, h));
+   eo_do(background, efl_gfx_size_set(w, h));
+   eo_do(image, efl_gfx_size_set(w, h));
 }
 
 int
@@ -151,7 +161,7 @@ main(void)
    material = eo_add(EVAS_3D_MATERIAL_CLASS, evas);
 
    eo_do(mesh,
-         efl_file_set("sonic.md2", NULL),
+         efl_file_set(input_model_path, NULL),
          evas_3d_mesh_frame_material_set(0, material),
          evas_3d_mesh_shade_mode_set(EVAS_3D_SHADE_MODE_PHONG));
 
@@ -168,10 +178,14 @@ main(void)
                                     0.50, 0.00, 0.50, 0.30),
          evas_3d_material_shininess_set(50.0));
 
-   eo_do(mesh, efl_file_save("saved_Sonic_EET.eet", NULL, NULL));
+   if (!ecore_file_mkpath(PACKAGE_EXAMPLES_DIR EVAS_SAVED_FILES))
+     fprintf(stderr, "Failed to create folder %s\n\n",
+             PACKAGE_EXAMPLES_DIR EVAS_SAVED_FILES);
+
+   eo_do(mesh, efl_file_save(output_model_path, NULL, NULL));
 
    eo_do(mesh2,
-         efl_file_set("saved_Sonic_EET.eet", NULL),
+         efl_file_set(output_model_path, NULL),
          evas_3d_mesh_shade_mode_set(EVAS_3D_SHADE_MODE_PHONG));
 
    mesh_node = eo_add(EVAS_3D_NODE_CLASS, evas,
@@ -200,15 +214,15 @@ main(void)
    /* Add a background rectangle objects. */
    background = eo_add(EVAS_RECTANGLE_CLASS, evas);
    eo_do(background,
-         evas_obj_color_set(0, 0, 0, 255),
-         evas_obj_size_set(WIDTH, HEIGHT),
-         evas_obj_visibility_set(EINA_TRUE));
+         efl_gfx_color_set(0, 0, 0, 255),
+         efl_gfx_size_set(WIDTH, HEIGHT),
+         efl_gfx_visible_set(EINA_TRUE));
 
    /* Add an image object for 3D scene rendering. */
    image = evas_object_image_filled_add(evas);
    eo_do(image,
-         evas_obj_size_set(WIDTH, HEIGHT),
-         evas_obj_visibility_set(EINA_TRUE));
+         efl_gfx_size_set(WIDTH, HEIGHT),
+         efl_gfx_visible_set(EINA_TRUE));
 
    /* Set the image object as render target for 3D scene. */
    eo_do(image, evas_obj_image_scene_set(scene));

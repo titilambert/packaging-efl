@@ -15,6 +15,7 @@ lib/eolian_cxx/eo_validate.hh
 installed_eoliancxxgrammarheadersdir = $(includedir)/eolian-cxx-@VMAJ@/grammar/
 dist_installed_eoliancxxgrammarheaders_DATA = \
 lib/eolian_cxx/grammar/comment.hh \
+lib/eolian_cxx/grammar/eo_class_scope_guard_generator.hh \
 lib/eolian_cxx/grammar/eo_class_constructors_generator.hh \
 lib/eolian_cxx/grammar/eo_class_events_generator.hh \
 lib/eolian_cxx/grammar/eo_class_functions_generator.hh \
@@ -69,38 +70,50 @@ tests/eolian_cxx/a.c \
 tests/eolian_cxx/b.c \
 tests/eolian_cxx/c.c \
 tests/eolian_cxx/d.c \
+tests/eolian_cxx/eolian_cxx_test_binding.cc \
 tests/eolian_cxx/eolian_cxx_test_callback.cc \
 tests/eolian_cxx/eolian_cxx_test_address_of.cc \
 tests/eolian_cxx/eolian_cxx_test_wrapper.cc \
 tests/eolian_cxx/simple.c \
+tests/eolian_cxx/generic.c \
 tests/eolian_cxx/eolian_cxx_test_inheritance.cc \
 tests/eolian_cxx/eolian_cxx_test_generate.cc
 
-tests/eolian_cxx/tests_eolian_cxx_eolian_cxx_suite-eolian_cxx_test_callback.$(OBJEXT): tests/eolian_cxx/callback.eo.hh
-tests/eolian_cxx/tests_eolian_cxx_eolian_cxx_suite-eolian_cxx_test_address_of.$(OBJEXT): tests/eolian_cxx/a.eo.hh tests/eolian_cxx/b.eo.hh tests/eolian_cxx/c.eo.hh tests/eolian_cxx/d.eo.hh
+tests/eolian_cxx/tests_eolian_cxx_eolian_cxx_suite-eolian_cxx_test_wrapper.$(OBJEXT): tests/eolian_cxx/callback.eo.hh tests/eolian_cxx/callback.eo.h
+tests/eolian_cxx/tests_eolian_cxx_eolian_cxx_suite-eolian_cxx_test_callback.$(OBJEXT): tests/eolian_cxx/callback.eo.hh tests/eolian_cxx/callback.eo.h
+tests/eolian_cxx/tests_eolian_cxx_eolian_cxx_suite-eolian_cxx_test_inheritance.$(OBJEXT): tests/eolian_cxx/simple.eo.hh tests/eolian_cxx/simple.eo.h
+tests/eolian_cxx/tests_eolian_cxx_eolian_cxx_suite-eolian_cxx_test_binding.$(OBJEXT): tests/eolian_cxx/generic.eo.hh tests/eolian_cxx/generic.eo.h
+tests/eolian_cxx/tests_eolian_cxx_eolian_cxx_suite-eolian_cxx_test_address_of.$(OBJEXT): tests/eolian_cxx/a.eo.hh tests/eolian_cxx/b.eo.hh tests/eolian_cxx/c.eo.hh tests/eolian_cxx/d.eo.hh tests/eolian_cxx/a.eo.h tests/eolian_cxx/b.eo.h tests/eolian_cxx/c.eo.h tests/eolian_cxx/d.eo.h
 
 tests/eolian_cxx/tests_eolian_cxx_eolian_cxx_suite-callback.$(OBJEXT): tests/eolian_cxx/callback.eo.c tests/eolian_cxx/callback.eo.h
+tests/eolian_cxx/tests_eolian_cxx_eolian_cxx_suite-simple.$(OBJEXT): tests/eolian_cxx/simple.eo.c tests/eolian_cxx/simple.eo.h
+tests/eolian_cxx/tests_eolian_cxx_eolian_cxx_suite-generic.$(OBJEXT): tests/eolian_cxx/generic.eo.c tests/eolian_cxx/generic.eo.h
 tests/eolian_cxx/tests_eolian_cxx_eolian_cxx_suite-a.$(OBJEXT): tests/eolian_cxx/a.eo.c tests/eolian_cxx/a.eo.h
 tests/eolian_cxx/tests_eolian_cxx_eolian_cxx_suite-b.$(OBJEXT): tests/eolian_cxx/b.eo.c tests/eolian_cxx/b.eo.h
 tests/eolian_cxx/tests_eolian_cxx_eolian_cxx_suite-c.$(OBJEXT): tests/eolian_cxx/c.eo.c tests/eolian_cxx/c.eo.h
 tests/eolian_cxx/tests_eolian_cxx_eolian_cxx_suite-d.$(OBJEXT): tests/eolian_cxx/d.eo.c tests/eolian_cxx/d.eo.h
 
-tests/eolian_cxx/tests_eolian_cxx_eolian_cxx_suite-eolian_cxx_test_inheritance.$(OBJEXT): tests/eolian_cxx/simple.eo.hh
-
-tests/eolian_cxx/tests_eolian_cxx_eolian_cxx_suite-simple.$(OBJEXT): tests/eolian_cxx/simple.eo.c tests/eolian_cxx/simple.eo.h
-
-CLEANFILES += tests/eolian_cxx/callback.eo.hh tests/eolian_cxx/callback.eo.c \
+CLEANFILES += \
+tests/eolian_cxx/callback.eo.hh \
+tests/eolian_cxx/callback.eo.c \
 tests/eolian_cxx/callback.eo.h \
+tests/eolian_cxx/callback.eo.impl.hh \
 tests/eolian_cxx/simple.eo.c \
 tests/eolian_cxx/simple.eo.h \
 tests/eolian_cxx/simple.eo.hh \
-tests/eolian_cxx/a.eo.hh tests/eolian_cxx/a.eo.c tests/eolian_cxx/a.eo.h \
-tests/eolian_cxx/b.eo.hh tests/eolian_cxx/b.eo.c tests/eolian_cxx/b.eo.h \
-tests/eolian_cxx/c.eo.hh tests/eolian_cxx/c.eo.c tests/eolian_cxx/c.eo.h \
-tests/eolian_cxx/d.eo.hh tests/eolian_cxx/d.eo.c tests/eolian_cxx/d.eo.h
+tests/eolian_cxx/simple.eo.impl.hh \
+tests/eolian_cxx/generic.eo.c \
+tests/eolian_cxx/generic.eo.h \
+tests/eolian_cxx/generic.eo.hh \
+tests/eolian_cxx/generic.eo.impl.hh \
+tests/eolian_cxx/a.eo.hh tests/eolian_cxx/a.eo.impl.hh tests/eolian_cxx/a.eo.c tests/eolian_cxx/a.eo.h \
+tests/eolian_cxx/b.eo.hh tests/eolian_cxx/b.eo.impl.hh tests/eolian_cxx/b.eo.c tests/eolian_cxx/b.eo.h \
+tests/eolian_cxx/c.eo.hh tests/eolian_cxx/c.eo.impl.hh tests/eolian_cxx/c.eo.c tests/eolian_cxx/c.eo.h \
+tests/eolian_cxx/d.eo.hh tests/eolian_cxx/d.eo.impl.hh tests/eolian_cxx/d.eo.c tests/eolian_cxx/d.eo.h
 
 tests_eolian_cxx_eolian_cxx_suite_CXXFLAGS = \
 -I$(top_builddir)/src/lib/efl \
+-I$(top_builddir)/src/lib/efl/interfaces \
 -I$(top_srcdir)/src/bin/eolian_cxx \
 -I$(top_builddir)/src/tests/eolian_cxx \
 -DTESTS_WD=\"`pwd`\" \
@@ -115,13 +128,14 @@ tests_eolian_cxx_eolian_cxx_suite_CXXFLAGS = \
 tests_eolian_cxx_eolian_cxx_suite_CFLAGS = ${tests_eolian_cxx_eolian_cxx_suite_CXXFLAGS}
 tests_eolian_cxx_eolian_cxx_suite_CPPFLAGS = ${tests_eolian_cxx_eolian_cxx_suite_CXXFLAGS}
 tests_eolian_cxx_eolian_cxx_suite_LDADD = \
-@CHECK_LIBS@ @USE_EO_LIBS@ @USE_EINA_LIBS@ @USE_EOLIAN_LIBS@
+@CHECK_LIBS@ @USE_EO_LIBS@ @USE_EINA_LIBS@ @USE_ECORE_LIBS@ @USE_EOLIAN_LIBS@
 tests_eolian_cxx_eolian_cxx_suite_DEPENDENCIES = @USE_EOLIAN_INTERNAL_LIBS@
 
 endif
 
 EXTRA_DIST += tests/eolian_cxx/callback.eo \
 tests/eolian_cxx/simple.eo \
+tests/eolian_cxx/generic.eo \
 tests/eolian_cxx/a.eo \
 tests/eolian_cxx/b.eo \
 tests/eolian_cxx/c.eo \

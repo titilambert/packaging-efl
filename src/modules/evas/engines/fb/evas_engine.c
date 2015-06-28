@@ -35,18 +35,7 @@ _output_setup(int w, int h, int rot, int vt, int dev, int refresh)
    if (!re)
      return NULL;
    /* if we haven't initialized - init (automatic abort if already done) */
-   evas_common_cpu_init();
-
-   evas_common_blend_init();
-   evas_common_image_init();
-   evas_common_convert_init();
-   evas_common_scale_init();
-   evas_common_rectangle_init();
-   evas_common_polygon_init();
-   evas_common_line_init();
-   evas_common_font_init();
-   evas_common_draw_init();
-   evas_common_tilebuf_init();
+   evas_common_init();
 
    evas_fb_outbuf_fb_init();
 
@@ -75,8 +64,7 @@ _output_setup(int w, int h, int rot, int vt, int dev, int refresh)
  on_error:
    if (ob) evas_fb_outbuf_fb_free(ob);
    free(re);
-   evas_common_font_shutdown();
-   evas_common_image_shutdown();
+   evas_common_shutdown();
    return NULL;
 }
 
@@ -126,13 +114,13 @@ eng_output_free(void *data)
 {
    Render_Engine *re;
 
-   re = (Render_Engine *)data;
+   if (re = (Render_Engine *)data)
+     {
+        evas_render_engine_software_generic_clean(&re->generic);
+        free(re);
+     }
 
-   evas_render_engine_software_generic_clean(&re->generic);
-   free(re);
-
-   evas_common_font_shutdown();
-   evas_common_image_shutdown();
+   evas_common_shutdown();
 }
 
 static Eina_Bool

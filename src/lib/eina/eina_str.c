@@ -629,12 +629,32 @@ eina_str_escape(const char *str)
 
    for (s = str, d = s2; *s != 0; s++, d++)
      {
-        if ((*s == ' ') || (*s == '\\') || (*s == '\''))
-          {
+        switch (*s)
+        {
+         case ' ':
+         case '\\':
+         case '\'':
+         case '\"':
+           {
              *d = '\\';
              d++;
-          }
-
+             break;
+           }
+         case '\n':
+           {
+             *d = '\\'; d++;
+             *d = 'n'; d++;
+             s++;
+             break;
+           }
+         case '\t':
+           {
+             *d = '\\'; d++;
+             *d = 't'; d++;
+             s++;
+             break;
+           }
+        }
         *d = *s;
      }
    *d = 0;
@@ -668,8 +688,12 @@ eina_memdup(unsigned char *mem, size_t size, Eina_Bool terminate)
 {
    unsigned char *ret;
 
+   if (!mem) return NULL;
+
    terminate = !!terminate;
    ret = malloc(size + terminate);
+   if (!ret) return NULL;
+
    memcpy(ret, mem, size);
    if (terminate)
      ret[size] = 0;

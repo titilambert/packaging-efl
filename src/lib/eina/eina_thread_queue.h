@@ -17,13 +17,13 @@
  *
  * This is a uni-directional zero-copy thread message queue specifically
  * designed with the idea of sending large volumes of messages with no
- * copies from one thread to another (or from/to the mainloop). The ides
+ * copies from one thread to another (or from/to the mainloop). The idea
  * is that a thread queue is created and then one or more threads send
  * messages in one end and fetch messages on the other end. If you set a
  * parent message queue to 1 or more queues, then this parent will wake up
  * with a sub queue message, indicating which child queue woke up. This can
  * be used to implement the ability to listen to multiple queues at once.
- * 
+ *
  * @since 1.11
  */
 typedef struct _Eina_Thread_Queue Eina_Thread_Queue;
@@ -37,7 +37,7 @@ typedef struct _Eina_Thread_Queue Eina_Thread_Queue;
  * the first struct member of every message type you have, like
  * Eina_Thread_Queue_Msg_Sub does. Messages are always 8 byte aligned within
  * message memory to ensure alignment of all types.
- * 
+ *
  * @since 1.11
  */
 typedef struct _Eina_Thread_Queue_Msg Eina_Thread_Queue_Msg;
@@ -69,7 +69,7 @@ struct _Eina_Thread_Queue_Msg_Sub
  * @brief Create a new thread queue
  *
  * @return A valid new thread queue, or NULL on failure
- * 
+ *
  * @since 1.11
  */
 EAPI Eina_Thread_Queue *
@@ -81,9 +81,9 @@ eina_thread_queue_new(void);
  * This frees a thread queue. It must no longer be in use by anything waiting
  * on messages or sending them. Any pending messages will be freed without
  * being processed by a listener.
- * 
+ *
  * @param thq The thread queue to free
- * 
+ *
  * @since 1.11
  */
 EAPI void
@@ -92,7 +92,7 @@ eina_thread_queue_free(Eina_Thread_Queue *thq) EINA_ARG_NONNULL(1);
 /**
  * @brief Allocate a message to send down a thread queue
  *
- * @param thq The thred queue to allocate the message on
+ * @param thq The thread queue to allocate the message on
  * @param size The size, in bytes, of the message, including standard header
  * @param allocref A pointer to store a general reference handle for the message
  * @return A pointer to the message data to fill in
@@ -100,8 +100,9 @@ eina_thread_queue_free(Eina_Thread_Queue *thq) EINA_ARG_NONNULL(1);
  * This allocates space for a new message on the message queue, but does not
  * actually trigger the send. For that you will need to call
  * eina_thread_queue_send_done() to complete the send and trigger the other
- * side.
- * 
+ * side. Every message must at least be a Eina_Thread_Queue_Msg in size and
+ * have this structure as the first member (first N bytes) of the message.
+ *
  * @since 1.11
  */
 EAPI void *
@@ -115,7 +116,7 @@ eina_thread_queue_send(Eina_Thread_Queue *thq, int size, void **allocref) EINA_A
  *
  * This completes the send and triggers the thread queue to wake up any
  * listeners.
- * 
+ *
  * @since 1.11
  */
 EAPI void
@@ -135,7 +136,7 @@ eina_thread_queue_send_done(Eina_Thread_Queue *thq, void *allocref) EINA_ARG_NON
  * and block until a new message comes in, then return. When the message is
  * finished with, the caller must use eina_thread_queue_wait_done() to indicate
  * they are done.
- * 
+ *
  * @since 1.11
  */
 EAPI void *
@@ -149,7 +150,7 @@ eina_thread_queue_wait(Eina_Thread_Queue *thq, void **allocref) EINA_ARG_NONNULL
  *
  * This should be used after eina_thread_queue_wait() or
  * eina_thread_queue_poll() to indicate the caller is done with the message.
- * 
+ *
  * @since 1.11
  */
 EAPI void
@@ -163,11 +164,11 @@ eina_thread_queue_wait_done(Eina_Thread_Queue *thq, void *allocref) EINA_ARG_NON
  * @return A pointer to the message data
  *
  * This is the same as eina_thread_queue_wait(), but if no messages are
- * available for reading, it immediately returns NULL tot he caller, without
+ * available for reading, it immediately returns NULL to the caller, without
  * waiting for a new message to arrive.
- * 
+ *
  * @see eina_thread_queue_wait()
- * 
+ *
  * @since 1.11
  */
 EAPI void *
@@ -181,7 +182,7 @@ eina_thread_queue_poll(Eina_Thread_Queue *thq, void **allocref) EINA_ARG_NONNULL
  *
  * This returns the number of messages waiting to be fetched with
  * eina_thread_queue_wait() or eina_thread_queue_poll().
- * 
+ *
  * @since 1.11
  */
 EAPI int
@@ -198,7 +199,7 @@ eina_thread_queue_pending_get(const Eina_Thread_Queue *thq) EINA_ARG_NONNULL(1);
  * have the same parent and then just wait on that one parent. This should
  * be done before any messages are read from or written to the queue. To unset
  * a parent, just set the parent to NULL.
- * 
+ *
  * @since 1.11
  */
 EAPI void
@@ -212,7 +213,7 @@ eina_thread_queue_parent_set(Eina_Thread_Queue *thq, Eina_Thread_Queue *thq_pare
  *
  * This gets the paren set by eina_thread_queue_parent_get(). If no parent
  * is set, NULL is returned.
- * 
+ *
  * @see eina_thread_queue_parent_set()
  *
  * @since 1.11
@@ -234,7 +235,7 @@ eina_thread_queue_parent_get(const Eina_Thread_Queue *thq) EINA_ARG_NONNULL(1);
  *
  * You should set this up before anything writes to or reads from this
  * thread queue.
- * 
+ *
  * @since 1.11
  */
 EAPI void
@@ -250,7 +251,7 @@ eina_thread_queue_fd_set(Eina_Thread_Queue *thq, int fd) EINA_ARG_NONNULL(1);
  * by default returns -1 (no fd set).
  *
  * @see eina_thread_queue_fd_set()
- * 
+ *
  * @since 1.11
  */
 EAPI int

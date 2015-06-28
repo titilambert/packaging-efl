@@ -1037,7 +1037,8 @@ _ecore_main_fd_handler_add(int                    fd,
                            Ecore_Fd_Cb            func,
                            const void            *data,
                            Ecore_Fd_Cb            buf_func,
-                           const void            *buf_data)
+                           const void            *buf_data,
+                           Eina_Bool              is_file)
 {
    Ecore_Fd_Handler *fdh = NULL;
 
@@ -1049,6 +1050,7 @@ _ecore_main_fd_handler_add(int                    fd,
    fdh->next_ready = NULL;
    fdh->fd = fd;
    fdh->flags = flags;
+   fdh->file = is_file;
    if (_ecore_main_fdh_poll_add(fdh) < 0)
      {
         int err = errno;
@@ -1084,7 +1086,7 @@ ecore_main_fd_handler_add(int                    fd,
    Ecore_Fd_Handler *fdh = NULL;
    EINA_MAIN_LOOP_CHECK_RETURN_VAL(NULL);
    _ecore_lock();
-   fdh = _ecore_main_fd_handler_add(fd, flags, func, data, buf_func, buf_data);
+   fdh = _ecore_main_fd_handler_add(fd, flags, func, data, buf_func, buf_data, EINA_FALSE);
    _ecore_unlock();
    return fdh;
 }
@@ -1098,42 +1100,9 @@ ecore_main_fd_handler_file_add(int                    fd,
                                const void            *buf_data)
 {
    Ecore_Fd_Handler *fdh = NULL;
-
    EINA_MAIN_LOOP_CHECK_RETURN_VAL(NULL);
    _ecore_lock();
-
-   if ((fd < 0) || (flags == 0) || (!func)) goto unlock;
-
-   fdh = ecore_fd_handler_calloc(1);
-   if (!fdh) goto unlock;
-   ECORE_MAGIC_SET(fdh, ECORE_MAGIC_FD_HANDLER);
-   fdh->next_ready = NULL;
-   fdh->fd = fd;
-   fdh->flags = flags;
-   fdh->file = EINA_TRUE;
-   if (_ecore_main_fdh_poll_add(fdh) < 0)
-     {
-        int err = errno;
-        ERR("Failed to add poll on fd %d (errno = %d: %s)!", fd, err, strerror(err));
-        ecore_fd_handler_mp_free(fdh);
-        fdh = NULL;
-        goto unlock;
-     }
-   fdh->read_active = EINA_FALSE;
-   fdh->write_active = EINA_FALSE;
-   fdh->error_active = EINA_FALSE;
-   fdh->delete_me = EINA_FALSE;
-   fdh->func = func;
-   fdh->data = (void *)data;
-   fdh->buf_func = buf_func;
-   if (buf_func)
-     fd_handlers_with_buffer = eina_list_append(fd_handlers_with_buffer, fdh);
-   fdh->buf_data = (void *)buf_data;
-   fd_handlers = (Ecore_Fd_Handler *)
-     eina_inlist_append(EINA_INLIST_GET(fd_handlers),
-                        EINA_INLIST_GET(fdh));
-   file_fd_handlers = eina_list_append(file_fd_handlers, fdh);
-unlock:
+   fdh = _ecore_main_fd_handler_add(fd, flags, func, data, buf_func, buf_data, EINA_TRUE);
    _ecore_unlock();
 
    return fdh;
@@ -1150,7 +1119,7 @@ ecore_main_win32_handler_add(void                 *h,
    EINA_MAIN_LOOP_CHECK_RETURN_VAL(NULL);
    if (!h || !func) return NULL;
 
-   wh = ecore_win32_handler_calloc(1);
+   wh = calloc(1, sizeof(Ecore_Win32_Handler));
    if (!wh) return NULL;
    ECORE_MAGIC_SET(wh, ECORE_MAGIC_WIN32_HANDLER);
    wh->h = (HANDLE)h;
@@ -1356,7 +1325,7 @@ _ecore_main_shutdown(void)
         win32_handlers = (Ecore_Win32_Handler *)eina_inlist_remove(EINA_INLIST_GET(win32_handlers),
                                                                    EINA_INLIST_GET(wh));
         ECORE_MAGIC_SET(wh, ECORE_MAGIC_NONE);
-        ecore_win32_handler_mp_free(wh);
+        free(wh);
      }
    win32_handlers_delete_me = EINA_FALSE;
    win32_handler_current = NULL;
@@ -1659,7 +1628,7 @@ _ecore_main_win32_handlers_cleanup(void)
                eina_inlist_remove(EINA_INLIST_GET(win32_handlers),
                                   EINA_INLIST_GET(wh));
              ECORE_MAGIC_SET(wh, ECORE_MAGIC_NONE);
-             ecore_win32_handler_mp_free(wh);
+             free(wh);
           }
      }
    if (!deleted_in_use) win32_handlers_delete_me = EINA_FALSE;
@@ -2160,12 +2129,12 @@ _ecore_main_win32_select(int             nfds EINA_UNUSED,
         if (readfds)
           {
              if (FD_ISSET(fdh->fd, readfds))
-               network_event |= FD_READ;
+               network_event |= FD_READ | FD_CONNECT | FD_ACCEPT;
           }
         if (writefds)
           {
              if (FD_ISSET(fdh->fd, writefds))
-               network_event |= FD_WRITE;
+               network_event |= FD_WRITE | FD_CLOSE;
           }
         if (exceptfds)
           {
@@ -2254,9 +2223,9 @@ _ecore_main_win32_select(int             nfds EINA_UNUSED,
 
         WSAEnumNetworkEvents(sockets[result], objects[result], &network_event);
 
-        if ((network_event.lNetworkEvents & FD_READ) && readfds)
+        if ((network_event.lNetworkEvents & (FD_READ | FD_CONNECT | FD_ACCEPT)) && readfds)
           FD_SET(sockets[result], readfds);
-        if ((network_event.lNetworkEvents & FD_WRITE) && writefds)
+        if ((network_event.lNetworkEvents & (FD_WRITE | FD_CLOSE)) && writefds)
           FD_SET(sockets[result], writefds);
         if ((network_event.lNetworkEvents & FD_OOB) && exceptfds)
           FD_SET(sockets[result], exceptfds);

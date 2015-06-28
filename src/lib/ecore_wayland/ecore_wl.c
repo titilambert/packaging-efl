@@ -64,7 +64,7 @@ static const struct wl_callback_listener _ecore_wl_anim_listener =
    _ecore_wl_animator_callback
 };
 
-static void 
+static void
 xdg_shell_ping(void *data EINA_UNUSED, struct xdg_shell *shell, uint32_t serial)
 {
    xdg_shell_pong(shell, serial);
@@ -162,13 +162,11 @@ ecore_wl_init(const char *name)
         ECORE_WL_EVENT_INTERFACES_BOUND = ecore_event_type_new();
      }
 
-   if (!(_ecore_wl_disp = malloc(sizeof(Ecore_Wl_Display))))
+   if (!(_ecore_wl_disp = calloc(1, sizeof(Ecore_Wl_Display))))
      {
         ERR("Could not allocate memory for Ecore_Wl_Display structure");
         goto exit_ecore_disp;
      }
-
-   memset(_ecore_wl_disp, 0, sizeof(Ecore_Wl_Display));
 
    if (!(_ecore_wl_disp->wl.display = wl_display_connect(name)))
      {
@@ -179,7 +177,7 @@ ecore_wl_init(const char *name)
    _ecore_wl_disp->fd = wl_display_get_fd(_ecore_wl_disp->wl.display);
 
    _ecore_wl_disp->fd_hdl =
-     ecore_main_fd_handler_add(_ecore_wl_disp->fd, 
+     ecore_main_fd_handler_add(_ecore_wl_disp->fd,
                                ECORE_FD_READ | ECORE_FD_WRITE | ECORE_FD_ERROR,
                                _ecore_wl_cb_handle_data, _ecore_wl_disp,
                                NULL, NULL);
@@ -480,8 +478,8 @@ _ecore_wl_shutdown(Eina_Bool close)
 
         EINA_INLIST_FOREACH_SAFE(_ecore_wl_disp->globals, tmp, global)
           {
-             _ecore_wl_disp->globals = 
-               eina_inlist_remove(_ecore_wl_disp->globals, 
+             _ecore_wl_disp->globals =
+               eina_inlist_remove(_ecore_wl_disp->globals,
                                   EINA_INLIST_GET(global));
              free(global->interface);
              free(global);
@@ -552,6 +550,7 @@ err:
         _ecore_wl_fatal_error = EINA_TRUE;
 
         /* raise exit signal */
+        ERR("Wayland socket error: %s", strerror(errno));
         _ecore_wl_signal_exit();
 
         return ECORE_CALLBACK_CANCEL;
@@ -645,7 +644,7 @@ _ecore_wl_cb_handle_global(void *data, struct wl_registry *registry, unsigned in
 #endif
    else if (!strcmp(interface, "xdg_shell") && !getenv("EFL_WAYLAND_DONT_USE_XDG_SHELL"))
      {
-        ewd->wl.xdg_shell = 
+        ewd->wl.xdg_shell =
           wl_registry_bind(registry, id, &xdg_shell_interface, 1);
         xdg_shell_use_unstable_version(ewd->wl.xdg_shell, XDG_VERSION);
         xdg_shell_add_listener(ewd->wl.xdg_shell, &xdg_shell_listener,
@@ -661,15 +660,11 @@ _ecore_wl_cb_handle_global(void *data, struct wl_registry *registry, unsigned in
         ewd->wl.shm = wl_registry_bind(registry, id, &wl_shm_interface, 1);
 
         if (ewd->input)
-          {
-             ewd->cursor_theme =
-               wl_cursor_theme_load(ewd->input->cursor_theme_name,
-                                    ewd->input->cursor_size, ewd->wl.shm);
-          }
+          _ecore_wl_input_setup(ewd->input);
         else
           {
-             ewd->cursor_theme = 
-               wl_cursor_theme_load(NULL, ECORE_WL_DEFAULT_CURSOR_SIZE, 
+             ewd->cursor_theme =
+               wl_cursor_theme_load(NULL, ECORE_WL_DEFAULT_CURSOR_SIZE,
                                     ewd->wl.shm);
           }
      }
@@ -679,7 +674,7 @@ _ecore_wl_cb_handle_global(void *data, struct wl_registry *registry, unsigned in
           wl_registry_bind(registry, id, &wl_data_device_manager_interface, 1);
      }
 
-   if ((ewd->wl.compositor) && (ewd->wl.shm) && 
+   if ((ewd->wl.compositor) && (ewd->wl.shm) &&
        ((ewd->wl.shell) || (ewd->wl.xdg_shell)))
      {
         Ecore_Wl_Event_Interfaces_Bound *ev;
@@ -713,7 +708,7 @@ _ecore_wl_cb_handle_global_remove(void *data, struct wl_registry *registry EINA_
    EINA_INLIST_FOREACH_SAFE(ewd->globals, tmp, global)
      {
         if (global->id != id) continue;
-        ewd->globals = 
+        ewd->globals =
           eina_inlist_remove(ewd->globals, EINA_INLIST_GET(global));
         free(global->interface);
         free(global);

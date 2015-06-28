@@ -1,15 +1,6 @@
 #ifndef __EMOTION_GSTREAMER_H__
 #define __EMOTION_GSTREAMER_H__
 
-#include "emotion_modules.h"
-
-#include <unistd.h>
-#include <fcntl.h>
-
-#include <Eina.h>
-#include <Evas.h>
-#include <Ecore.h>
-
 #include <glib.h>
 #include <gst/gst.h>
 #include <glib-object.h>
@@ -18,6 +9,15 @@
 #include <gst/video/navigation.h>
 #include <gst/audio/audio.h>
 #include <gst/tag/tag.h>
+
+#include <unistd.h>
+#include <fcntl.h>
+
+#include <Eina.h>
+#include <Evas.h>
+#include <Ecore.h>
+
+#include "emotion_modules.h"
 
 typedef void (*Evas_Video_Convert_Cb)(unsigned char *evas_data,
                                       const unsigned char *gst_data,
@@ -109,6 +109,7 @@ struct _EmotionVideoSinkPrivate {
 
     /* We need to keep a copy of the last inserted buffer as evas doesn't copy YUV data around */
    GstBuffer        *last_buffer;
+   GstMapInfo        map_info;
 
    int frames;
    int flapse;
@@ -124,6 +125,7 @@ struct _EmotionVideoSinkPrivate {
    //
    // Protected by the buffer mutex
    Eina_Bool unlocked : 1;
+   Eina_Bool mapped : 1;
 };
 
 struct _Emotion_Gstreamer_Buffer
