@@ -108,7 +108,8 @@ static void        _ecore_con_lookup_done(void *data,
 static const char *_ecore_con_pretty_ip(struct sockaddr *client_addr);
 
 #define EO_CONSTRUCTOR_CHECK_RETURN(obj) do { \
-     if (eo_do(obj, eo_finalized_get())) \
+     Eina_Bool finalized; \
+     if (eo_do_ret(obj, finalized, eo_finalized_get())) \
        { \
           ERR("This function is only allowed during construction."); \
           return; \
@@ -223,6 +224,7 @@ ecore_con_init(void)
    ecore_con_socks_init();
    ecore_con_ssl_init();
    ecore_con_info_init();
+   ecore_con_local_init();
 
 #ifdef HAVE_SYSTEMD
    sd_fd_max = sd_listen_fds(0);
@@ -280,6 +282,7 @@ ecore_con_shutdown(void)
    ecore_con_socks_shutdown();
    if (!_ecore_con_event_count) ecore_con_mempool_shutdown();
 
+   ecore_con_local_shutdown();
    ecore_con_info_shutdown();
    ecore_con_ssl_shutdown();
    eina_log_domain_unregister(_ecore_con_log_dom);
@@ -395,13 +398,20 @@ _ecore_con_server_eo_base_finalize(Ecore_Con_Server *obj, Ecore_Con_Server_Data 
 
    servers = eina_list_append(servers, obj);
 
-   if (!svr->name || (svr->port < 0))
-     goto error;
-
-   if (ecore_con_ssl_server_prepare(obj, compl_type & ECORE_CON_SSL))
+   if (!svr->name)
      goto error;
 
    type = compl_type & ECORE_CON_TYPE;
+
+   EINA_SAFETY_ON_TRUE_GOTO(((type == ECORE_CON_REMOTE_TCP) ||
+                             (type == ECORE_CON_REMOTE_NODELAY) ||
+                             (type == ECORE_CON_REMOTE_CORK) ||
+                             (type == ECORE_CON_REMOTE_UDP) ||
+                             (type == ECORE_CON_REMOTE_BROADCAST)) &&
+                             (svr->port < 0), error);
+
+   if (ecore_con_ssl_server_prepare(obj, compl_type & ECORE_CON_SSL))
+     goto error;
 
    if ((type == ECORE_CON_LOCAL_USER) ||
        (type == ECORE_CON_LOCAL_SYSTEM) ||
@@ -503,7 +513,7 @@ _ecore_con_connector_eo_base_finalize(Ecore_Con_Server *obj, void *pd EINA_UNUSE
                              (type == ECORE_CON_REMOTE_CORK) ||
                              (type == ECORE_CON_REMOTE_UDP) ||
                              (type == ECORE_CON_REMOTE_BROADCAST)) &&
-                            (svr->port < 0), error);
+                             (svr->port < 0), error);
 
    if ((type == ECORE_CON_LOCAL_USER) ||
        (type == ECORE_CON_LOCAL_SYSTEM) ||
@@ -554,7 +564,8 @@ _ecore_con_server_ecore_con_base_timeout_set(Eo *obj, Ecore_Con_Server_Data *svr
 EAPI double
 ecore_con_server_timeout_get(const Ecore_Con *obj)
 {
-   return eo_do((Ecore_Con *)obj, ecore_con_obj_timeout_get());
+   double ret;
+   return eo_do_ret((Ecore_Con *)obj, ret, ecore_con_obj_timeout_get());
 }
 
 EOLIAN static double
@@ -572,6 +583,9 @@ ecore_con_server_del(Ecore_Con_Server *obj)
    if (!svr || svr->delete_me)
      return NULL;
 
+#ifdef _WIN32
+   WSASendDisconnect(svr->fd, NULL);
+#endif
    _ecore_con_server_kill(obj);
    return svr->data;
 }
@@ -604,7 +618,8 @@ ecore_con_server_data_set(Ecore_Con_Server *obj,
 EAPI Eina_Bool
 ecore_con_server_connected_get(const Ecore_Con *obj)
 {
-   return eo_do((Ecore_Con *)obj, ecore_con_obj_connected_get());
+   Eina_Bool ret;
+   return eo_do_ret((Ecore_Con *)obj, ret, ecore_con_obj_connected_get());
 }
 
 EOLIAN static Eina_Bool
@@ -653,7 +668,8 @@ _ecore_con_server_name_get(Eo *obj EINA_UNUSED, Ecore_Con_Server_Data *svr)
 EAPI int
 ecore_con_server_port_get(const Ecore_Con *obj)
 {
-   return eo_do((Ecore_Con *)obj, ecore_con_obj_port_get());
+   int ret;
+   return eo_do_ret((Ecore_Con *)obj, ret, ecore_con_obj_port_get());
 }
 
 EOLIAN static void
@@ -673,7 +689,8 @@ _ecore_con_server_ecore_con_base_port_get(Eo *obj EINA_UNUSED, Ecore_Con_Server_
 EAPI int
 ecore_con_server_send(Ecore_Con *obj, const void *data, int size)
 {
-   return eo_do((Ecore_Con *)obj, ecore_con_obj_send(data, size));
+   int ret;
+   return eo_do_ret((Ecore_Con *)obj, ret, ecore_con_obj_send(data, size));
 }
 
 EOLIAN static int
@@ -729,7 +746,8 @@ _ecore_con_server_client_limit_get(Eo *obj EINA_UNUSED, Ecore_Con_Server_Data *s
 EAPI const char *
 ecore_con_server_ip_get(const Ecore_Con *obj)
 {
-   return eo_do(obj, ecore_con_obj_ip_get());
+   const char *ret;
+   return eo_do_ret(obj, ret, ecore_con_obj_ip_get());
 }
 
 EOLIAN static const char *
@@ -741,7 +759,8 @@ _ecore_con_server_ecore_con_base_ip_get(Eo *obj EINA_UNUSED, Ecore_Con_Server_Da
 EAPI double
 ecore_con_server_uptime_get(const Ecore_Con *obj)
 {
-   return eo_do(obj, ecore_con_obj_uptime_get());
+   double ret;
+   return eo_do_ret(obj, ret, ecore_con_obj_uptime_get());
 }
 
 EOLIAN static double
@@ -782,7 +801,8 @@ _ecore_con_server_ecore_con_base_flush(Eo *obj, Ecore_Con_Server_Data *svr EINA_
 EAPI int
 ecore_con_client_send(Ecore_Con *obj, const void *data, int size)
 {
-   return eo_do((Ecore_Con *)obj, ecore_con_obj_send(data, size));
+   int ret;
+   return eo_do_ret((Ecore_Con *)obj, ret, ecore_con_obj_send(data, size));
 }
 
 EOLIAN static int
@@ -849,7 +869,8 @@ _ecore_con_client_ecore_con_base_connected_get(Eo *obj EINA_UNUSED, Ecore_Con_Cl
 EAPI Eina_Bool
 ecore_con_client_connected_get(const Ecore_Con *obj)
 {
-   return eo_do((Ecore_Con *)obj, ecore_con_obj_connected_get());
+   Eina_Bool ret;
+   return eo_do_ret((Ecore_Con *)obj, ret, ecore_con_obj_connected_get());
 }
 
 EOLIAN static void
@@ -875,7 +896,8 @@ _ecore_con_client_ecore_con_base_timeout_get(Eo *obj EINA_UNUSED, Ecore_Con_Clie
 EAPI double
 ecore_con_client_timeout_get(const Ecore_Con *obj)
 {
-   return eo_do((Ecore_Con *)obj, ecore_con_obj_timeout_get());
+   double ret;
+   return eo_do_ret((Ecore_Con *)obj, ret, ecore_con_obj_timeout_get());
 }
 
 EAPI void *
@@ -884,6 +906,10 @@ ecore_con_client_del(Ecore_Con_Client *obj)
    if (!obj) return NULL;
    Ecore_Con_Client_Data *cl = eo_data_scope_get(obj, ECORE_CON_CLIENT_CLASS);
    if (!cl) return NULL;
+
+#ifdef _WIN32
+   WSASendDisconnect(cl->fd, NULL);
+#endif
 
    _ecore_con_client_kill(obj);
    return cl->data;
@@ -922,7 +948,8 @@ _ecore_con_client_ecore_con_base_ip_get(Eo *obj EINA_UNUSED, Ecore_Con_Client_Da
 EAPI const char *
 ecore_con_client_ip_get(const Ecore_Con *obj)
 {
-   return eo_do(obj, ecore_con_obj_ip_get());
+   const char *ret;
+   return eo_do_ret(obj, ret, ecore_con_obj_ip_get());
 }
 
 EOLIAN static int
@@ -940,7 +967,8 @@ _ecore_con_client_ecore_con_base_port_get(Eo *obj EINA_UNUSED, Ecore_Con_Client_
 EAPI int
 ecore_con_client_port_get(const Ecore_Con *obj)
 {
-   return eo_do((Ecore_Con *)obj, ecore_con_obj_port_get());
+   int ret;
+   return eo_do_ret((Ecore_Con *)obj, ret, ecore_con_obj_port_get());
 }
 
 EOLIAN static double
@@ -952,7 +980,8 @@ _ecore_con_client_ecore_con_base_uptime_get(Eo *obj EINA_UNUSED, Ecore_Con_Clien
 EAPI double
 ecore_con_client_uptime_get(const Ecore_Con *obj)
 {
-   return eo_do(obj, ecore_con_obj_uptime_get());
+   double ret;
+   return eo_do_ret(obj, ret, ecore_con_obj_uptime_get());
 }
 
 EOLIAN static void
@@ -970,7 +999,8 @@ ecore_con_client_flush(Ecore_Con *obj)
 EAPI int
 ecore_con_server_fd_get(const Ecore_Con *obj)
 {
-   return eo_do((Ecore_Con *)obj, ecore_con_obj_fd_get());
+   int ret;
+   return eo_do_ret((Ecore_Con *)obj, ret, ecore_con_obj_fd_get());
 }
 
 EOLIAN static int
@@ -990,7 +1020,8 @@ _ecore_con_client_ecore_con_base_fd_get(Eo *obj EINA_UNUSED, Ecore_Con_Client_Da
 EAPI int
 ecore_con_client_fd_get(const Ecore_Con *obj)
 {
-   return eo_do((Ecore_Con *)obj, ecore_con_obj_fd_get());
+   int ret;
+   return eo_do_ret((Ecore_Con *)obj, ret, ecore_con_obj_fd_get());
 }
 
 /**
@@ -1112,7 +1143,7 @@ ecore_con_event_server_data(Ecore_Con_Server *obj, unsigned char *buf, int num, 
    ecore_event_add(ECORE_CON_EVENT_SERVER_DATA, e,
                    _ecore_con_event_server_data_free, NULL);
      {
-        Ecore_Con_Event_Data_Received event_info = { 0 };
+        Ecore_Con_Event_Data_Received event_info = { NULL, 0 };
         event_info.data = e->data;
         event_info.size = e->size;
         eo_do(obj, eo_event_callback_call(ECORE_CON_BASE_EVENT_DATA_RECEIVED, &event_info));
@@ -1219,7 +1250,7 @@ ecore_con_event_client_data(Ecore_Con_Client *obj, unsigned char *buf, int num, 
    ecore_event_add(ECORE_CON_EVENT_CLIENT_DATA, e,
                    (Ecore_End_Cb)_ecore_con_event_client_data_free, cl->host_server);
      {
-        Ecore_Con_Event_Data_Received event_info = { 0 };
+        Ecore_Con_Event_Data_Received event_info = { NULL, 0 };
         event_info.data = e->data;
         event_info.size = e->size;
         eo_do(obj, eo_event_callback_call(ECORE_CON_BASE_EVENT_DATA_RECEIVED, &event_info));
@@ -1523,6 +1554,9 @@ _ecore_con_cb_tcp_listen(void *data,
    Ecore_Con_Server_Data *svr = eo_data_scope_get(obj, ECORE_CON_SERVER_CLASS);
    struct linger lin;
    const char *memerr = NULL;
+#ifdef _WIN32
+   u_long mode = 1;
+#endif
 
    errno = 0;
    if (!net_info) /* error message has already been handled */
@@ -1572,9 +1606,16 @@ _ecore_con_cb_tcp_listen(void *data,
 
    svr->fd = socket(net_info->info.ai_family, net_info->info.ai_socktype,
                     net_info->info.ai_protocol);
+#ifdef _WIN32
+   if (svr->fd == INVALID_SOCKET) goto error;
+
+   if (ioctlsocket(svr->fd, FIONBIO, &mode)) goto error;
+#else
    if (svr->fd < 0) goto error;
+
    if (fcntl(svr->fd, F_SETFL, O_NONBLOCK) < 0) goto error;
    if (fcntl(svr->fd, F_SETFD, FD_CLOEXEC) < 0) goto error;
+#endif
 
    lin.l_onoff = 1;
    lin.l_linger = 0;
@@ -1593,10 +1634,10 @@ _ecore_con_cb_tcp_listen(void *data,
           }
      }
 
-   if (bind(svr->fd, net_info->info.ai_addr, net_info->info.ai_addrlen) < 0)
+   if (bind(svr->fd, net_info->info.ai_addr, net_info->info.ai_addrlen) != 0)
      goto error;
 
-   if (listen(svr->fd, 4096) < 0) goto error;
+   if (listen(svr->fd, 4096) != 0) goto error;
 
 #ifdef HAVE_SYSTEMD
 fd_ready:
@@ -1630,6 +1671,9 @@ _ecore_con_cb_udp_listen(void *data,
 #endif
    const int on = 1;
    const char *memerr = NULL;
+#ifdef _WIN32
+   u_long mode = 1;
+#endif
 
    type = svr->type;
    type &= ECORE_CON_TYPE;
@@ -1663,7 +1707,16 @@ _ecore_con_cb_udp_listen(void *data,
 #endif
    svr->fd = socket(net_info->info.ai_family, net_info->info.ai_socktype,
                     net_info->info.ai_protocol);
+#ifdef _WIN32
+   if (svr->fd == INVALID_SOCKET) goto error;
+
+   if (ioctlsocket(svr->fd, FIONBIO, &mode)) goto error;
+#else
    if (svr->fd < 0) goto error;
+
+   if (fcntl(svr->fd, F_SETFL, O_NONBLOCK) < 0) goto error;
+   if (fcntl(svr->fd, F_SETFD, FD_CLOEXEC) < 0) goto error;
+#endif
 
    if (type == ECORE_CON_REMOTE_MCAST)
      {
@@ -1694,8 +1747,6 @@ _ecore_con_cb_udp_listen(void *data,
 
    if (setsockopt(svr->fd, SOL_SOCKET, SO_REUSEADDR, (const void *)&on, sizeof(on)) != 0)
      goto error;
-   if (fcntl(svr->fd, F_SETFL, O_NONBLOCK) < 0) goto error;
-   if (fcntl(svr->fd, F_SETFD, FD_CLOEXEC) < 0) goto error;
 
    if (bind(svr->fd, net_info->info.ai_addr, net_info->info.ai_addrlen) < 0)
      goto error;
@@ -1731,6 +1782,9 @@ _ecore_con_cb_tcp_connect(void *data,
    int res;
    int curstate = 0;
    const char *memerr = NULL;
+#ifdef _WIN32
+   u_long mode = 1;
+#endif
 
    errno = 0;
    if (!net_info) /* error message has already been handled */
@@ -1741,10 +1795,16 @@ _ecore_con_cb_tcp_connect(void *data,
 
    svr->fd = socket(net_info->info.ai_family, net_info->info.ai_socktype,
                     net_info->info.ai_protocol);
+#ifdef _WIN32
+   if (svr->fd == INVALID_SOCKET) goto error;
+
+   if (ioctlsocket(svr->fd, FIONBIO, &mode)) goto error;
+#else
    if (svr->fd < 0) goto error;
 
    if (fcntl(svr->fd, F_SETFL, O_NONBLOCK) < 0) goto error;
    if (fcntl(svr->fd, F_SETFD, FD_CLOEXEC) < 0) goto error;
+#endif
 
    if (setsockopt(svr->fd, SOL_SOCKET, SO_REUSEADDR, (const void *)&curstate, sizeof(curstate)) < 0)
      goto error;
@@ -1763,7 +1823,7 @@ _ecore_con_cb_tcp_connect(void *data,
 #ifdef _WIN32
    if (res == SOCKET_ERROR)
      {
-        if (WSAGetLastError() != WSAEINPROGRESS)
+        if (WSAGetLastError() != WSAEWOULDBLOCK)
           {
              char *err;
              err = evil_format_message(WSAGetLastError());
@@ -1826,6 +1886,9 @@ _ecore_con_cb_udp_connect(void *data,
    int broadcast = 1;
    const char *memerr = NULL;
    Ecore_Con_Server_Data *svr = eo_data_scope_get(obj, ECORE_CON_SERVER_CLASS);
+#ifdef _WIN32
+   u_long mode = 1;
+#endif
 
    errno = 0;
    if (!net_info) /* error message has already been handled */
@@ -1836,9 +1899,16 @@ _ecore_con_cb_udp_connect(void *data,
 
    svr->fd = socket(net_info->info.ai_family, net_info->info.ai_socktype,
                     net_info->info.ai_protocol);
+#ifdef _WIN32
+   if (svr->fd == INVALID_SOCKET) goto error;
+
+   if (ioctlsocket(svr->fd, FIONBIO, &mode)) goto error;
+#else
    if (svr->fd < 0) goto error;
+
    if (fcntl(svr->fd, F_SETFL, O_NONBLOCK) < 0) goto error;
    if (fcntl(svr->fd, F_SETFD, FD_CLOEXEC) < 0) goto error;
+#endif
    if ((svr->type & ECORE_CON_TYPE) == ECORE_CON_REMOTE_BROADCAST)
      {
         if (setsockopt(svr->fd, SOL_SOCKET, SO_BROADCAST,
@@ -1984,6 +2054,9 @@ _ecore_con_svr_tcp_handler(void *data,
    unsigned int client_addr_len;
    const char *clerr = NULL;
    Ecore_Con_Server_Data *svr = eo_data_scope_get(svr_obj, ECORE_CON_SERVER_CLASS);
+#ifdef _WIN32
+   u_long mode = 1;
+#endif
 
    if (svr->delete_me)
      return ECORE_CALLBACK_RENEW;
@@ -2006,7 +2079,11 @@ _ecore_con_svr_tcp_handler(void *data,
    client_addr_len = sizeof(client_addr);
    memset(&client_addr, 0, client_addr_len);
    cl->fd = accept(svr->fd, (struct sockaddr *)&client_addr, (socklen_t *)&client_addr_len);
+#ifdef _WIN32
+   if (cl->fd == INVALID_SOCKET) goto error;
+#else
    if (cl->fd < 0) goto error;
+#endif
    if ((svr->client_limit >= 0) && (svr->reject_excess_clients) &&
        (svr->client_count >= (unsigned int)svr->client_limit))
      {
@@ -2014,8 +2091,12 @@ _ecore_con_svr_tcp_handler(void *data,
         goto error;
      }
 
+#ifdef _WIN32
+   if (ioctlsocket(cl->fd, FIONBIO, &mode)) goto error;
+#else
    if (fcntl(cl->fd, F_SETFL, O_NONBLOCK) < 0) goto error;
    if (fcntl(cl->fd, F_SETFD, FD_CLOEXEC) < 0) goto error;
+#endif
    cl->fd_handler = ecore_main_fd_handler_add(cl->fd, ECORE_FD_READ,
                                               _ecore_con_svr_cl_handler, obj, NULL, NULL);
    if (!cl->fd_handler) goto error;
@@ -2087,9 +2168,14 @@ _ecore_con_cl_read(Ecore_Con_Server *obj)
    if (svr->ecs_state || !(svr->type & ECORE_CON_SSL))
      {
         errno = 0;
-        num = read(svr->fd, buf, sizeof(buf));
+        num = recv(svr->fd, (char *)buf, sizeof(buf), 0);
+
         /* 0 is not a valid return value for a tcp socket */
+#ifdef _WIN32
+        if ((num > 0) || ((num < 0) && (WSAGetLastError() == WSAEWOULDBLOCK)))
+#else
         if ((num > 0) || ((num < 0) && (errno == EAGAIN)))
+#endif
           lost_server = EINA_FALSE;
         else if (num < 0)
           ecore_con_event_server_error(obj, strerror(errno));
@@ -2139,7 +2225,7 @@ _ecore_con_cl_handler(void *data,
           {
              char buf[READBUFSIZ];
              ssize_t len;
-             len = recv(svr->fd, buf, sizeof(buf), MSG_DONTWAIT | MSG_PEEK);
+             len = recv(svr->fd, (char *)buf, sizeof(buf), MSG_DONTWAIT | MSG_PEEK);
              DBG("%zu bytes in buffer", len);
           }
 #endif
@@ -2196,7 +2282,7 @@ _ecore_con_cl_udp_handler(void *data,
         return ECORE_CALLBACK_RENEW;
      }
 
-   num = read(svr->fd, buf, READBUFSIZ);
+   num = recv(svr->fd, (char *)buf, READBUFSIZ, 0);
 
    if ((!svr->delete_me) && (num > 0))
      ecore_con_event_server_data(obj, buf, num, EINA_TRUE);
@@ -2220,6 +2306,9 @@ _ecore_con_svr_udp_handler(void *data,
    int num;
    Ecore_Con_Server *svr_obj = data;
    Ecore_Con_Client *obj = NULL;
+#ifdef _WIN32
+   u_long mode = 1;
+#endif
 
    Ecore_Con_Server_Data *svr = eo_data_scope_get(svr_obj, ECORE_CON_SERVER_CLASS);
    if (svr->delete_me)
@@ -2232,8 +2321,7 @@ _ecore_con_svr_udp_handler(void *data,
      return ECORE_CALLBACK_RENEW;
 
 #ifdef _WIN32
-   num = fcntl(svr->fd, F_SETFL, O_NONBLOCK);
-   if (num >= 0)
+   if (!ioctlsocket(svr->fd, FIONBIO, &mode))
      num = recvfrom(svr->fd, (char *)buf, sizeof(buf), 0,
                     (struct sockaddr *)&client_addr,
                     &client_addr_len);
@@ -2301,7 +2389,8 @@ _ecore_con_svr_cl_read(Ecore_Con_Client *obj)
    Ecore_Con_Server_Data *host_server = eo_data_scope_get(cl->host_server, ECORE_CON_SERVER_CLASS);
    if (!(host_server->type & ECORE_CON_SSL) && (!cl->upgrade))
      {
-        num = read(cl->fd, buf, sizeof(buf));
+        num = recv(cl->fd, (char *)buf, sizeof(buf), 0);
+
         /* 0 is not a valid return value for a tcp socket */
         if ((num > 0) || ((num < 0) && ((errno == EAGAIN) || (errno == EINTR))))
           lost_client = EINA_FALSE;
@@ -2409,19 +2498,46 @@ _ecore_con_server_flush(Ecore_Con_Server *obj)
      }
 
    if (svr->ecs_state || (!(svr->type & ECORE_CON_SSL)))
-     count = write(svr->fd, buf + *buf_offset, num);
+     count = send(svr->fd, (const char *)buf + *buf_offset, num, 0);
    else
      count = ecore_con_ssl_server_write(obj, buf + *buf_offset, num);
 
+#ifdef _WIN32
+   if (count == SOCKET_ERROR)
+     {
+        switch (WSAGetLastError())
+          {
+           case WSAEINTR:
+           case WSAEINPROGRESS:
+           case WSAEWOULDBLOCK:
+             break;
+           default:
+             {
+                LPTSTR s;
+
+                FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
+                              FORMAT_MESSAGE_FROM_SYSTEM,
+                              NULL, WSAGetLastError(),
+                              MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                              (LPTSTR)&s, 0, NULL);
+                ecore_con_event_server_error(obj, (char *)s);
+                free(s);
+                _ecore_con_server_kill(obj);
+             }
+          }
+     }
+#else
    if (count < 0)
      {
-        if ((errno != EAGAIN) && (errno != EINTR))
-          {
-             ecore_con_event_server_error(obj, strerror(errno));
-             _ecore_con_server_kill(obj);
-          }
-        return;
+         if ((errno != EAGAIN) && (errno != EINTR))
+           {
+              ecore_con_event_server_error(obj, strerror(errno));
+              _ecore_con_server_kill(obj);
+           }
+         return;
      }
+#endif
+
 
    if (count && (!svr->ecs_state)) ecore_con_event_server_write(obj, count);
 
@@ -2497,7 +2613,7 @@ _ecore_con_client_flush(Ecore_Con_Client *obj)
         if (num <= 0) return;
         Ecore_Con_Server_Data *host_server = eo_data_scope_get(cl->host_server, ECORE_CON_SERVER_CLASS);
         if (!(host_server->type & ECORE_CON_SSL) && (!cl->upgrade))
-          count = write(cl->fd, eina_binbuf_string_get(cl->buf) + cl->buf_offset, num);
+          count = send(cl->fd, (char *)eina_binbuf_string_get(cl->buf) + cl->buf_offset, num, 0);
         else
           count = ecore_con_ssl_client_write(obj, eina_binbuf_string_get(cl->buf) + cl->buf_offset, num);
      }
@@ -2834,9 +2950,7 @@ _ecore_con_lookup_done(void *data,
    else
      lk->done_cb(NULL, NULL, NULL, 0, (void *)lk->data);
 
-   free(svr->name);
    free(lk);
-   free(svr);
 }
 
 #include "ecore_con_base.eo.c"

@@ -49,6 +49,7 @@
 
 #include <Eina.h>
 #include <Eo.h>
+#include <Ector.h>
 
 #ifdef BUILD_LOADER_EET
 # include <Eet.h>
@@ -193,6 +194,14 @@ extern EAPI int _evas_log_dom_global;
 #include FT_GLYPH_H
 #include FT_SIZES_H
 #include FT_MODULE_H
+
+#ifndef FT_HAS_COLOR
+# define FT_HAS_COLOR(face) 0
+#endif
+
+#ifndef FT_LOAD_COLOR
+# define FT_LOAD_COLOR FT_LOAD_DEFAULT
+#endif
 
 #ifdef __GNUC__
 # if __GNUC__ >= 4
@@ -596,6 +605,7 @@ struct _Image_Entry
    Evas_Image_Load_Opts   load_opts;
    Evas_Colorspace        space;
    const Evas_Colorspace *cspaces; // owned by the loader, live as long as the loader
+   Evas_Image_Orient      orient;
 
    unsigned int           w;
    unsigned int           h;
@@ -707,9 +717,12 @@ struct _RGBA_Draw_Context
    Cutout_Rects cutout;
    struct {
       struct {
-	 void *(*gl_new)  (void *data, RGBA_Font_Glyph *fg);
-	 void  (*gl_free) (void *ext_dat);
-	 void  (*gl_draw) (void *data, void *dest, void *context, RGBA_Font_Glyph *fg, int x, int y);
+         void *(*gl_new)  (void *data, RGBA_Font_Glyph *fg);
+         void  (*gl_free) (void *ext_dat);
+         void  (*gl_draw) (void *data, void *dest, void *context, RGBA_Font_Glyph *fg, int x, int y);
+         void *(*gl_image_new_from_data) (void *gc, unsigned int w, unsigned int h, DATA32 *image_data, int alpha, Evas_Colorspace cspace);
+         void  (*gl_image_free) (void *image);
+         void  (*gl_image_draw) (void *gc, void *im, int sx, int sy, int sw, int sh, int dx, int dy, int dw, int dh, int smooth);
       } func;
       void *data;
    } font_ext;
@@ -835,6 +848,15 @@ struct _RGBA_Image
       pixman_image_t *im;
    } pixman;
 #endif
+   struct {
+      void   *data; //Evas_Native_Surface ns;
+      struct {
+        void (*bind) (void *data, void *image, int x, int y, int w, int h);
+        void (*unbind) (void *data, void *image);
+        void (*free) (void *data, void *image);
+        void *data;
+      } func;
+   } native;
 };
 
 struct _RGBA_Polygon_Point
@@ -1197,8 +1219,8 @@ extern "C" {
 #endif
 
 /****/
-void evas_common_init                                   (void);
-void evas_common_shutdown                               (void);
+EAPI void evas_common_init                                   (void);
+EAPI void evas_common_shutdown                               (void);
 
 EAPI void evas_common_cpu_init                          (void);
 

@@ -188,6 +188,8 @@ static void st_images_set_image_size(void);
 static void st_images_set_image_border(void);
 static void st_images_set_image_border_scale_by(void);
 
+static void st_models_model(void);
+
 static void st_fonts_font(void);
 
 static void st_data_item(void);
@@ -203,12 +205,14 @@ static void st_color_class_name(void);
 static void st_color_class_color(void);
 static void st_color_class_color2(void);
 static void st_color_class_color3(void);
+static void st_color_class_desc(void);
 
 static void ob_collections(void);
 static void st_collections_base_scale(void);
 
 static void ob_collections_group(void);
 static void st_collections_group_name(void);
+static void st_collections_group_scene_size(void);
 static void st_collections_group_inherit_only(void);
 static void st_collections_group_inherit(void);
 static void st_collections_group_program_source(void);
@@ -305,6 +309,9 @@ static void st_collections_group_parts_part_description_max(void);
 static void st_collections_group_parts_part_description_step(void);
 static void st_collections_group_parts_part_description_aspect(void);
 static void st_collections_group_parts_part_description_aspect_preference(void);
+static void st_collections_group_parts_part_description_rel_to(void);
+static void st_collections_group_parts_part_description_rel_to_x(void);
+static void st_collections_group_parts_part_description_rel_to_y(void);
 static void st_collections_group_parts_part_description_rel1_relative(void);
 static void st_collections_group_parts_part_description_rel1_offset(void);
 static void st_collections_group_parts_part_description_rel1_to_set(const char *name);
@@ -360,6 +367,29 @@ static void st_collections_group_parts_part_description_table_padding(void);
 static void st_collections_group_parts_part_description_table_min(void);
 static void st_collections_group_parts_part_description_proxy_source_visible(void);
 static void st_collections_group_parts_part_description_proxy_source_clip(void);
+static void st_collections_group_parts_part_description_position_point(void);
+static void st_collections_group_parts_part_description_position_space(void);
+static void st_collections_group_parts_part_description_camera_properties(void);
+static void st_collections_group_parts_part_description_properties_ambient(void);
+static void st_collections_group_parts_part_description_properties_diffuse(void);
+static void st_collections_group_parts_part_description_properties_specular(void);
+static void st_collections_group_parts_part_description_properties_material(void);
+static void st_collections_group_parts_part_description_properties_normal(void);
+static void st_collections_group_parts_part_description_properties_shininess(void);
+static void st_collections_group_parts_part_description_properties_shade(void);
+static void st_collections_group_parts_part_description_orientation_look1(void);
+static void st_collections_group_parts_part_description_orientation_look2(void);
+static void st_collections_group_parts_part_description_orientation_look_to(void);
+static void st_collections_group_parts_part_description_orientation_angle_axis(void);
+static void st_collections_group_parts_part_description_orientation_quaternion(void);
+static void ob_collections_group_parts_part_description_texture(void);
+static void st_collections_group_parts_part_description_texture_image(void);
+static void st_collections_group_parts_part_description_texture_wrap1(void);
+static void st_collections_group_parts_part_description_texture_wrap2(void);
+static void st_collections_group_parts_part_description_texture_filter1(void);
+static void st_collections_group_parts_part_description_texture_filter2(void);
+static void st_collections_group_parts_part_description_mesh_assembly(void);
+static void st_collections_group_parts_part_description_mesh_geometry(void);
 
 #ifdef HAVE_EPHYSICS
 static void st_collections_group_parts_part_description_physics_mass(void);
@@ -393,6 +423,8 @@ static void st_collections_group_parts_part_description_map_alpha(void);
 static void st_collections_group_parts_part_description_map_backface_cull(void);
 static void st_collections_group_parts_part_description_map_perspective_on(void);
 static void st_collections_group_parts_part_description_map_color(void);
+static void st_collections_group_parts_part_description_map_zoom_x(void);
+static void st_collections_group_parts_part_description_map_zoom_y(void);
 static void st_collections_group_parts_part_description_perspective_zplane(void);
 static void st_collections_group_parts_part_description_perspective_focal(void);
 static void st_collections_group_parts_part_api(void);
@@ -478,7 +510,9 @@ static void st_collections_group_nobroadcast(void);
      {PREFIX"color_classes.color_class.name", st_color_class_name}, /* dup */ \
      {PREFIX"color_classes.color_class.color", st_color_class_color}, /* dup */ \
      {PREFIX"color_classes.color_class.color2", st_color_class_color2}, /* dup */ \
-     {PREFIX"color_classes.color_class.color3", st_color_class_color3}, /* dup */
+     {PREFIX"color_classes.color_class.color3", st_color_class_color3}, /* dup */ \
+     {PREFIX"color_classes.color_class.description", st_color_class_desc}, /* dup */ \
+     {PREFIX"color_classes.color_class.desc", st_color_class_desc}, /* dup */
 
 #define PROGRAM_SEQUENCE(PREFIX, NAME, FN) \
      {PREFIX".program."NAME, FN}, /* dup */ \
@@ -509,6 +543,69 @@ static void st_collections_group_nobroadcast(void);
      PROGRAM_BASE(PREFIX) \
      PROGRAM_BASE(PREFIX".programs")
 
+#define SET_LOOK1(Type, type_node)                                              \
+    Edje_Part_Description_##Type *ed;                                           \
+   ed = (Edje_Part_Description_##Type*) current_desc;                           \
+                                                                                \
+   if (ed->type_node.orientation.type <= EVAS_3D_NODE_ORIENTATION_TYPE_LOOK_AT) \
+     {                                                                          \
+        ed->type_node.orientation.data[0] = FROM_DOUBLE(parse_float(0));        \
+        ed->type_node.orientation.data[1] = FROM_DOUBLE(parse_float(1));        \
+        ed->type_node.orientation.data[2] = FROM_DOUBLE(parse_float(2));        \
+        ed->type_node.orientation.type = EVAS_3D_NODE_ORIENTATION_TYPE_LOOK_AT; \
+     }
+
+#define SET_LOOK2(Type, type_node)                                              \
+    Edje_Part_Description_##Type *ed;                                           \
+   ed = (Edje_Part_Description_##Type*) current_desc;                           \
+                                                                                \
+   if (ed->type_node.orientation.type <= EVAS_3D_NODE_ORIENTATION_TYPE_LOOK_AT) \
+     {                                                                          \
+        ed->type_node.orientation.data[3] = FROM_DOUBLE(parse_float(0));        \
+        ed->type_node.orientation.data[4] = FROM_DOUBLE(parse_float(1));        \
+        ed->type_node.orientation.data[5] = FROM_DOUBLE(parse_float(2));        \
+        ed->type_node.orientation.type = EVAS_3D_NODE_ORIENTATION_TYPE_LOOK_AT; \
+     }
+
+#define SET_LOOK_TO(list, Type, type_node)                                           \
+   Edje_Part_Description_##Type *ed;                                                 \
+   char *name;                                                                       \
+                                                                                     \
+   ed = (Edje_Part_Description_##Type*) current_desc;                                \
+                                                                                     \
+   if (ed->type_node.orientation.type <= EVAS_3D_NODE_ORIENTATION_TYPE_LOOK_TO)      \
+     {                                                                               \
+        name = parse_str(0);                                                         \
+        data_queue_part_lookup(list, name, &(ed->type_node.orientation.look_to));    \
+        free(name);                                                                  \
+        ed->type_node.orientation.type = EVAS_3D_NODE_ORIENTATION_TYPE_LOOK_TO;      \
+     }
+
+#define SET_ANGLE_AXIS(Type, type_node)                                            \
+    Edje_Part_Description_##Type *ed;                                              \
+   ed = (Edje_Part_Description_##Type*) current_desc;                              \
+                                                                                   \
+   if (ed->type_node.orientation.type <= EVAS_3D_NODE_ORIENTATION_TYPE_ANGLE_AXIS) \
+     {                                                                             \
+        ed->type_node.orientation.data[0] = FROM_DOUBLE(parse_float(0));           \
+        ed->type_node.orientation.data[1] = FROM_DOUBLE(parse_float(1));           \
+        ed->type_node.orientation.data[2] = FROM_DOUBLE(parse_float(2));           \
+        ed->type_node.orientation.data[3] = FROM_DOUBLE(parse_float(3));           \
+        ed->type_node.orientation.type = EVAS_3D_NODE_ORIENTATION_TYPE_ANGLE_AXIS; \
+     }
+
+#define SET_QUATERNION(Type, type_node)                                            \
+    Edje_Part_Description_##Type *ed;                                              \
+   ed = (Edje_Part_Description_##Type*) current_desc;                              \
+                                                                                   \
+   if (ed->type_node.orientation.type <= EVAS_3D_NODE_ORIENTATION_TYPE_QUATERNION) \
+     {                                                                             \
+        ed->type_node.orientation.data[1] = FROM_DOUBLE(parse_float(0));           \
+        ed->type_node.orientation.data[2] = FROM_DOUBLE(parse_float(1));           \
+        ed->type_node.orientation.data[3] = FROM_DOUBLE(parse_float(2));           \
+        ed->type_node.orientation.data[0] = FROM_DOUBLE(parse_float(3));           \
+        ed->type_node.orientation.type = EVAS_3D_NODE_ORIENTATION_TYPE_QUATERNION; \
+     }
 
 New_Statement_Handler statement_handlers[] =
 {
@@ -535,6 +632,7 @@ New_Statement_Handler statement_handlers[] =
      {"collections.group.vibrations.sample.name", st_collections_group_vibration_sample_name}, /* dup */
      {"collections.group.vibrations.sample.source", st_collections_group_vibration_sample_source}, /* dup */
      {"collections.group.name", st_collections_group_name},
+     {"collections.group.scene_size", st_collections_group_scene_size},
      {"collections.group.program_source", st_collections_group_program_source},
      {"collections.group.inherit", st_collections_group_inherit},
      {"collections.group.inherit_only", st_collections_group_inherit_only},
@@ -556,6 +654,7 @@ New_Statement_Handler statement_handlers[] =
      {"collections.group.programs.target_group", st_collections_group_target_group}, /* dup */
      IMAGE_SET_STATEMENTS("collections.group")
      IMAGE_STATEMENTS("collections.group.")
+     {"collections.group.models.model", st_models_model},
      {"collections.group.font", st_fonts_font}, /* dup */
      FONT_STYLE_CC_STATEMENTS("collections.group.")
      {"collections.group.parts.alias", st_collections_group_parts_alias },
@@ -650,6 +749,9 @@ New_Statement_Handler statement_handlers[] =
      {"collections.group.parts.part.description.step", st_collections_group_parts_part_description_step},
      {"collections.group.parts.part.description.aspect", st_collections_group_parts_part_description_aspect},
      {"collections.group.parts.part.description.aspect_preference", st_collections_group_parts_part_description_aspect_preference},
+     {"collections.group.parts.part.description.rel.to", st_collections_group_parts_part_description_rel_to},
+     {"collections.group.parts.part.description.rel.to_x", st_collections_group_parts_part_description_rel_to_x},
+     {"collections.group.parts.part.description.rel.to_y", st_collections_group_parts_part_description_rel_to_y},
      {"collections.group.parts.part.description.rel1.relative", st_collections_group_parts_part_description_rel1_relative},
      {"collections.group.parts.part.description.rel1.offset", st_collections_group_parts_part_description_rel1_offset},
      {"collections.group.parts.part.description.rel1.to", st_collections_group_parts_part_description_rel1_to},
@@ -708,6 +810,28 @@ New_Statement_Handler statement_handlers[] =
      {"collections.group.parts.part.description.table.min", st_collections_group_parts_part_description_table_min},
      {"collections.group.parts.part.description.proxy.source_visible", st_collections_group_parts_part_description_proxy_source_visible},
      {"collections.group.parts.part.description.proxy.source_clip", st_collections_group_parts_part_description_proxy_source_clip},
+     {"collections.group.parts.part.description.position.point", st_collections_group_parts_part_description_position_point},
+     {"collections.group.parts.part.description.position.space", st_collections_group_parts_part_description_position_space},
+     {"collections.group.parts.part.description.properties.perspective", st_collections_group_parts_part_description_camera_properties},
+     {"collections.group.parts.part.description.properties.ambient", st_collections_group_parts_part_description_properties_ambient},
+     {"collections.group.parts.part.description.properties.diffuse", st_collections_group_parts_part_description_properties_diffuse},
+     {"collections.group.parts.part.description.properties.specular", st_collections_group_parts_part_description_properties_specular},
+     {"collections.group.parts.part.description.properties.material", st_collections_group_parts_part_description_properties_material},
+     {"collections.group.parts.part.description.properties.normal", st_collections_group_parts_part_description_properties_normal},
+     {"collections.group.parts.part.description.properties.shininess", st_collections_group_parts_part_description_properties_shininess},
+     {"collections.group.parts.part.description.properties.shade", st_collections_group_parts_part_description_properties_shade},
+     {"collections.group.parts.part.description.orientation.look1", st_collections_group_parts_part_description_orientation_look1},
+     {"collections.group.parts.part.description.orientation.look2", st_collections_group_parts_part_description_orientation_look2},
+     {"collections.group.parts.part.description.orientation.look_to", st_collections_group_parts_part_description_orientation_look_to},
+     {"collections.group.parts.part.description.orientation.angle_axis", st_collections_group_parts_part_description_orientation_angle_axis},
+     {"collections.group.parts.part.description.orientation.quaternion", st_collections_group_parts_part_description_orientation_quaternion},
+     {"collections.group.parts.part.description.texture.image", st_collections_group_parts_part_description_texture_image},
+     {"collections.group.parts.part.description.texture.wrap1", st_collections_group_parts_part_description_texture_wrap1},
+     {"collections.group.parts.part.description.texture.wrap2", st_collections_group_parts_part_description_texture_wrap2},
+     {"collections.group.parts.part.description.texture.filter1", st_collections_group_parts_part_description_texture_filter1},
+     {"collections.group.parts.part.description.texture.filter2", st_collections_group_parts_part_description_texture_filter2},
+     {"collections.group.parts.part.description.mesh.assembly", st_collections_group_parts_part_description_mesh_assembly},
+     {"collections.group.parts.part.description.mesh.geometry", st_collections_group_parts_part_description_mesh_geometry},
 
 #ifdef HAVE_EPHYSICS
      {"collections.group.parts.part.description.physics.mass", st_collections_group_parts_part_description_physics_mass},
@@ -740,6 +864,8 @@ New_Statement_Handler statement_handlers[] =
      {"collections.group.parts.part.description.map.backface_cull", st_collections_group_parts_part_description_map_backface_cull},
      {"collections.group.parts.part.description.map.perspective_on", st_collections_group_parts_part_description_map_perspective_on},
      {"collections.group.parts.part.description.map.color", st_collections_group_parts_part_description_map_color},
+     {"collections.group.parts.part.description.map.zoom.x", st_collections_group_parts_part_description_map_zoom_x},
+     {"collections.group.parts.part.description.map.zoom.y", st_collections_group_parts_part_description_map_zoom_y},
      {"collections.group.parts.part.description.perspective.zplane", st_collections_group_parts_part_description_perspective_zplane},
      {"collections.group.parts.part.description.perspective.focal", st_collections_group_parts_part_description_perspective_focal},
      {"collections.group.parts.part.description.params.int", st_collections_group_parts_part_description_params_int},
@@ -844,6 +970,10 @@ New_Statement_Handler statement_handlers[] =
           }
        }
     }
+    color_class {
+       desc -> description
+       @since 1.14
+    }
 
     @description
         These statements on the left are identical to their original keywords on the right.
@@ -915,6 +1045,7 @@ New_Statement_Handler statement_handlers_short_single[] =
      {"collections.group.nomouse", st_collections_group_nomouse},
      {"collections.group.broadcast", st_collections_group_broadcast},
      {"collections.group.nobroadcast", st_collections_group_nobroadcast},
+     {"collections.group.parts.part.description.inherit", st_collections_group_parts_part_description_inherit},
 };
 
 #define PROGRAM_OBJECTS(PREFIX) \
@@ -978,6 +1109,7 @@ New_Object_Handler object_handlers[] =
      {"collections.group.set", ob_images_set}, /* dup */
      {"collections.group.set.image", ob_images_set_image}, /* dup */
      {"collections.group.images", NULL}, /* dup */
+     {"collections.group.models", NULL}, /* dup */
      {"collections.group.images.set", ob_images_set}, /* dup */
      {"collections.group.images.set.image", ob_images_set_image}, /* dup */
      {"collections.group.fonts", NULL}, /* dup */
@@ -1037,6 +1169,11 @@ New_Object_Handler object_handlers[] =
      {"collections.group.parts.part.description.styles.style", ob_styles_style}, /* dup */
      {"collections.group.parts.part.description.box", NULL},
      {"collections.group.parts.part.description.table", NULL},
+     {"collections.group.parts.part.description.position", NULL},
+     {"collections.group.parts.part.description.properties", NULL},
+     {"collections.group.parts.part.description.orientation", NULL},
+     {"collections.group.parts.part.description.texture", ob_collections_group_parts_part_description_texture},
+     {"collections.group.parts.part.description.mesh", NULL},
 #ifdef HAVE_EPHYSICS
      {"collections.group.parts.part.description.physics", NULL},
      {"collections.group.parts.part.description.physics.movement_freedom", NULL},
@@ -1045,6 +1182,7 @@ New_Object_Handler object_handlers[] =
 #endif
      {"collections.group.parts.part.description.map", NULL},
      {"collections.group.parts.part.description.map.rotation", NULL},
+     {"collections.group.parts.part.description.map.zoom", NULL},
      {"collections.group.parts.part.description.perspective", NULL},
      {"collections.group.parts.part.description.params", NULL},
      {"collections.group.parts.part.description.color_classes", NULL}, /* dup */
@@ -1684,6 +1822,74 @@ st_images_image(void)
      }
 }
 
+/**
+   @edcsubsection{toplevel_models,model}
+ */
+
+/**
+    @page edcref
+
+    @block
+        models
+    @context
+        models {
+            model: "filename1.ext";
+            model: "filename2.ext";
+            model: "filename2.ext" 50;
+            ..
+        }
+    @description
+        The "models" block is used to list each model file that will be used in
+        the theme.
+    @endblock
+
+    @property
+        model
+    @parameters
+        [model file]
+    @effect
+        Used to include each model file.
+    @endproperty
+ */
+static void
+st_models_model(void)
+{
+   Edje_Model_Directory_Entry *mdl;
+   const char *tmp;
+   unsigned int i;
+
+   check_min_arg_count(1);
+
+   if (!edje_file->model_dir)
+     edje_file->model_dir = mem_alloc(SZ(Edje_Model_Directory));
+
+   tmp = parse_str(0);
+
+   for (i = 0; i < edje_file->model_dir->entries_count; ++i)
+     if (!strcmp(edje_file->model_dir->entries[i].entry, tmp))
+       {
+          free((char*) tmp);
+          return;
+       }
+
+   edje_file->model_dir->entries_count++;
+   mdl = realloc(edje_file->model_dir->entries,
+                 sizeof (Edje_Model_Directory_Entry) * edje_file->model_dir->entries_count);
+   if (!mdl)
+     {
+        ERR("No enough memory.");
+        exit(-1);
+     }
+   edje_file->model_dir->entries = mdl;
+   memset(edje_file->model_dir->entries + edje_file->model_dir->entries_count - 1,
+          0, sizeof (Edje_Model_Directory_Entry));
+
+   mdl = edje_file->model_dir->entries + edje_file->model_dir->entries_count - 1;
+
+   mdl->entry = tmp;
+   mdl->id = edje_file->model_dir->entries_count - 1;
+}
+
 /** @edcsubsection{toplevel_images_set,
  *                 Images.Set} */
 
@@ -2286,6 +2492,28 @@ st_color_class_color3(void)
    cc->g3 = parse_int_range(1, 0, 255);
    cc->b3 = parse_int_range(2, 0, 255);
    cc->a3 = parse_int_range(3, 0, 255);
+}
+
+/**
+    @page edcref
+    @property
+        description
+    @parameters
+        [color class description]
+    @effect
+        Provides a descriptive name for the effect of the color class
+        @since 1.14
+    @endproperty
+*/
+static void
+st_color_class_desc(void)
+{
+   Edje_Color_Class *cc;
+
+   check_arg_count(1);
+
+   cc = eina_list_data_get(eina_list_last(edje_file->color_classes));
+   cc->desc = parse_str(0);
 }
 
 /** @edcsubsection{toplevel_styles,
@@ -3007,6 +3235,28 @@ st_collections_group_name(void)
 {
    check_arg_count(1);
    _group_name(parse_str(0));
+}
+
+/**
+    @page edcref
+    @property
+        scene_size
+    @parameters
+        [scene size]
+    @effect
+        Height and width of scene
+    @endproperty
+*/
+static void
+st_collections_group_scene_size(void)
+{
+   Edje_Part_Collection *current_pc;
+
+   check_arg_count(2);
+
+   current_pc = eina_list_data_get(eina_list_last(edje_collections));
+   current_pc->scene_size.width = parse_float(0);
+   current_pc->scene_size.height = parse_float(1);
 }
 
 typedef struct _Edje_List_Foreach_Data Edje_List_Foreach_Data;
@@ -6120,6 +6370,8 @@ ob_collections_group_parts_part_description(void)
    ed->map.backcull = 0;
    ed->map.persp_on = 0;
    ed->map.colors = NULL;
+   ed->map.zoom.x = FROM_DOUBLE(1.0);
+   ed->map.zoom.y = FROM_DOUBLE(1.0);
    ed->persp.zplane = 0;
    ed->persp.focal = 1000;
    ed->minmul.have = 1;
@@ -6146,6 +6398,7 @@ ob_collections_group_parts_part_desc(void)
         named description. The properties defined in this part will override
         the inherited properties, reducing the amount of necessary code for
         simple state changes. Note: inheritance in Edje is single level only.
+        @since 1.14 omitting both the description name and index will inherit the default 0.0 description.
     @endproperty
 */
 static void
@@ -6157,7 +6410,7 @@ st_collections_group_parts_part_description_inherit(void)
    Edje_Part_Image_Id *iid;
    char *parent_name;
    const char *state_name;
-   double parent_val, state_val;
+   double parent_val = 0.0, state_val;
 
    pc = eina_list_data_get(eina_list_last(edje_collections));
    ep = current_part;
@@ -6166,8 +6419,6 @@ st_collections_group_parts_part_description_inherit(void)
    parent = parent_desc;
    if (!parent)
      {
-        check_min_arg_count(1);
-
         /* inherit may not be used in the default description */
         if (!ep->other.desc_count)
           {
@@ -6178,11 +6429,21 @@ st_collections_group_parts_part_description_inherit(void)
           }
 
         /* find the description that we inherit from */
-        parent_name = parse_str(0);
-        if (get_arg_count() == 2)
-          parent_val = parse_float_range(1, 0.0, 1.0);
-        else
-          parent_val = 0.0;
+        switch (get_arg_count())
+          {
+           case 0:
+             parent_name = strdup("default");
+             break;
+           case 2:
+             parent_val = parse_float_range(1, 0.0, 1.0);
+           case 1:
+             parent_name = parse_str(0);
+             break;
+           default:
+             ERR("parse error %s:%i. too many parameters",
+                 file_in, line - 1);
+             exit(-1);
+          }
 
         if (!strcmp (parent_name, "default") && parent_val == 0.0)
           parent = ep->default_desc;
@@ -6949,7 +7210,7 @@ st_collections_group_parts_part_description_color3(void)
 /**
     @page edcref
     @block
-        rel1/rel2
+        rel1/rel2/rel
     @context
         description {
             ..
@@ -6963,11 +7224,16 @@ st_collections_group_parts_part_description_color3(void)
                 offset:    -1  -1;
             }
             ..
+            rel {
+                to: "somepart";
+            }
+            ..
         }
     @description
         The rel1 and rel2 blocks are used to define the position of each corner
         of the part's container. With rel1 being the left-up corner and rel2
-        being the right-down corner.
+        being the right-down corner; rel (no number) is equivalent to setting both
+        rel1 AND rel2 since 1.14.
     @endblock
 
     @property
@@ -7030,6 +7296,20 @@ st_collections_group_parts_part_description_rel1_to_set(const char *name)
 }
 
 static void
+st_collections_group_parts_part_description_rel_to(void)
+{
+   check_arg_count(1);
+
+   {
+      char *name;
+      name = parse_str(0);
+      st_collections_group_parts_part_description_rel1_to_set(name);
+      st_collections_group_parts_part_description_rel2_to_set(name);
+      free(name);
+   }
+}
+
+static void
 st_collections_group_parts_part_description_rel1_to(void)
 {
    check_arg_count(1);
@@ -7054,6 +7334,25 @@ st_collections_group_parts_part_description_rel1_to(void)
         Setting to "" will un-set this value for inherited parts.
     @endproperty
 */
+static void
+st_collections_group_parts_part_description_rel_to_x(void)
+{
+   Edje_Part_Collection *pc;
+
+   check_arg_count(1);
+
+   pc = eina_list_data_get(eina_list_last(edje_collections));
+
+   {
+      char *name;
+
+      name = parse_str(0);
+      data_queue_part_lookup(pc, name, &(current_desc->rel1.id_x));
+      data_queue_part_lookup(pc, name, &(current_desc->rel2.id_x));
+      free(name);
+   }
+}
+
 static void
 st_collections_group_parts_part_description_rel1_to_x(void)
 {
@@ -7084,6 +7383,25 @@ st_collections_group_parts_part_description_rel1_to_x(void)
         "relative". Setting to "" will un-set this value for inherited parts.
     @endproperty
 */
+static void
+st_collections_group_parts_part_description_rel_to_y(void)
+{
+   Edje_Part_Collection *pc;
+
+   check_arg_count(1);
+
+   pc = eina_list_data_get(eina_list_last(edje_collections));
+
+   {
+      char *name;
+
+      name = parse_str(0);
+      data_queue_part_lookup(pc, name, &(current_desc->rel1.id_y));
+      data_queue_part_lookup(pc, name, &(current_desc->rel2.id_y));
+      free(name);
+   }
+}
+
 static void
 st_collections_group_parts_part_description_rel1_to_y(void)
 {
@@ -8833,6 +9151,1133 @@ st_collections_group_parts_part_description_proxy_source_clip(void)
    ed->proxy.source_clip = parse_bool(0);
 }
 
+/**
+   @edcsubsection{collections_group_parts_description_positon,Position}
+ */
+
+/**
+    @page edcref
+
+    @block
+        position
+    @context
+        part {
+            description {
+                ..
+                position {
+                    point:        x y z;
+                    space:        LOCAL/PARENT/WORLD;
+                }
+                ..
+            }
+        }
+    @description
+        A position block defines position of CAMERA,
+        LIGHT or MESH_NODE at the scene.
+    @endblock
+
+    @property
+        point
+    @parameters
+        [x] [y] [z]
+    @effect
+        Sets the point of CAMERA, LIGHT or MESH_NODE centre.
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_description_position_point(void)
+{
+   check_arg_count(3);
+
+   switch (current_part->type)
+     {
+      case EDJE_PART_TYPE_CAMERA:
+        {
+           Edje_Part_Description_Camera *ed;
+
+           ed = (Edje_Part_Description_Camera*) current_desc;
+
+           ed->camera.position.point.x = FROM_DOUBLE(parse_float(0));
+           ed->camera.position.point.y = FROM_DOUBLE(parse_float(1));
+           ed->camera.position.point.z = FROM_DOUBLE(parse_float(2));
+           break;
+        }
+      case EDJE_PART_TYPE_LIGHT:
+        {
+           Edje_Part_Description_Light *ed;
+
+           ed = (Edje_Part_Description_Light*) current_desc;
+
+           ed->light.position.point.x = FROM_DOUBLE(parse_float(0));
+           ed->light.position.point.y = FROM_DOUBLE(parse_float(1));
+           ed->light.position.point.z = FROM_DOUBLE(parse_float(2));
+           break;
+        }
+      case EDJE_PART_TYPE_MESH_NODE:
+        {
+           Edje_Part_Description_Mesh_Node *ed;
+
+           ed = (Edje_Part_Description_Mesh_Node*) current_desc;
+
+           ed->mesh_node.position.point.x = FROM_DOUBLE(parse_float(0));
+           ed->mesh_node.position.point.y = FROM_DOUBLE(parse_float(1));
+           ed->mesh_node.position.point.z = FROM_DOUBLE(parse_float(2));
+           break;
+        }
+      default:
+        {
+           ERR("parse error %s:%i. camera and light attributes in non-CAMERA, non-LIGHT, and non-MESH_NODE part.",
+               file_in, line - 1);
+           exit(-1);
+        }
+     }
+}
+
+/**
+    @page edcref
+
+    @property
+        space
+    @parameters
+        [SPACE]
+    @effect
+        Explains in which relative coordinates the location of LIGHT
+        or CAMERA considers. Valid space types:
+            @li LOCAL
+            @li PARENT
+            @li WORLD
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_description_position_space(void)
+{
+   unsigned int space;
+
+   check_arg_count(1);
+
+   space = parse_enum(0,
+                     "LOCAL", EVAS_3D_SPACE_LOCAL,
+                     "PARENT", EVAS_3D_SPACE_PARENT,
+                     "WORLD", EVAS_3D_SPACE_WORLD,
+                     NULL);
+
+   switch (current_part->type)
+     {
+      case EDJE_PART_TYPE_CAMERA:
+        {
+           Edje_Part_Description_Camera *ed;
+
+           ed = (Edje_Part_Description_Camera*) current_desc;
+
+           ed->camera.position.space = space;
+           break;
+        }
+      case EDJE_PART_TYPE_LIGHT:
+        {
+           Edje_Part_Description_Light *ed;
+
+           ed = (Edje_Part_Description_Light*) current_desc;
+
+           ed->light.position.space = space;
+           break;
+        }
+      case EDJE_PART_TYPE_MESH_NODE:
+        {
+           Edje_Part_Description_Mesh_Node *ed;
+
+           ed = (Edje_Part_Description_Mesh_Node*) current_desc;
+
+           ed->mesh_node.position.space = space;
+           break;
+        }
+      default:
+        {
+           ERR("parse error %s:%i. camera and light attributes in non-CAMERA, non-LIGHT, and non-MESH_NODE part.",
+               file_in, line - 1);
+           exit(-1);
+        }
+     }
+}
+
+/**
+   @edcsubsection{collections_group_parts_description_camera,Properties}
+ */
+
+/**
+    @page edcref
+
+    @block
+        properties
+    @context
+        part {
+            description {
+                ..
+                properties {
+                   perspective: fovy aspect near far;
+                }
+                ..
+            }
+        }
+    @description
+    @endblock
+
+    @property
+        properties
+    @parameters
+        [fovy] [aspect] [near] [far]
+    @effect
+        Specifies the basic attributes of the camera.
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_description_camera_properties(void)
+{
+   Edje_Part_Description_Camera *ed;
+
+   check_arg_count(4);
+
+   if (current_part->type != EDJE_PART_TYPE_CAMERA)
+     {
+        ERR("parse error %s:%i. camera attributes in non-CAMERA part.",
+            file_in, line - 1);
+        exit(-1);
+     }
+
+   ed = (Edje_Part_Description_Camera*) current_desc;
+
+   ed->camera.camera.fovy = FROM_DOUBLE(parse_float(0));
+   ed->camera.camera.aspect = FROM_DOUBLE(parse_float(1));
+   ed->camera.camera.frustum_near = FROM_DOUBLE(parse_float(2));
+   ed->camera.camera.frustum_far = FROM_DOUBLE(parse_float(3));
+}
+
+/**
+   @edcsubsection{collections_group_parts_description_properties,Properties}
+ */
+
+/**
+    @page edcref
+
+    @block
+        properties
+    @context
+        part {
+            description {
+                ..
+                properties {
+                   ambient:     red green blue alpha;
+                   diffuse:     red green blue alpha;
+                   specular:    red green blue alpha;
+                   shade:       PHONG;
+                   material:    AMBIENT;
+                   normal:      1;
+                   shininess:   50.0;
+                }
+                ..
+            }
+        }
+    @description
+        A properties block defines main lighting atributes of LIGHT and MESH_NODE.
+    @endblock
+
+    @property
+        ambient
+    @parameters
+        [red] [green] [blue] [alpha]
+    @effect
+        Sets the components of the ambient color.
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_description_properties_ambient(void)
+{
+   check_arg_count(4);
+
+   switch (current_part->type)
+     {
+      case EDJE_PART_TYPE_LIGHT:
+        {
+           Edje_Part_Description_Light *ed;
+
+           ed = (Edje_Part_Description_Light*) current_desc;
+
+           ed->light.properties.ambient.r = parse_float_range(0, 0.0, 1.0);
+           ed->light.properties.ambient.g = parse_float_range(1, 0.0, 1.0);
+           ed->light.properties.ambient.b = parse_float_range(2, 0.0, 1.0);
+           ed->light.properties.ambient.a = parse_float_range(3, 0.0, 1.0);
+           break;
+        }
+      case EDJE_PART_TYPE_MESH_NODE:
+        {
+           Edje_Part_Description_Mesh_Node *ed;
+
+           ed = (Edje_Part_Description_Mesh_Node*) current_desc;
+
+           ed->mesh_node.properties.ambient.r = parse_float_range(0, 0.0, 1.0);
+           ed->mesh_node.properties.ambient.g = parse_float_range(1, 0.0, 1.0);
+           ed->mesh_node.properties.ambient.b = parse_float_range(2, 0.0, 1.0);
+           ed->mesh_node.properties.ambient.a = parse_float_range(3, 0.0, 1.0);
+           break;
+        }
+      default:
+        {
+           ERR("parse error %s:%i. light and mesh_node attributes in non-LIGHT and non-MESH_NODE part.",
+               file_in, line - 1);
+           exit(-1);
+        }
+     }
+}
+
+/**
+    @page edcref
+    @property
+        diffuse
+    @parameters
+        [red] [green] [blue] [alpha]
+    @effect
+        Sets the components of the ambient color.
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_description_properties_diffuse(void)
+{
+   check_arg_count(4);
+
+   switch (current_part->type)
+     {
+      case EDJE_PART_TYPE_LIGHT:
+        {
+           Edje_Part_Description_Light *ed;
+
+           ed = (Edje_Part_Description_Light*) current_desc;
+
+           ed->light.properties.diffuse.r = parse_float_range(0, 0.0, 1.0);
+           ed->light.properties.diffuse.g = parse_float_range(1, 0.0, 1.0);
+           ed->light.properties.diffuse.b = parse_float_range(2, 0.0, 1.0);
+           ed->light.properties.diffuse.a = parse_float_range(3, 0.0, 1.0);
+           break;
+        }
+      case EDJE_PART_TYPE_MESH_NODE:
+        {
+           Edje_Part_Description_Mesh_Node *ed;
+
+           ed = (Edje_Part_Description_Mesh_Node*) current_desc;
+
+           ed->mesh_node.properties.diffuse.r = parse_float_range(0, 0.0, 1.0);
+           ed->mesh_node.properties.diffuse.g = parse_float_range(1, 0.0, 1.0);
+           ed->mesh_node.properties.diffuse.b = parse_float_range(2, 0.0, 1.0);
+           ed->mesh_node.properties.diffuse.a = parse_float_range(3, 0.0, 1.0);
+           break;
+        }
+      default:
+        {
+           ERR("parse error %s:%i. light and mesh_node attributes in non-LIGHT and non-MESH_NODE part.",
+               file_in, line - 1);
+           exit(-1);
+        }
+     }
+}
+
+/**
+    @page edcref
+    @property
+        specular
+    @parameters
+        [red] [green] [blue] [alpha]
+    @effect
+        Sets the components of the ambient color.
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_description_properties_specular(void)
+{
+   check_arg_count(4);
+
+   switch (current_part->type)
+     {
+      case EDJE_PART_TYPE_LIGHT:
+        {
+           Edje_Part_Description_Light *ed;
+
+           ed = (Edje_Part_Description_Light*) current_desc;
+
+           ed->light.properties.specular.r = parse_float_range(0, 0.0, 1.0);
+           ed->light.properties.specular.g = parse_float_range(1, 0.0, 1.0);
+           ed->light.properties.specular.b = parse_float_range(2, 0.0, 1.0);
+           ed->light.properties.specular.a = parse_float_range(3, 0.0, 1.0);
+        }
+      case EDJE_PART_TYPE_MESH_NODE:
+        {
+           Edje_Part_Description_Mesh_Node *ed;
+
+           ed = (Edje_Part_Description_Mesh_Node*) current_desc;
+
+           ed->mesh_node.properties.specular.r = parse_float_range(0, 0.0, 1.0);
+           ed->mesh_node.properties.specular.g = parse_float_range(1, 0.0, 1.0);
+           ed->mesh_node.properties.specular.b = parse_float_range(2, 0.0, 1.0);
+           ed->mesh_node.properties.specular.a = parse_float_range(3, 0.0, 1.0);
+           break;
+        }
+      default:
+        {
+           ERR("parse error %s:%i. light and mesh_node attributes in non-LIGHT and non-MESH_NODE part.",
+               file_in, line - 1);
+           exit(-1);
+        }
+     }
+}
+
+/**
+    @page edcref
+    @property
+        material
+    @parameters
+        [MATERIAL]
+    @effect
+        Sets the color mode for the lighting. Valid color modes:
+            @li AMBIENT
+            @li DIFFUSE
+            @li SPECULAR
+            @li EMISSION
+            @li NORMAL
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_description_properties_material(void)
+{
+   unsigned int material_attrib;
+
+   check_arg_count(1);
+
+   material_attrib = parse_enum(0,
+                     "AMBIENT", EVAS_3D_MATERIAL_AMBIENT,
+                     "DIFFUSE", EVAS_3D_MATERIAL_DIFFUSE,
+                     "SPECULAR", EVAS_3D_MATERIAL_SPECULAR,
+                     "EMISSION", EVAS_3D_MATERIAL_EMISSION,
+                     "NORMAL", EVAS_3D_MATERIAL_NORMAL,
+                     NULL);
+
+   if (current_part->type == EDJE_PART_TYPE_MESH_NODE)
+     {
+        Edje_Part_Description_Mesh_Node *ed;
+
+        ed = (Edje_Part_Description_Mesh_Node*) current_desc;
+
+        ed->mesh_node.properties.material_attrib = material_attrib;
+     }
+   else
+     {
+        ERR("parse error %s:%i. mesh_node attributes in non-MESH_NODE part.",
+            file_in, line - 1);
+        exit(-1);
+     }
+}
+
+/**
+    @page edcref
+    @property
+        normal
+    @parameters
+        [0 or 1]
+    @effect
+        Sets the material attribute enable flag of the given material.
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_description_properties_normal(void)
+{
+   check_arg_count(1);
+
+   if (current_part->type == EDJE_PART_TYPE_MESH_NODE)
+     {
+        Edje_Part_Description_Mesh_Node *ed;
+
+        ed = (Edje_Part_Description_Mesh_Node*) current_desc;
+
+        ed->mesh_node.properties.normal = parse_bool(0);
+     }
+   else
+     {
+        ERR("parse error %s:%i. mesh_node attributes in non-MESH_NODE part.",
+            file_in, line - 1);
+        exit(-1);
+     }
+}
+
+/**
+    @page edcref
+    @property
+        shininess
+    @parameters
+        [shininess]
+    @effect
+        Sets the shininess of the given material.
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_description_properties_shininess(void)
+{
+   check_arg_count(1);
+
+   if (current_part->type == EDJE_PART_TYPE_MESH_NODE)
+     {
+        Edje_Part_Description_Mesh_Node *ed;
+
+        ed = (Edje_Part_Description_Mesh_Node*) current_desc;
+
+        ed->mesh_node.properties.shininess = FROM_DOUBLE(parse_float(0));
+     }
+   else
+     {
+        ERR("parse error %s:%i. mesh_node attributes in non-MESH_NODE part.",
+            file_in, line - 1);
+        exit(-1);
+     }
+}
+
+/**
+    @page edcref
+    @property
+        shade
+    @parameters
+        [SHADE]
+    @effect
+        Sets the shade mode for MESH_NODE. Valid shade modes:
+            @li COLOR
+            @li DIFFUSE
+            @li FLAT
+            @li PHONG
+            @li MAP
+            @li RENDER
+    @endproperty
+*/
+
+static void
+st_collections_group_parts_part_description_properties_shade(void)
+{
+   unsigned int shade;
+
+   check_arg_count(1);
+
+   shade = parse_enum(0,
+                     "VERTEX_COLOR", EVAS_3D_SHADE_MODE_VERTEX_COLOR,
+                     "PARENT", EVAS_3D_SHADE_MODE_DIFFUSE,
+                     "WORLD", EVAS_3D_SHADE_MODE_FLAT,
+                     "PHONG", EVAS_3D_SHADE_MODE_PHONG,
+                     "NORMAL_MAP", EVAS_3D_SHADE_MODE_NORMAL_MAP,
+                     "RENDER", EVAS_3D_SHADE_MODE_SHADOW_MAP_RENDER,
+                     NULL);
+
+   if (current_part->type == EDJE_PART_TYPE_MESH_NODE)
+     {
+        Edje_Part_Description_Mesh_Node *ed;
+
+        ed = (Edje_Part_Description_Mesh_Node*) current_desc;
+
+        ed->mesh_node.properties.shade = shade;
+     }
+   else
+     {
+        ERR("parse error %s:%i. mesh_node attributes in non-MESH_NODE part.",
+            file_in, line - 1);
+        exit(-1);
+     }
+}
+
+/**
+   @edcsubsection{collections_group_parts_description_orientation,Orientation}
+ */
+
+/**
+    @page edcref
+
+    @block
+        orientation
+    @context
+        part {
+            description {
+                ..
+                orientation {
+                   look1:        [x] [y] [z];
+                   look2:        [x] [y] [z];
+                   look_to:      [another part's name];
+                   angle_axis:   [w] [x] [y] [z];
+                   quaternion:   [x] [y] [z] [w];
+                }
+                ..
+            }
+        }
+    @description
+        The orientation block defines an orientation of CAMERA, LIGHT or MESH_NODE in the scene.
+    @endblock
+
+    @property
+        look1
+    @parameters
+        [x] [y] [z]
+    @effect
+        Indicates a target point for CAMERA and MESH_NODE or for LIGHt to see or
+        to illuminate.
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_description_orientation_look1(void)
+{
+   check_arg_count(3);
+
+   switch (current_part->type)
+     {
+      case EDJE_PART_TYPE_CAMERA:
+        {
+           SET_LOOK1(Camera, camera);
+           break;
+        }
+      case EDJE_PART_TYPE_LIGHT:
+        {
+           SET_LOOK1(Light, light);
+           break;
+        }
+      case EDJE_PART_TYPE_MESH_NODE:
+        {
+           SET_LOOK1(Mesh_Node, mesh_node);
+           break;
+        }
+      default:
+        {
+           ERR("parse error %s:%i. camera, light and mesh_node  attributes in non-CAMERA, non-LIGHT and non-MESH_NODE part.",
+               file_in, line - 1);
+           exit(-1);
+        }
+     }
+}
+
+/**
+    @page edcref
+    @property
+        look2
+    @parameters
+        [x] [y] [z]
+    @effect
+        Specifies the angle at which the target point will be caught.
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_description_orientation_look2(void)
+{
+   check_arg_count(3);
+
+   switch (current_part->type)
+     {
+      case EDJE_PART_TYPE_CAMERA:
+        {
+           SET_LOOK2(Camera, camera);
+           break;
+        }
+      case EDJE_PART_TYPE_LIGHT:
+        {
+           SET_LOOK2(Light, light);
+           break;
+        }
+      case EDJE_PART_TYPE_MESH_NODE:
+        {
+           SET_LOOK2(Mesh_Node, mesh_node);
+           break;
+        }
+      default:
+        {
+           ERR("parse error %s:%i. camera, light and mesh_node  attributes in non-CAMERA, non-LIGHT and non-MESH_NODE part.",
+               file_in, line - 1);
+           exit(-1);
+        }
+     }
+}
+
+/**
+    @page edcref
+    @property
+        look_to
+    @parameters
+        [another part's name]
+    @effect
+        Indicates another part to make target of CAMERA, LIGHT or MESH_NODE
+        or LIGHT.
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_description_orientation_look_to(void)
+{
+   Edje_Part_Collection *pc;
+
+   check_arg_count(1);
+
+   pc = eina_list_data_get(eina_list_last(edje_collections));
+
+   switch (current_part->type)
+     {
+      case EDJE_PART_TYPE_CAMERA:
+        {
+           SET_LOOK_TO(pc, Camera, camera);
+           break;
+        }
+      case EDJE_PART_TYPE_LIGHT:
+        {
+           SET_LOOK_TO(pc, Light, light);
+           break;
+        }
+      case EDJE_PART_TYPE_MESH_NODE:
+        {
+           SET_LOOK_TO(pc, Mesh_Node, mesh_node);
+           break;
+        }
+      default:
+        {
+           ERR("parse error %s:%i. camera, light and mesh_node  attributes in non-CAMERA, non-LIGHT and non-MESH_NODE part.",
+               file_in, line - 1);
+           exit(-1);
+        }
+     }
+}
+
+/**
+    @page edcref
+    @property
+        angle_axis
+    @parameters
+        [x] [y] [z] [w]
+    @effect
+        Specifies the angle and indicates what proportions the MESH_NODE rotates in.
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_description_orientation_angle_axis(void)
+{
+   check_arg_count(4);
+
+   if (current_part->type == EDJE_PART_TYPE_CAMERA)
+     {
+        SET_ANGLE_AXIS(Camera, camera)
+     }
+   else if (current_part->type == EDJE_PART_TYPE_LIGHT)
+     {
+        SET_ANGLE_AXIS(Light, light)
+     }
+   else if (current_part->type == EDJE_PART_TYPE_MESH_NODE)
+     {
+        SET_ANGLE_AXIS(Mesh_Node, mesh_node)
+     }
+   else
+     {
+        ERR("parse error %s:%i. camera, light and mesh_node  attributes in non-CAMERA, non-LIGHT and non-MESH_NODE part.",
+            file_in, line - 1);
+        exit(-1);
+     }
+}
+
+
+/**
+    @page edcref
+    @property
+        quaternion
+    @parameters
+        [x] [y] [z] [w]
+    @effect
+        Specifies the axis and arccosinus of half angle to rotate on the MESH_NODE, CAMERA or LIGHT.
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_description_orientation_quaternion(void)
+{
+   check_arg_count(4);
+
+   if (current_part->type == EDJE_PART_TYPE_CAMERA)
+     {
+        SET_QUATERNION(Camera, camera)
+     }
+   else if (current_part->type == EDJE_PART_TYPE_LIGHT)
+     {
+        SET_QUATERNION(Light, light)
+     }
+   else if (current_part->type == EDJE_PART_TYPE_MESH_NODE)
+     {
+        SET_QUATERNION(Mesh_Node, mesh_node)
+     }
+   else
+     {
+        ERR("parse error %s:%i. camera, light and mesh_node  attributes in non-CAMERA, non-LIGHT and non-MESH_NODE part.",
+            file_in, line - 1);
+        exit(-1);
+     }
+}
+
+/**
+   @edcsubsection{collections_group_parts_description_texture,Texture}
+ */
+
+/**
+    @page edcref
+
+    @block
+        texture
+    @context
+        part {
+            description {
+                ..
+                texture {
+                    image:        "file_name";
+                    wrap1:        REPEAT;
+                    wrap2:        REPEAT;
+                    filter1:      NEAREST;
+                    filter2:      NEAREST;
+                }
+                ..
+            }
+        }
+    @description
+        A texture block is used to set texture, this texture will be imposed on
+        MESH_NODE model.
+    @endblock
+*/
+
+static void
+ob_collections_group_parts_part_description_texture(void)
+{
+   Edje_Part_Description_Mesh_Node *ed;
+
+
+   if (current_part->type == EDJE_PART_TYPE_MESH_NODE)
+     {
+        ed = (Edje_Part_Description_Mesh_Node*) current_desc;
+
+        ed->mesh_node.texture.need_texture = EINA_TRUE;
+     }
+   else
+     {
+        ERR("parse error %s:%i. "
+            "mesh_node attributes in non-MESH_NODE part.",
+            file_in, line - 1);
+        exit(-1);
+     }
+}
+
+ /**
+     @page edcref
+     @property
+         shade
+         image
+     @parameters
+         [SHADE]
+         [texture's filename]
+     @effect
+         Sets the shade mode for MESH_NODE. Valid shade modes:
+            @li COLOR
+            @li DIFFUSE
+            @li FLAT
+            @li PHONG
+            @li MAP
+            @li RENDER
+         Name of image to be used as previously declared in the image block.
+         It's required in any mesh_node part.
+     @endproperty
+ */
+static void
+st_collections_group_parts_part_description_texture_image(void)
+{
+   Edje_Part_Description_Mesh_Node *ed;
+
+   check_arg_count(1);
+
+   if (current_part->type == EDJE_PART_TYPE_MESH_NODE)
+     {
+        char *name;
+        ed = (Edje_Part_Description_Mesh_Node*) current_desc;
+
+        ed->mesh_node.texture.textured = EINA_TRUE;
+
+        name = parse_str(0);
+        data_queue_image_remove(&(ed->mesh_node.texture.id), &(ed->mesh_node.texture.set));
+        data_queue_image_lookup(name, &(ed->mesh_node.texture.id), &(ed->mesh_node.texture.set));
+        free(name);
+     }
+   else
+     {
+        ERR("parse error %s:%i. "
+            "mesh_node attributes in non-MESH_NODE part.",
+            file_in, line - 1);
+        exit(-1);
+     }
+}
+
+/**
+    @page edcref
+    @property
+        wrap1
+    @parameters
+        [WRAP]
+    @effect
+        Sets the wrap mode for S-axis. Valid wrap modes:
+            @li CLAMP
+            @li REPEAT
+            @li REFLECT
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_description_texture_wrap1(void)
+{
+   unsigned int wrap1;
+
+   check_arg_count(1);
+
+   wrap1 = parse_enum(0,
+                     "CLAMP", EVAS_3D_WRAP_MODE_CLAMP,
+                     "REPEAT", EVAS_3D_WRAP_MODE_REPEAT,
+                     "REFLECT", EVAS_3D_WRAP_MODE_REFLECT,
+                     NULL);
+
+   if (current_part->type == EDJE_PART_TYPE_MESH_NODE)
+     {
+        Edje_Part_Description_Mesh_Node *ed;
+
+        ed = (Edje_Part_Description_Mesh_Node*) current_desc;
+
+        ed->mesh_node.texture.wrap1 = wrap1;
+     }
+   else
+     {
+        ERR("parse error %s:%i. mesh_node attributes in non-MESH_NODE part.",
+            file_in, line - 1);
+        exit(-1);
+     }
+}
+
+/**
+    @page edcref
+    @property
+        wrap2
+    @parameters
+        [SHADE]
+    @effect
+        Sets the wrap mode for T-axis. Valid wrap modes:
+            @li CLAMP
+            @li REPEAT
+            @li REFLECT
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_description_texture_wrap2(void)
+{
+   unsigned int wrap2;
+
+   check_arg_count(1);
+
+   wrap2 = parse_enum(0,
+                     "CLAMP", EVAS_3D_WRAP_MODE_CLAMP,
+                     "REPEAT", EVAS_3D_WRAP_MODE_REPEAT,
+                     "REFLECT", EVAS_3D_WRAP_MODE_REFLECT,
+                     NULL);
+
+   if (current_part->type == EDJE_PART_TYPE_MESH_NODE)
+     {
+        Edje_Part_Description_Mesh_Node *ed;
+
+        ed = (Edje_Part_Description_Mesh_Node*) current_desc;
+
+        ed->mesh_node.texture.wrap2 = wrap2;
+     }
+   else
+     {
+        ERR("parse error %s:%i. mesh_node attributes in non-MESH_NODE part.",
+            file_in, line - 1);
+        exit(-1);
+     }
+}
+
+/**
+    @page edcref
+    @property
+        filter1
+    @parameters
+        [FILTER]
+    @effect
+        Sets the minification filter used when down-scrolling. Valid filter types:
+            @li NEAREST
+            @li LINEAR
+            @li NEAREST_MIPMAP_NEAREST
+            @li LINEAR_MIPMAP_NEAREST
+            @li NEAREST_MIPMAP_LINEAR
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_description_texture_filter1(void)
+{
+   unsigned int filter1;
+
+   check_arg_count(1);
+
+   filter1 = parse_enum(0,
+                     "NEAREST", EVAS_3D_TEXTURE_FILTER_NEAREST,
+                     "LINEAR", EVAS_3D_TEXTURE_FILTER_LINEAR,
+                     "NEAREST_NEAREST", EVAS_3D_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST,
+                     "LINEAR_NEAREST", EVAS_3D_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST,
+                     "NEAREST_LINEAR", EVAS_3D_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR,
+                     "LINEAR_LINEAR", EVAS_3D_TEXTURE_FILTER_LINEAR_MIPMAP_LINEAR,
+                     NULL);
+
+   if (current_part->type == EDJE_PART_TYPE_MESH_NODE)
+     {
+        Edje_Part_Description_Mesh_Node *ed;
+
+        ed = (Edje_Part_Description_Mesh_Node*) current_desc;
+
+        ed->mesh_node.texture.filter1 = filter1;
+     }
+   else
+     {
+        ERR("parse error %s:%i. mesh_node attributes in non-MESH_NODE part.",
+            file_in, line - 1);
+        exit(-1);
+     }
+}
+
+/**
+    @page edcref
+    @property
+        filter2
+    @parameters
+        [FILTER]
+    @effect
+        Sets the magnification filter used when down-scrolling. Valid filter types:
+            @li NEAREST
+            @li LINEAR
+            @li NEAREST_MIPMAP_NEAREST
+            @li LINEAR_MIPMAP_NEAREST
+            @li NEAREST_MIPMAP_LINEAR
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_description_texture_filter2(void)
+{
+   unsigned int filter2;
+
+   check_arg_count(1);
+
+   filter2 = parse_enum(0,
+                     "NEAREST", EVAS_3D_TEXTURE_FILTER_NEAREST,
+                     "LINEAR", EVAS_3D_TEXTURE_FILTER_LINEAR,
+                     "NEAREST_NEAREST", EVAS_3D_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST,
+                     "LINEAR_NEAREST", EVAS_3D_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST,
+                     "NEAREST_LINEAR", EVAS_3D_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR,
+                     "LINEAR_LINEAR", EVAS_3D_TEXTURE_FILTER_LINEAR_MIPMAP_LINEAR,
+                     NULL);
+
+   if (current_part->type == EDJE_PART_TYPE_MESH_NODE)
+     {
+        Edje_Part_Description_Mesh_Node *ed;
+
+        ed = (Edje_Part_Description_Mesh_Node*) current_desc;
+
+        ed->mesh_node.texture.filter2 = filter2;
+     }
+   else
+     {
+        ERR("parse error %s:%i. mesh_node attributes in non-MESH_NODE part.",
+            file_in, line - 1);
+        exit(-1);
+     }
+}
+
+/**
+    @page edcref
+    @property
+        assembly
+    @parameters
+        [ASSEMBLY]
+    @effect
+        Sets the vertex assembly of the mesh. Valid assemblies:
+            @li POINTS
+            @li LINES
+            @li LINE_STRIP
+            @li LINE_LOOP
+            @li TRIANGLES
+            @li TRIANGLE_STRIP
+            @li TRIANGLE_FAN
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_description_mesh_assembly(void)
+{
+   unsigned int assembly;
+
+   check_arg_count(1);
+
+   assembly = parse_enum(0,
+                     "POINTS", EVAS_3D_VERTEX_ASSEMBLY_POINTS,
+                     "LINES", EVAS_3D_VERTEX_ASSEMBLY_LINES,
+                     "LINE_STRIP", EVAS_3D_VERTEX_ASSEMBLY_LINE_STRIP,
+                     "LINE_LOOP", EVAS_3D_VERTEX_ASSEMBLY_LINE_LOOP,
+                     "TRIANGLES", EVAS_3D_VERTEX_ASSEMBLY_TRIANGLES,
+                     "TRIANGLE_STRIP", EVAS_3D_VERTEX_ASSEMBLY_TRIANGLE_STRIP,
+                     "TRIANGLE_FAN", EVAS_3D_VERTEX_ASSEMBLY_TRIANGLE_FAN,
+                     NULL);
+
+   if (current_part->type == EDJE_PART_TYPE_MESH_NODE)
+     {
+        Edje_Part_Description_Mesh_Node *ed;
+
+        ed = (Edje_Part_Description_Mesh_Node*) current_desc;
+
+        ed->mesh_node.mesh.assembly = assembly;
+     }
+   else
+     {
+        ERR("parse error %s:%i. mesh_node attributes in non-MESH_NODE part.",
+            file_in, line - 1);
+        exit(-1);
+     }
+}
+
+/**
+    @page edcref
+    @property
+        geometry
+    @parameters
+        [model's filename]
+    @effect
+        Name of model to be used as previously declared in the model block.
+        It's required in any mesh_node part.
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_description_mesh_geometry(void)
+{
+   Edje_Part_Description_Mesh_Node *ed;
+
+   check_arg_count(1);
+
+   if (current_part->type == EDJE_PART_TYPE_MESH_NODE)
+     {
+        char *name;
+        ed = (Edje_Part_Description_Mesh_Node*) current_desc;
+
+        name = parse_str(0);
+        if (!ecore_file_exists(name))
+          {
+             ERR("Unable to load model \"%s\". Check if path to file is correct (both directory and file name).",
+                 name);
+             exit(-1);
+          }
+        data_queue_model_remove(&(ed->mesh_node.mesh.id), &(ed->mesh_node.mesh.set));
+        data_queue_model_lookup(name, &(ed->mesh_node.mesh.id), &(ed->mesh_node.mesh.set));
+        free(name);
+     }
+   else
+     {
+        ERR("parse error %s:%i. "
+            "image attributes in non-MESH_NODE part.",
+            file_in, line - 1);
+        exit(-1);
+     }
+}
+
 static void
 st_collections_group_parts_part_description_proxy_source_visible(void)
 {
@@ -9717,6 +11162,41 @@ st_collections_group_parts_part_description_map_color(void)
    current_desc->map.colors[current_desc->map.colors_count - 1] = color;
 }
 
+/**
+    @page edcref
+    @property
+        x
+    @parameters
+        [X horizontal zoom to use]
+    @effect
+        This sets the zoom rate of the horizontal
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_description_map_zoom_x(void)
+{
+   check_arg_count(1);
+
+   current_desc->map.zoom.x = FROM_DOUBLE(parse_float(0));
+}
+
+/**
+    @page edcref
+    @property
+        y
+    @parameters
+        [Y vertical zoom to use]
+    @effect
+        This sets the zoom rate of vertical
+    @endproperty
+*/
+static void
+st_collections_group_parts_part_description_map_zoom_y(void)
+{
+   check_arg_count(1);
+
+   current_desc->map.zoom.y = FROM_DOUBLE(parse_float(0));
+}
 
 /** @edcsubsection{collections_group_parts_description_map_rotation,
  *                 Group.Parts.Part.Description.Map.Rotation} */
@@ -10091,6 +11571,7 @@ ob_collections_group_parts_part_description_link(void)
    Edje_Part_Collection_Parser *pcp;
    Edje_Part_Parser *epp;
    Edje_Part_Description_Link *el;
+   const char *nm;
 
    pcp = eina_list_last_data_get(edje_collections);
    epp = (Edje_Part_Parser*)current_part;
@@ -10103,7 +11584,8 @@ ob_collections_group_parts_part_description_link(void)
    el->epp = epp;
    pcp->links = eina_list_append(pcp->links, el);
    current_program->action = EDJE_ACTION_TYPE_STATE_SET;
-   current_program->state = strdup(current_desc->state.name ?: "default");
+   nm = current_desc->state.name;
+   current_program->state = strdup(nm ? nm : "default");
    current_program->value = current_desc->state.value;
 }
 
@@ -10142,7 +11624,8 @@ st_collections_group_parts_part_description_link_base(void)
    name = parse_str(0);
    if (current_program->signal && pcp->link_hash)
      {
-        snprintf(buf, sizeof(buf), "%s\"\"\"%s", current_program->signal, current_program->source ?: "");
+        snprintf(buf, sizeof(buf), "%s\"\"\"%s", current_program->signal,
+                 current_program->source ? current_program->source: "");
         eina_hash_list_remove(pcp->link_hash, buf, el);
      }
    if (!pcp->link_hash)
@@ -10155,7 +11638,8 @@ st_collections_group_parts_part_description_link_base(void)
         free((void*)current_program->source);
         current_program->source = name;
      }
-   snprintf(buf, sizeof(buf), "%s\"\"\"%s", current_program->signal, current_program->source ?: "");
+   snprintf(buf, sizeof(buf), "%s\"\"\"%s", current_program->signal,
+            current_program->source ? current_program->source : "");
    EINA_LIST_FOREACH(eina_hash_find(pcp->link_hash, buf), l, ell)
      {
         if (ell->epp == el->epp)
@@ -10986,12 +12470,12 @@ st_collections_group_programs_program_target(void)
 /**
     @page edcref
     @property
-        target
+        targets
     @parameters
         [target1] [target2] [target3] ...
     @effect
-        Programs or parts upon which the specified action will act. Multiple target
-        or targets keywords may be specified. SIGNAL_EMITs can have
+        Programs or parts upon which the specified action will act. Multiple
+        target or targets keywords may be specified. SIGNAL_EMITs can have
         targets.
     @since 1.10
     @endproperty
@@ -11568,7 +13052,6 @@ edje_cc_handlers_wildcard(void)
         end = strrchr(last, '.');
         if (end) last = end + 1;
      }
-   if (!last) return EINA_FALSE;
    if (current_part)
      {
         if ((!strcmp(last, "part")) && (!current_part->name))

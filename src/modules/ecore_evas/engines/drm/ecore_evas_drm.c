@@ -172,6 +172,12 @@ ecore_evas_drm_new_internal(const char *device, unsigned int parent EINA_UNUSED,
    /* try to init drm */
    if (_ecore_evas_drm_init(device) < 1) return NULL;
 
+   if (!ecore_drm_device_software_setup(dev))
+     {
+        ERR("Could not setup device for software");
+        goto soft_err;
+     }
+
    /* try to allocate space for new ecore_evas */
    if (!(ee = calloc(1, sizeof(Ecore_Evas))))
      {
@@ -243,13 +249,32 @@ ecore_evas_drm_new_internal(const char *device, unsigned int parent EINA_UNUSED,
 
    if ((einfo = (Evas_Engine_Info_Drm *)evas_engine_info_get(ee->evas)))
      {
+        Ecore_Drm_Output *output;
+        char *num;
+
         einfo->info.depth = 32; // FIXME
         einfo->info.destination_alpha = ee->alpha;
         einfo->info.rotation = ee->rotation;
-        einfo->info.vsync = EINA_TRUE;
+
+        if ((num = getenv("EVAS_DRM_VSYNC")))
+          {
+             if (!atoi(num))
+               einfo->info.vsync = EINA_FALSE;
+             else
+               einfo->info.vsync = EINA_TRUE;
+          }
+        else
+          einfo->info.vsync = EINA_TRUE;
+
         einfo->info.use_hw_accel = EINA_FALSE;
-        einfo->info.fd = ecore_drm_device_fd_get(dev);
         einfo->info.dev = dev;
+
+        if ((output = ecore_drm_device_output_find(dev, x, y)))
+          {
+             einfo->info.conn_id = ecore_drm_output_connector_id_get(output);
+             einfo->info.crtc_id = ecore_drm_output_crtc_id_get(output);
+             einfo->info.buffer_id = ecore_drm_output_crtc_buffer_get(output);
+          }
 
         if (!evas_engine_info_set(ee->evas, (Evas_Engine_Info *)einfo))
           {
@@ -263,7 +288,7 @@ ecore_evas_drm_new_internal(const char *device, unsigned int parent EINA_UNUSED,
         goto eng_err;
      }
 
-   ee->prop.window = einfo->info.output;
+   ee->prop.window = einfo->info.buffer_id;
 
    _ecore_evas_register(ee);
    ecore_evas_input_event_register(ee);
@@ -284,6 +309,7 @@ ecore_evas_drm_new_internal(const char *device, unsigned int parent EINA_UNUSED,
 
 eng_err:
    ecore_evas_free(ee);
+soft_err:
 ee_err:
    _ecore_evas_drm_shutdown();
    return NULL;
@@ -672,10 +698,26 @@ static void
 _ecore_evas_drm_show(Ecore_Evas *ee)
 {
    if ((!ee) || (ee->visible)) return;
-   evas_damage_rectangle_add(ee->evas, 0, 0, ee->w, ee->h);
-   ee->prop.withdrawn = EINA_FALSE;
-   if (ee->func.fn_state_change) ee->func.fn_state_change(ee);
+
+   ee->should_be_visible = 1;
+
+   if (ee->prop.avoid_damage)
+     _ecore_evas_drm_render(ee);
+
+   if (ee->prop.override)
+     {
+        ee->prop.withdrawn = EINA_FALSE;
+        if (ee->func.fn_state_change) ee->func.fn_state_change(ee);
+     }
+
+   if (ee->visible) return;
+
    ee->visible = 1;
+   if (ee->prop.fullscreen)
+     {
+        evas_focus_in(ee->evas);
+        if (ee->func.fn_focus_in) ee->func.fn_focus_in(ee);
+     }
    if (ee->func.fn_show) ee->func.fn_show(ee);
 }
 
@@ -683,11 +725,18 @@ static void
 _ecore_evas_drm_hide(Ecore_Evas *ee)
 {
    if ((!ee) || (!ee->visible)) return;
-   evas_sync(ee->evas);
-   ee->prop.withdrawn = EINA_TRUE;
-   if (ee->func.fn_state_change) ee->func.fn_state_change(ee);
+
+   if (ee->prop.override)
+     {
+        ee->prop.withdrawn = EINA_TRUE;
+        if (ee->func.fn_state_change) ee->func.fn_state_change(ee);
+     }
+
+   if (!ee->visible) return;
+
    ee->visible = 0;
    ee->should_be_visible = 0;
+   evas_sync(ee->evas);
    if (ee->func.fn_hide) ee->func.fn_hide(ee);
 }
 
@@ -792,7 +841,7 @@ _ecore_evas_drm_object_cursor_set(Ecore_Evas *ee, Evas_Object *obj, int layer, i
    ee->prop.cursor.hot.x = hot_x;
    ee->prop.cursor.hot.y = hot_y;
 
-   evas_pointer_output_xy_get(ee->evas, &x, &y);
+   ecore_evas_pointer_xy_get(ee, &x, &y);
 
    if (obj != old)
      {
@@ -862,7 +911,7 @@ _ecore_evas_drm_fullscreen_set(Ecore_Evas *ee, Eina_Bool on)
         edata->w = ee->w;
         edata->h = ee->h;
         if ((einfo = (Evas_Engine_Info_Drm *)evas_engine_info_get(ee->evas)))
-          ecore_drm_output_size_get(dev, einfo->info.output, &ow, &oh);
+          ecore_drm_output_size_get(dev, einfo->info.buffer_id, &ow, &oh);
 
         if ((ow == 0) || (oh == 0))
           {
@@ -1033,9 +1082,8 @@ _ecore_evas_drm_screen_geometry_get(const Ecore_Evas *ee EINA_UNUSED, int *x, in
 }
 
 static void 
-_ecore_evas_drm_pointer_xy_get(const Ecore_Evas *ee, Evas_Coord *x, Evas_Coord *y)
+_ecore_evas_drm_pointer_xy_get(const Ecore_Evas *ee EINA_UNUSED, Evas_Coord *x, Evas_Coord *y)
 {
-   /* FIXME: This should probably be using an ecore_drm_input function to 
-    * return the current mouse position */
-   evas_pointer_output_xy_get(ee->evas, x, y);
+   /* get pointer position from input */
+   ecore_drm_device_pointer_xy_get(dev, x, y);
 }

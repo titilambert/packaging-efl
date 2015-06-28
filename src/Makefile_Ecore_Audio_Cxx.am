@@ -1,16 +1,10 @@
-
+if HAVE_ECORE_AUDIO
 if HAVE_CXX11
 
 ### Generated headers
 
-generated_ecore_audio_cxx_bindings = \
-lib/ecore_audio/ecore_audio.eo.hh \
-lib/ecore_audio/ecore_audio_in.eo.hh \
-lib/ecore_audio/ecore_audio_out.eo.hh \
-lib/ecore_audio/ecore_audio_in_sndfile.eo.hh \
-lib/ecore_audio/ecore_audio_out_sndfile.eo.hh \
-lib/ecore_audio/ecore_audio_out_pulse.eo.hh \
-lib/ecore_audio/ecore_audio_in_tone.eo.hh
+generated_ecore_audio_cxx_bindings = $(ecore_audio_eolian_files:%.eo=%.eo.hh)
+generated_ecore_audio_impl_cxx_bindings = $(ecore_audio_eolian_files:%.eo=%.eo.impl.hh)
 
 lib/ecore_audio/Ecore_Audio.hh: $(generated_ecore_audio_cxx_bindings)
 	@echo @ECHO_E@ "#ifndef EFL_CXX_ECORE_AUDIO_HH\n#define EFL_CXX_ECORE_AUDIO_HH\n" > $(top_builddir)/src/lib/ecore_audio/Ecore_Audio.hh
@@ -20,6 +14,7 @@ lib/ecore_audio/Ecore_Audio.hh: $(generated_ecore_audio_cxx_bindings)
 
 generated_ecore_audio_cxx_all = \
 	$(generated_ecore_audio_cxx_bindings) \
+	$(generated_ecore_audio_impl_cxx_bindings) \
 	lib/ecore_audio/Ecore_Audio.hh
 
 CLEANFILES += $(generated_ecore_audio_cxx_all)
@@ -52,4 +47,5 @@ tests_ecore_audio_cxx_cxx_compile_test_DEPENDENCIES = @USE_ECORE_INTERNAL_LIBS@
 
 endif
 
+endif
 endif

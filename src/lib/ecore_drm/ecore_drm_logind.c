@@ -12,27 +12,15 @@ static inline Eina_Bool
 _ecore_drm_logind_vt_get(Ecore_Drm_Device *dev)
 {
    int ret;
-   char *tty, *p;
 
-   ret = sd_session_get_tty(dev->session, &tty);
+   ret = sd_session_get_vt(dev->session, &dev->vt);
    if (ret < 0)
      {
         ERR("Could not get systemd tty: %m");
         return EINA_FALSE;
      }
 
-   p = strchr(tty, 't');
-   dev->vt = UINT_MAX;
-   if (p)
-     {
-        while (p[0] && (!isdigit(p[0])))
-          p++;
-        if (p[0])
-          dev->vt = strtoul(p, NULL, 10);
-     }
-   free(tty);
-
-   return dev->vt != UINT_MAX;
+   return EINA_TRUE;
 }
 #endif
 
@@ -148,6 +136,7 @@ _ecore_drm_logind_cb_activate(void *data, int type EINA_UNUSED, void *event)
    Ecore_Drm_Event_Activate *ev;
    Ecore_Drm_Device *dev;
    Ecore_Drm_Output *output;
+   Ecore_Drm_Input *input;
    Eina_List *l;
 
    if ((!event) || (!data)) return ECORE_CALLBACK_RENEW;
@@ -155,19 +144,29 @@ _ecore_drm_logind_cb_activate(void *data, int type EINA_UNUSED, void *event)
    ev = event;
    dev = data;
 
+   dev->active = ev->active;
+
    if (ev->active)
      {
         /* set output mode */
         EINA_LIST_FOREACH(dev->outputs, l, output)
            ecore_drm_output_enable(output);
+
+        /* enable inputs */
+        EINA_LIST_FOREACH(dev->inputs, l, input)
+          ecore_drm_inputs_enable(input);
      }
    else
      {
         Ecore_Drm_Sprite *sprite;
 
+        /* disable inputs */
+        EINA_LIST_FOREACH(dev->inputs, l, input)
+          ecore_drm_inputs_disable(input);
+
         /* disable hardware cursor */
         EINA_LIST_FOREACH(dev->outputs, l, output)
-          ecore_drm_output_cursor_size_set(output, 0, 0, 0);
+          ecore_drm_output_disable(output);
 
         /* disable sprites */
         EINA_LIST_FOREACH(dev->sprites, l, sprite)
@@ -193,7 +192,6 @@ _ecore_drm_logind_connect(Ecore_Drm_Device *dev)
    if (sd_session_get_seat(dev->session, &seat) < 0)
      {
         ERR("Could not get systemd seat: %m");
-        free(seat);
         return EINA_FALSE;
      }
    else if (strcmp(dev->seat, seat))
@@ -225,13 +223,19 @@ _ecore_drm_logind_connect(Ecore_Drm_Device *dev)
      }
 
    /* setup handler for vt signals */
-   dev->tty.event_hdlr = 
-     ecore_event_handler_add(ECORE_EVENT_SIGNAL_USER, 
-                             _ecore_drm_logind_cb_vt_signal, dev);
+   if (!dev->tty.event_hdlr)
+     {
+        dev->tty.event_hdlr = 
+          ecore_event_handler_add(ECORE_EVENT_SIGNAL_USER, 
+                                  _ecore_drm_logind_cb_vt_signal, dev);
+     }
 
-   active_hdlr = 
-     ecore_event_handler_add(ECORE_DRM_EVENT_ACTIVATE, 
-                             _ecore_drm_logind_cb_activate, dev);
+   if (!active_hdlr)
+     {
+        active_hdlr = 
+          ecore_event_handler_add(ECORE_DRM_EVENT_ACTIVATE, 
+                                  _ecore_drm_logind_cb_activate, dev);
+     }
 
    return EINA_TRUE;
 
@@ -287,8 +291,8 @@ _ecore_drm_logind_device_open_no_pending(const char *device)
 {
    struct stat st;
 
-   if (stat(device, &st) < 0) return EINA_FALSE;
-   if (!S_ISCHR(st.st_mode)) return EINA_FALSE;
+   if (stat(device, &st) < 0) return -1;
+   if (!S_ISCHR(st.st_mode)) return -1;
 
    return _ecore_drm_dbus_device_take_no_pending(major(st.st_rdev), minor(st.st_rdev), NULL, -1);
 }

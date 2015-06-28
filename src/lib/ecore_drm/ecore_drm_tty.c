@@ -10,6 +10,8 @@ static Eina_Bool
 _ecore_drm_tty_cb_vt_signal(void *data, int type EINA_UNUSED, void *event)
 {
    Ecore_Drm_Device *dev;
+   Ecore_Drm_Input *input;
+   Eina_List *l;
    Ecore_Event_Signal_User *ev;
    siginfo_t sig;
 
@@ -21,12 +23,16 @@ _ecore_drm_tty_cb_vt_signal(void *data, int type EINA_UNUSED, void *event)
    switch (ev->number)
      {
       case 1:
+        EINA_LIST_FOREACH(dev->inputs, l, input)
+          ecore_drm_inputs_disable(input);
         ecore_drm_device_master_drop(dev);
         ioctl(dev->tty.fd, VT_RELDISP, 1);
         break;
       case 2:
         ioctl(dev->tty.fd, VT_RELDISP, VT_ACKACQ);
         ecore_drm_device_master_set(dev);
+        EINA_LIST_FOREACH(dev->inputs, l, input)
+          ecore_drm_inputs_enable(input);
         break;
       default:
         break;
@@ -38,9 +44,7 @@ _ecore_drm_tty_cb_vt_signal(void *data, int type EINA_UNUSED, void *event)
 Eina_Bool
 _ecore_drm_tty_switch(Ecore_Drm_Device *dev, int activate_vt)
 {
-   if (!ioctl(dev->tty.fd, VT_ACTIVATE, activate_vt) < 0)
-     return EINA_FALSE;
-   return EINA_TRUE;
+   return ioctl(dev->tty.fd, VT_ACTIVATE, activate_vt) >= 0;
 }
 
 static Eina_Bool 
@@ -123,24 +127,13 @@ err_kmode:
  * Functions that deal with opening, closing, and otherwise using a tty
  */
 
-/**
- * Open a tty for use
- * 
- * @param dev  The Ecore_Drm_Device that this tty will belong to.
- * @param name The name of the tty to try and open. 
- *             If NULL, /dev/tty0 will be used.
- * 
- * @return     EINA_TRUE on success, EINA_FALSE on failure
- * 
- * @ingroup Ecore_Drm_Tty_Group
- */
 EAPI Eina_Bool 
 ecore_drm_tty_open(Ecore_Drm_Device *dev, const char *name)
 {
    char tty[32] = "<stdin>";
 
    /* check for valid device */
-   if ((!dev) || (!dev->drm.name)) return EINA_FALSE;
+   EINA_SAFETY_ON_TRUE_RETURN_VAL((!dev) || (!dev->drm.name), EINA_FALSE);
 
    /* assign default tty fd of -1 */
    dev->tty.fd = -1;
@@ -227,20 +220,11 @@ _ecore_drm_tty_restore(Ecore_Drm_Device *dev)
      ERR("Could not reset VT handling\n");
 }
 
-/**
- * Close an already opened tty
- * 
- * @param dev The Ecore_Drm_Device which owns this tty.
- * 
- * @return    EINA_TRUE on success, EINA_FALSE on failure
- * 
- * @ingroup Ecore_Drm_Tty_Group
- */
 EAPI Eina_Bool 
 ecore_drm_tty_close(Ecore_Drm_Device *dev)
 {
    /* check for valid device */
-   if ((!dev) || (!dev->drm.name)) return EINA_FALSE;
+   EINA_SAFETY_ON_TRUE_RETURN_VAL((!dev) || (!dev->drm.name), EINA_FALSE);
 
    _ecore_drm_tty_restore(dev);
 
@@ -257,20 +241,11 @@ ecore_drm_tty_close(Ecore_Drm_Device *dev)
    return EINA_TRUE;
 }
 
-/**
- * Release a virtual terminal
- * 
- * @param dev The Ecore_Drm_Device which owns this tty.
- * 
- * @return    EINA_TRUE on success, EINA_FALSE on failure
- * 
- * @ingroup Ecore_Drm_Tty_Group
- */
 EAPI Eina_Bool 
 ecore_drm_tty_release(Ecore_Drm_Device *dev)
 {
    /* check for valid device */
-   if ((!dev) || (!dev->drm.name) || (dev->tty.fd < 0)) return EINA_FALSE;
+   EINA_SAFETY_ON_TRUE_RETURN_VAL((!dev) || (!dev->drm.name) || (dev->tty.fd < 0), EINA_FALSE);
 
    /* send ioctl for vt release */
    if (ioctl(dev->tty.fd, VT_RELDISP, 1) < 0) 
@@ -282,20 +257,11 @@ ecore_drm_tty_release(Ecore_Drm_Device *dev)
    return EINA_TRUE;
 }
 
-/**
- * Acquire a virtual terminal
- * 
- * @param dev The Ecore_Drm_Device which owns this tty.
- * 
- * @return    EINA_TRUE on success, EINA_FALSE on failure
- * 
- * @ingroup Ecore_Drm_Tty_Group
- */
 EAPI Eina_Bool 
 ecore_drm_tty_acquire(Ecore_Drm_Device *dev)
 {
    /* check for valid device */
-   if ((!dev) || (!dev->drm.name) || (dev->tty.fd < 0)) return EINA_FALSE;
+   EINA_SAFETY_ON_TRUE_RETURN_VAL((!dev) || (!dev->drm.name) || (dev->tty.fd < 0), EINA_FALSE);
 
    /* send ioctl for vt acquire */
    if (ioctl(dev->tty.fd, VT_RELDISP, VT_ACKACQ) < 0) 
@@ -307,22 +273,11 @@ ecore_drm_tty_acquire(Ecore_Drm_Device *dev)
    return EINA_TRUE;
 }
 
-/**
- * Get the opened virtual terminal file descriptor
- * 
- * @param dev The Ecore_Drm_Device which owns this tty.
- * 
- * @return    The tty fd opened from previous call to ecore_drm_tty_open
- * 
- * @ingroup Ecore_Drm_Tty_Group
- * 
- * @since 1.10
- */
 EAPI int 
 ecore_drm_tty_get(Ecore_Drm_Device *dev)
 {
    /* check for valid device */
-   if ((!dev) || (!dev->drm.name) || (dev->tty.fd < 0)) return -1;
+   EINA_SAFETY_ON_TRUE_RETURN_VAL((!dev) || (!dev->drm.name) || (dev->tty.fd < 0), -1);
 
    return dev->tty.fd;
 }

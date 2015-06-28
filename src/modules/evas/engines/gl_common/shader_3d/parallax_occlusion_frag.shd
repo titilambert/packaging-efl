@@ -1,0 +1,221 @@
+varying  vec3        vLightVector;
+varying  vec3        vLightHalfVector;
+uniform  sampler2D   uTextureNormal0;
+varying  vec3        vEyeVector;
+
+#ifdef NEED_TEX_COORD
+varying vec2   vTexCoord;
+#endif //TEX_COORD
+
+FRAGMENT_SHADER_USE_FOG
+FRAGMENT_SHADER_USE_SHADOWS
+
+#ifdef NORMAL_TEXTURE_BLEND
+uniform  sampler2D  uTextureNormal1;
+uniform  float      uTextureNormalWeight;
+#endif //NORMAL_TEXTURE_BLEND
+
+FRAGMENT_SHADER_USE_DIFFUSE_TERM
+FRAGMENT_SHADER_USE_SPECULAR_TERM
+FRAGMENT_SHADER_USE_AMBIENT_TERM
+FRAGMENT_SHADER_USE_EMISSION_TERM
+FRAGMENT_SHADER_USE_LIGHT
+
+const float parallaxScale = 0.2;
+
+vec2 parallaxMapping(in vec3 view, in vec2 tex, out float parallaxHeight)
+{
+   const float numLayers = 15.0;
+   vec2 texStep = parallaxScale * view.xy / view.z / numLayers;
+
+   float layerHeight = 1.0 / numLayers;
+   float curLayerHeight = 0.0;
+   vec2 dtex = parallaxScale * view.xy / view.z / numLayers;
+
+   vec2 currentTextureCoords = tex;
+
+#ifdef NORMAL_TEXTURE_BLEND
+   float heightFromTexture = (1.0 - texture2D(uTextureNormal0, currentTextureCoords).a) * uTextureNormalWeight;
+   heightFromTexture += (1.0 - texture2D(uTextureNormal1, currentTextureCoords).a) *
+   (1.0 - uTextureNormalWeight);
+#else
+   float heightFromTexture = 1.0 - texture2D(uTextureNormal0, currentTextureCoords).a;
+#endif //NORMAL_TEXTURE_BLEND
+
+   while(heightFromTexture > curLayerHeight)
+   {
+      curLayerHeight += layerHeight;
+      currentTextureCoords -= dtex;
+
+#ifdef NORMAL_TEXTURE_BLEND
+      heightFromTexture = (1.0 - texture2D(uTextureNormal0, currentTextureCoords).a) * uTextureNormalWeight;
+      heightFromTexture += (1.0 - texture2D(uTextureNormal1, currentTextureCoords).a) *
+      (1.0 - uTextureNormalWeight);
+#else
+      heightFromTexture = 1.0 - texture2D(uTextureNormal0, currentTextureCoords).a;
+#endif //NORMAL_TEXTURE_BLEND
+   }
+
+   vec2 prevTCoords = currentTextureCoords + texStep;
+   float nextH = heightFromTexture - curLayerHeight;
+
+#ifdef NORMAL_TEXTURE_BLEND
+   float prevH = (1.0 - texture2D(uTextureNormal0, prevTCoords).a
+                           - curLayerHeight + layerHeight) * uTextureNormalWeight;
+   prevH += (1.0 - texture2D(uTextureNormal1, prevTCoords).a
+                           - curLayerHeight + layerHeight) * (1.0 - uTextureNormalWeight);
+#else
+   float prevH = 1.0 - texture2D(uTextureNormal0, prevTCoords).a
+                           - curLayerHeight + layerHeight;
+#endif //NORMAL_TEXTURE_BLEND
+
+   float weight = nextH / (nextH - prevH);
+   vec2 finalTexCoords = prevTCoords * weight + currentTextureCoords * (1.0-weight);
+   parallaxHeight = curLayerHeight + prevH * weight + nextH * (1.0 - weight);
+
+   return finalTexCoords;
+}
+
+void fragmentParallaxMap()
+{
+   float factor;
+   vec3  normal;
+   vec4  color;
+
+   float parallaxHeight;
+   vec2 tex = parallaxMapping(vEyeVector, vTexCoord, parallaxHeight);
+
+   vec3  lv = normalize(vLightVector);
+
+#ifdef NORMAL_TEXTURE_BLEND
+   normal = texture2D(uTextureNormal0, tex).rgb * uTextureNormalWeight / texture2D(uTextureNormal0, tex).a;
+   normal += texture2D(uTextureNormal1, tex).rgb *
+   (1.0 - uTextureNormalWeight) / texture2D(uTextureNormal1, tex).a;
+#else
+   normal = texture2D(uTextureNormal0, tex).rgb / texture2D(uTextureNormal0, tex).a;
+#endif //NORMAL_TEXTURE_BLEND
+
+   normal = 2.0 * normal - 1.0;
+
+   normal = normalize(normal);
+
+   factor = dot(lv, normal);
+
+#ifdef LIGHT_SPOT
+   float f = dot(-lv, normalize(uLightSpotDir));
+
+   if (f > uLightSpotCutoffCos)
+     factor *= pow(f, uLightSpotExp);
+   else
+     factor = 0.0;
+#endif //LIGHT_SPOT
+
+   if (factor > 0.0)
+     {
+
+#ifdef DIFFUSE
+
+#ifdef DIFFUSE_TEXTURE_BLEND
+        color = texture2D(uTextureDiffuse0, tex) * uTextureDiffuseWeight +
+        texture2D(uTextureDiffuse1, tex) * (1.0 - uTextureDiffuseWeight);
+#else
+
+#ifdef DIFFUSE_TEXTURE
+        color = texture2D(uTextureDiffuse0, tex);
+#else
+        color = uMaterialDiffuse;
+#endif //DIFFUSE_TEXTURE
+
+#endif //DIFFUSE_TEXTURE_BLEND
+
+        gl_FragColor = uLightDiffuse * color * factor;
+
+#else
+        gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+#endif //DIFFUSE
+
+#ifdef SPECULAR
+
+        factor = dot(normalize(vLightHalfVector), normal);
+        if (factor > 0.0)
+          {
+             factor = pow(factor, uMaterialShininess);
+
+#ifdef SPECULAR_TEXTURE_BLEND
+             color = texture2D(uTextureSpecular0, tex) * uTextureSpecularWeight +
+             texture2D(uTextureSpecular1, tex) * (1.0 - uTextureSpecularWeight);
+#else
+#ifdef SPECULAR_TEXTURE
+             color = texture2D(uTextureSpecular0, tex);
+#else
+             color = uMaterialSpecular;
+#endif //SPECULAR_TEXTURE
+
+#endif //SPECULAR_TEXTURE_BLEND
+
+             gl_FragColor += uLightSpecular * color * factor;
+          }
+
+#endif //SPECULAR
+
+#ifdef SHADOWED
+        gl_FragColor *= shadow;
+#endif //SHADOWED
+
+     }
+   else
+     gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+
+#ifdef AMBIENT
+#ifdef AMBIENT_TEXTURE_BLEND
+   color = texture2D(uTextureAmbient0, tex) * uTextureAmbientWeight +
+   texture2D(uTextureAmbient1, tex) * (1.0 - uTextureAmbientWeight);
+#else
+
+#ifdef AMBIENT_TEXTURE
+   color = texture2D(uTextureAmbient0, tex);
+#else
+   color = uMaterialAmbient;
+#endif //AMBIENT_TEXTURE
+
+#endif //AMBIENT_TEXTURE_BLEND
+
+   gl_FragColor += uLightAmbient * color;
+#endif //AMBIENT
+
+#ifdef LIGHT_ATTENUATION
+   gl_FragColor /= dot(uLightAtten, vec3(1.0, vLightDist, vLightDist * vLightDist));
+#endif //LIGHT_ATTENUATION
+
+#ifdef EMISSION
+
+#ifdef EMISSION_TEXTURE_BLEND
+   color = texture2D(uTextureEmission0, tex) * uTextureEmissionWeight +
+   texture2D(uTextureEmission1, tex) * (1.0 - uTextureEmissionWeight);
+#else
+
+#ifdef EMISSION_TEXTURE
+   color = texture2D(uTextureEmission0, tex);
+#else
+   color = uMaterialEmission;
+#endif //EMISSION_TEXTURE
+
+#endif //EMISSION_TEXTURE_BLEND
+
+   gl_FragColor += color;
+#endif //EMISSION
+
+}
+
+void main() {
+
+#ifdef SHADOWED
+   shadow = pcf(vLightPosition, 1.0 / 200.0);
+#endif //SHADOWED
+
+   fragmentParallaxMap();
+
+   FRAGMENT_SHADER_FOG_APPLY
+
+}
+

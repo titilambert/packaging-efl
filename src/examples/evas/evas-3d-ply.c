@@ -1,28 +1,47 @@
 /**
-* Simple Evas example illustrating import/export of .ply format.
-*
-* Read meshes from "tested_man_all_with_mods.ply", "tested_man_only_geometry.ply" and "tested_man_without_UVs.ply".
-* After that cheange some properties of material.
-* After that save material to "saved_man.mtl"
-* and geometry to "saved_man_all_with_mods.ply", "saved_man_only_geometry.ply" and "saved_man_without_UVs.ply".
-*
-* @verbatim
-* gcc -o evas-3d-ply evas-3d-ply.c `pkg-config --libs --cflags efl evas ecore ecore-evas eo`
-* @endverbatim
-*/
+ * Simple Evas example illustrating import/export of .ply format.
+ *
+ * Read meshes from "tested_man_all_with_mods.ply", "tested_man_only_geometry.ply" and "tested_man_without_UVs.ply".
+ * After that cheange some properties of material.
+ * After that save material to "saved_man.mtl"
+ * and geometry to "saved_man_all_with_mods.ply", "saved_man_only_geometry.ply" and "saved_man_without_UVs.ply".
+ *
+ * @verbatim
+ * gcc -o evas-3d-ply evas-3d-ply.c `pkg-config --libs --cflags efl evas ecore ecore-evas ecore-file eo`
+ * @endverbatim
+ */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#else
+#define PACKAGE_EXAMPLES_DIR "."
 #define EFL_EO_API_SUPPORT
 #define EFL_BETA_API_SUPPORT
+#endif
 
 #include <Eo.h>
 #include <Evas.h>
 #include <Ecore.h>
 #include <Ecore_Evas.h>
+#include <Ecore_File.h>
+#include "evas-common.h"
 
 #define  WIDTH 1024
 #define  HEIGHT 1024
 
 #define NUMBER_OF_MESHES 32
+
+static const char *image_path = PACKAGE_EXAMPLES_DIR EVAS_IMAGE_FOLDER "/star.jpg";
+static const char *input_template = PACKAGE_EXAMPLES_DIR EVAS_MODEL_FOLDER "/";
+static const char *output_template = PACKAGE_EXAMPLES_DIR EVAS_SAVED_FILES "/";
+static const char *file_name[8] = {"Normal_UVs_Colors.ply",
+                                   "Normal_UVs_NoColors.ply",
+                                   "Normal_NoUVs_Colors.ply",
+                                   "Normal_NoUVs_NoColors.ply",
+                                   "NoNormal_UVs_Colors.ply",
+                                   "NoNormal_UVs_NoColors.ply",
+                                   "NoNormal_NoUVs_Colors.ply",
+                                   "NoNormal_NoUVs_NoColors.ply"};
 
 int draw_mode[2] = {EVAS_3D_SHADE_MODE_PHONG, EVAS_3D_SHADE_MODE_VERTEX_COLOR};
 
@@ -45,30 +64,12 @@ Eo *texture = NULL;
 Eo *light = NULL;
 Ecore_Animator *anim = NULL;
 
-char *folder = "ply_files";
-char *path_file[8] = {"ply_files/Normal_UVs_Colors.ply",
-                      "ply_files/Normal_UVs_NoColors.ply",
-                      "ply_files/Normal_NoUVs_Colors.ply",
-                      "ply_files/Normal_NoUVs_NoColors.ply",
-                      "ply_files/NoNormal_UVs_Colors.ply",
-                      "ply_files/NoNormal_UVs_NoColors.ply",
-                      "ply_files/NoNormal_NoUVs_Colors.ply",
-                      "ply_files/NoNormal_NoUVs_NoColors.ply"};
-char *file_name[8] = {"Normal_UVs_Colors.ply",
-                      "Normal_UVs_NoColors.ply",
-                      "Normal_NoUVs_Colors.ply",
-                      "Normal_NoUVs_NoColors.ply",
-                      "NoNormal_UVs_Colors.ply",
-                      "NoNormal_UVs_NoColors.ply",
-                      "NoNormal_NoUVs_Colors.ply",
-                      "NoNormal_NoUVs_NoColors.ply"};
-
 static float angle = 0;
 
 static Eina_Bool
 _animate_scene(void *data)
 {
-   angle += 0.5;
+   angle += 0.2;
 
    eo_do((Evas_3D_Node *)data, evas_3d_node_orientation_angle_axis_set(angle, 1.0, 1.0, 1.0));
 
@@ -90,8 +91,8 @@ _on_canvas_resize(Ecore_Evas *ee)
    int w, h;
 
    ecore_evas_geometry_get(ee, NULL, NULL, &w, &h);
-   eo_do(background, evas_obj_size_set(w, h));
-   eo_do(image, evas_obj_size_set(w, h));
+   eo_do(background, efl_gfx_size_set(w, h));
+   eo_do(image, efl_gfx_size_set(w, h));
 }
 
 int
@@ -140,7 +141,7 @@ main(void)
    eo_do(root_node,
          evas_3d_node_member_add(camera_node));
    eo_do(camera_node,
-         evas_3d_node_position_set(200.0, 0.0, 0.0),
+         evas_3d_node_position_set(15.0, 0.0, 0.0),
          evas_3d_node_look_at_set(EVAS_3D_SPACE_PARENT, 0.0, 0.0, 0.0,
                                   EVAS_3D_SPACE_PARENT, 0.0, 0.0, 1.0));
    /* Add the light. */
@@ -164,7 +165,7 @@ main(void)
    material = eo_add(EVAS_3D_MATERIAL_CLASS, evas);
    texture = eo_add(EVAS_3D_TEXTURE_CLASS, evas);
    eo_do(texture,
-         evas_3d_texture_file_set("indian_DIFF3.png", NULL),
+         evas_3d_texture_file_set(image_path, NULL),
          evas_3d_texture_filter_set(EVAS_3D_TEXTURE_FILTER_NEAREST,
                                     EVAS_3D_TEXTURE_FILTER_NEAREST),
          evas_3d_texture_wrap_set(EVAS_3D_WRAP_MODE_REPEAT,
@@ -183,23 +184,28 @@ main(void)
                                     1.0, 1.0, 1.0, 1.0),
          evas_3d_material_shininess_set(50.0));
 
+   if (!ecore_file_mkpath(PACKAGE_EXAMPLES_DIR EVAS_SAVED_FILES))
+     fprintf(stderr, "Failed to create folder %s\n\n",
+             PACKAGE_EXAMPLES_DIR EVAS_SAVED_FILES);
+
    /* Add the meshes. */
    for (i = 0; i < NUMBER_OF_MESHES; i++)
      {
         mesh[i] = eo_add(EVAS_3D_MESH_CLASS, evas);
 
+        snprintf(buffer, PATH_MAX, "%s%s", input_template, file_name[i % 8]);
         eo_do(mesh[i],
-              efl_file_set(path_file[i % 8], NULL),
+              efl_file_set(buffer, NULL),
               evas_3d_mesh_frame_material_set(0, material),
               evas_3d_mesh_shade_mode_set(draw_mode[(i % 16) / 8]));
 
-        snprintf(buffer, PATH_MAX, "%s/Saved_%s", folder, file_name[i % 8]);
+        snprintf(buffer, PATH_MAX, "%s%s", output_template, file_name[i % 8]);
         eo_do(mesh[i], efl_file_save(buffer, NULL, NULL));
 
         if (i > 15)
           {
              eo_do(mesh[i],
-                   efl_file_set(path_file[i % 8], NULL),
+                   efl_file_set(buffer, NULL),
                    evas_3d_mesh_frame_material_set(0, material),
                    evas_3d_mesh_shade_mode_set(draw_mode[(i % 16) / 8]));
           }
@@ -209,29 +215,27 @@ main(void)
         eo_do(root_node, evas_3d_node_member_add(mesh_node[i]));
         eo_do(mesh_node[i],
               evas_3d_node_mesh_add(mesh[i]),
-              evas_3d_node_position_set(0, ((i % 4) * 40) + ((i / 16) * 10) - 80, (((i % 16) / 4) * 10) - 40),
-              evas_3d_node_scale_set(0.3, 0.3, 0.3));
+              evas_3d_node_position_set(0, ((i % 4) * 4) + ((i / 16) * 1) - 6.5, (((i % 16) / 4) * 4) - 6));
      }
 
    /* Set up scene. */
    eo_do(scene,
          evas_3d_scene_root_node_set(root_node),
          evas_3d_scene_camera_node_set(camera_node),
-         evas_3d_scene_background_color_set(0.7, 0.7, 0.7, 1.0),
          evas_3d_scene_size_set(WIDTH, HEIGHT));
 
    /* Add a background rectangle objects. */
    background = eo_add(EVAS_RECTANGLE_CLASS, evas);
    eo_do(background,
-         evas_obj_color_set(100, 100, 100, 255),
-         evas_obj_size_set(WIDTH, HEIGHT),
-         evas_obj_visibility_set(EINA_TRUE));
+         efl_gfx_color_set(100, 100, 100, 255),
+         efl_gfx_size_set(WIDTH, HEIGHT),
+         efl_gfx_visible_set(EINA_TRUE));
 
    /* Add an image object for 3D scene rendering. */
    image = evas_object_image_filled_add(evas);
    eo_do(image,
-         evas_obj_size_set(WIDTH, HEIGHT),
-         evas_obj_visibility_set(EINA_TRUE));
+         efl_gfx_size_set(WIDTH, HEIGHT),
+         efl_gfx_visible_set(EINA_TRUE));
 
    /* Set the image object as render target for 3D scene. */
    eo_do(image, evas_obj_image_scene_set(scene));

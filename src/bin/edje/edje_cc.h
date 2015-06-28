@@ -184,8 +184,10 @@ void    data_queue_copied_program_lookup(Edje_Part_Collection *pc, int *src, int
 void    data_queue_anonymous_lookup(Edje_Part_Collection *pc, Edje_Program *ep, int *dest);
 void    data_queue_copied_anonymous_lookup(Edje_Part_Collection *pc, int *src, int *dest);
 void    data_queue_image_lookup(char *name, int *dest, Eina_Bool *set);
+void    data_queue_model_lookup(char *name, int *dest, Eina_Bool *set);
 void    data_queue_copied_image_lookup(int *src, int *dest, Eina_Bool *set);
 void    data_queue_image_remove(int *dest, Eina_Bool *set);
+void    data_queue_model_remove(int *dest, Eina_Bool *set);
 void    data_queue_spectrum_lookup(char *name, int *dest);
 void    data_queue_spectrum_slave_lookup(int *master, int *slave);
 void    data_process_lookups(void);
@@ -256,6 +258,7 @@ extern Eina_List             *data_dirs;
 extern char                  *file_in;
 extern char                  *file_out;
 extern char                  *watchfile;
+extern char                  *depfile;
 extern char                  *license;
 extern char                  *authors;
 extern Eina_List             *licenses;
@@ -286,7 +289,7 @@ extern New_Nested_Handler     nested_handlers[];
 extern New_Nested_Handler     nested_handlers_short[];
 extern int                    compress_mode;
 extern int                    threads;
-extern int		      anotate;
+extern int                    annotate;
 extern Eina_Bool current_group_inherit;
 
 extern int had_quote;

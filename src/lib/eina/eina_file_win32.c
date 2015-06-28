@@ -144,7 +144,7 @@ _eina_file_win32_first_file(const char *dir, WIN32_FIND_DATA *fd)
 
    wdir = evil_char_to_wchar(dir);
    if (!wdir)
-     return NULL;
+     return INVALID_HANDLE_VALUE;
 
    h = FindFirstFile(wdir, fd);
    free(wdir);
@@ -153,14 +153,14 @@ _eina_file_win32_first_file(const char *dir, WIN32_FIND_DATA *fd)
 #endif
 
    if (!h)
-     return NULL;
+     return INVALID_HANDLE_VALUE;
 
    while ((fd->cFileName[0] == '.') &&
           ((fd->cFileName[1] == '\0') ||
            ((fd->cFileName[1] == '.') && (fd->cFileName[2] == '\0'))))
      {
         if (!FindNextFile(h, fd))
-          return NULL;
+          return INVALID_HANDLE_VALUE;
      }
 
    return h;
@@ -181,7 +181,11 @@ _eina_file_win32_ls_iterator_next(Eina_File_Iterator *it, void **data)
    Eina_Bool res = EINA_TRUE;
 
    if (it->handle == INVALID_HANDLE_VALUE)
-     return EINA_FALSE;
+     {
+        if (GetLastError() == ERROR_NO_MORE_FILES)
+          it->is_last = EINA_TRUE;
+        return EINA_FALSE;
+     }
 
    is_last = it->is_last;
 #ifdef UNICODE
@@ -263,7 +267,11 @@ _eina_file_win32_direct_ls_iterator_next(Eina_File_Direct_Iterator *it, void **d
    Eina_Bool res = EINA_TRUE;
 
    if (it->handle == INVALID_HANDLE_VALUE)
-     return EINA_FALSE;
+     {
+        if (GetLastError() == ERROR_NO_MORE_FILES)
+          it->is_last = EINA_TRUE;
+        return EINA_FALSE;
+     }
 
    attr = it->data.dwFileAttributes;
    is_last = it->is_last;
@@ -372,7 +380,7 @@ eina_file_real_close(Eina_File *file)
         free(map);
      }
 
-   if (file->global_map != MAP_FAILED)
+   if (file->global_map != MAP_FAILED && file->handle != NULL)
      UnmapViewOfFile(file->global_map);
 
    if (file->fm) CloseHandle(file->fm);
@@ -385,6 +393,16 @@ _eina_file_map_close(Eina_File_Map *map)
    if (map->map != MAP_FAILED)
      UnmapViewOfFile(map->map);
    free(map);
+}
+
+static char *
+_eina_file_sep_find(char *s)
+{
+   for (; *s != '\0'; ++s)
+     if ((*s == '\\') || (*s == '/'))
+       return s;
+
+   return NULL;
 }
 
 /**
@@ -521,28 +539,17 @@ eina_file_split(char *path)
    if (!ea)
       return NULL;
 
-   current = path;
-   while (*current)
+   for (current = _eina_file_sep_find(path);
+        current;
+        path = current + 1, current = _eina_file_sep_find(path))
      {
-        if ((*current == '\\') || (*current == '/'))
-          {
-             if (((*current == '\\') && (current[1] == '\\')) ||
-                 ((*current == '/') && (current[1] == '/')))
-               {
-                  *current = '\0';
-                  goto next_char;
-               }
+        length = current - path;
 
-             length = current - path;
-             if (length <= 0)
-               goto next_char;
+        if (length <= 0)
+           continue;
 
-             eina_array_push(ea, path);
-             *current = '\0';
-             path = current + 1;
-          }
-     next_char:
-        current++;
+        eina_array_push(ea, path);
+        *current = '\0';
      }
 
    if (*path != '\0')
@@ -580,7 +587,7 @@ eina_file_ls(const char *dir)
 
    it->handle = _eina_file_win32_first_file(new_dir, &it->data);
    free(new_dir);
-   if (it->handle == INVALID_HANDLE_VALUE)
+   if ((it->handle == INVALID_HANDLE_VALUE) && (GetLastError() != ERROR_NO_MORE_FILES))
      goto free_it;
 
    memcpy(it->dir, dir, length + 1);
@@ -631,7 +638,7 @@ eina_file_direct_ls(const char *dir)
 
    it->handle = _eina_file_win32_first_file(new_dir, &it->data);
    free(new_dir);
-   if (it->handle == INVALID_HANDLE_VALUE)
+   if ((it->handle == INVALID_HANDLE_VALUE) && (GetLastError() != ERROR_NO_MORE_FILES))
      goto free_it;
 
    memcpy(it->dir, dir, length + 1);
@@ -722,12 +729,23 @@ eina_file_open(const char *path, Eina_Bool shared)
    else
 #endif
      handle = CreateFile(filename,
-                         GENERIC_READ, FILE_SHARE_READ,
-                         NULL, OPEN_EXISTING, FILE_ATTRIBUTE_READONLY,
+                         GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
+                         NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL,
                          NULL);
 
    if (handle == INVALID_HANDLE_VALUE)
      {
+        LPVOID lpMsgBuf;
+
+        FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
+                      FORMAT_MESSAGE_FROM_SYSTEM |
+                      FORMAT_MESSAGE_IGNORE_INSERTS,
+                      NULL,
+                      GetLastError(),
+                      MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                      (LPTSTR) &lpMsgBuf,
+                      0, NULL);
+
         switch (GetLastError())
           {
            case ERROR_FILE_NOT_FOUND:
@@ -854,7 +872,10 @@ eina_file_map_all(Eina_File *file, Eina_File_Populate rule EINA_UNUSED)
         file->fm = CreateFileMapping(file->handle, NULL, PAGE_READONLY,
                                      max_size_high, max_size_low, NULL);
         if (!file->fm)
-          return NULL;
+          {
+             eina_lock_release(&file->lock);
+             return NULL;
+          }
 
         data = MapViewOfFile(file->fm, FILE_MAP_READ,
                              0, 0, file->length);

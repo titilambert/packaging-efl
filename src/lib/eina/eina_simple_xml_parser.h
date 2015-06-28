@@ -233,15 +233,15 @@ typedef Eina_Bool (*Eina_Simple_XML_Attribute_Cb)(void *data, const char *key, c
  *        content is located inside @a buf (does not include tag
  *        start, for instance "<!DOCTYPE value>" the offset points at
  *        "value"), the fifth is the size of the content. Whenever this
- *        function return #EINA_FALSE the parser will abort.  @param
- *        data what to give as context to @a func.
+ *        function return #EINA_FALSE the parser will abort.
+ * @param data what to give as context to @a func.
  *
  * @return #EINA_TRUE on success or #EINA_FALSE if it was aborted by user or
  *         parsing error.
  */
 EAPI Eina_Bool eina_simple_xml_parse(const char *buf, unsigned buflen,
-				     Eina_Bool strip,
-				     Eina_Simple_XML_Cb func, const void *data);
+                                     Eina_Bool strip,
+                                     Eina_Simple_XML_Cb func, const void *data);
 
 
 /**
@@ -276,6 +276,25 @@ EAPI const char * eina_simple_xml_tag_attributes_find(const char *buf, unsigned 
  */
 EAPI Eina_Bool eina_simple_xml_attributes_parse(const char *buf, unsigned buflen,
 						Eina_Simple_XML_Attribute_Cb func, const void *data);
+
+/**
+ * Given a buffer with the xml value of an attributes, parse them to key:value pairs.
+ *
+ * @param buf the input string. Need to contain \0 terminator.
+ * @param func what to call back while parse to do some action. The
+ *        first parameter is the given user @a data, the second is the
+ *        key (null-terminated) and the last is the value (null
+ *        terminated). These strings should not be modified and
+ *        reference is just valid until the function return.
+ * @param data data to pass to the callback function.
+ *
+ * @return #EINA_TRUE on success or #EINA_FALSE if it was aborted by user or
+ *          parsing error.
+ *
+ * @since 1.14
+ */
+EAPI Eina_Bool
+eina_simple_xml_attribute_w3c_parse(const char *buf, Eina_Simple_XML_Attribute_Cb func, const void *data);
 
 /**
  * Create (and append) new attribute to tag.

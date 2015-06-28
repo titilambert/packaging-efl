@@ -6,8 +6,6 @@ typedef struct _Render_Engine Render_Engine;
 struct _Render_Engine
 {
    Render_Engine_Software_Generic generic;
-
-   Evas_Engine_Info_Drm *info;
 };
 
 /* function tables - filled in later (func and parent func) */
@@ -33,7 +31,7 @@ _output_setup(Evas_Engine_Info_Drm *info, int w, int h)
 
    if (!evas_render_engine_software_generic_init(&re->generic, ob,
                                                  evas_outbuf_buffer_state_get,
-                                                 evas_outbuf_get_rot,
+                                                 evas_outbuf_rot_get,
                                                  evas_outbuf_reconfigure, NULL,
                                                  evas_outbuf_update_region_new,
                                                  evas_outbuf_update_region_push,
@@ -93,28 +91,12 @@ eng_setup(Evas *evas, void *einfo)
    /* try to get the evas public data */
    if (!(epd = eo_data_scope_get(evas, EVAS_CANVAS_CLASS))) return 0;
 
-   /* set canvas reference
-    *
-    * NB: We do this here so that on a vt switch, we can disable
-    * rendering (or re-enable) for this canvas */
-   info->info.evas = evas;
-
    /* check for valid engine output */
    if (!(re = epd->engine.data.output))
      {
         /* NB: If we have no valid output then assume we have not been
          * initialized yet and call any needed common init routines */
-        evas_common_cpu_init();
-        evas_common_blend_init();
-        evas_common_image_init();
-        evas_common_convert_init();
-        evas_common_scale_init();
-        evas_common_rectangle_init();
-        evas_common_polygon_init();
-        evas_common_line_init();
-        evas_common_font_init();
-        evas_common_draw_init();
-        evas_common_tilebuf_init();
+        evas_common_init();
 
         /* try to create a new render_engine */
         if (!(re = _output_setup(info, epd->output.w, epd->output.h)))
@@ -132,9 +114,6 @@ eng_setup(Evas *evas, void *einfo)
         evas_render_engine_software_generic_update(&re->generic, ob, 
                                                    ob->w, ob->h);
      }
-
-   /* update the info structure pointer */
-   re->info = info;
 
    /* reassign engine output */
    epd->engine.data.output = re;
@@ -154,13 +133,15 @@ eng_setup(Evas *evas, void *einfo)
 static void
 eng_output_free(void *data)
 {
-   Render_Engine *re = data;
+   Render_Engine *re;
 
-   evas_render_engine_software_generic_clean(&re->generic);
-   free(re);
+   if ((re = data))
+     {
+        evas_render_engine_software_generic_clean(&re->generic);
+        free(re);
+     }
 
-   evas_common_font_shutdown();
-   evas_common_image_shutdown();
+   evas_common_shutdown();
 }
 
 /* module api functions */

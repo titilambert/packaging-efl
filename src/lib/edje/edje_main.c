@@ -14,7 +14,7 @@ Eina_Cow *_edje_calc_params_map_cow = NULL;
 Eina_Cow *_edje_calc_params_physics_cow = NULL;
 
 static const Edje_Calc_Params_Map default_calc_map = {
-  { 0, 0, 0 }, { 0.0, 0.0, 0.0 }, { 0, 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0 }, NULL, 0
+  { 0, 0, 0 }, { 0.0, 0.0, 0.0 }, { 0, 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0.0, 0.0 }, NULL, 0
 };
 
 static const Edje_Calc_Params_Physics default_calc_physics = {
@@ -58,6 +58,12 @@ edje_init(void)
    if (!eet_init())
      {
 	ERR("Eet init failed");
+	goto shutdown_embryo;
+     }
+
+   if (!evas_init())
+     {
+	ERR("Evas init failed");
 	goto shutdown_embryo;
      }
 
@@ -164,6 +170,7 @@ _edje_shutdown_core(void)
      ecore_imf_shutdown();
 #endif
 
+   evas_shutdown();
    eet_shutdown();
    embryo_shutdown();
    ecore_shutdown();

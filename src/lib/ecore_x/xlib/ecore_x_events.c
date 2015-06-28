@@ -291,7 +291,11 @@ _ecore_x_axis_update(Ecore_Window window,
    int i;
 
    e = malloc(sizeof(Ecore_Event_Axis_Update));
-   if (!e) return;
+   if (!e)
+     {
+        if (axis) free(axis);
+        return;
+     }
 
    e->window = window;
    e->event_window = event_window;
@@ -366,9 +370,8 @@ _ecore_key_press(int event,
    if (!key)
      key = keyname;
 
-   e =
-     malloc(sizeof(Ecore_Event_Key) + strlen(key) + strlen(keyname) +
-            (compose ? strlen(compose) : 0) + 3);
+   e = calloc(1, sizeof(Ecore_Event_Key) + strlen(key) + strlen(keyname) +
+              (compose ? strlen(compose) : 0) + 3);
    if (!e)
      goto on_error;
 

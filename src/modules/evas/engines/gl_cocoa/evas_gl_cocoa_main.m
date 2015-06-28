@@ -1,9 +1,9 @@
-
 #include <Cocoa/Cocoa.h>
 
 #include "evas_engine.h"
 
 static Evas_GL_Cocoa_Window *_evas_gl_cocoa_window = NULL;
+static NSOpenGLContext *_evas_gl_cocoa_shared_context = NULL;
 
 @interface EvasGLView : NSOpenGLView
 {
@@ -43,7 +43,35 @@ static Evas_GL_Cocoa_Window *_evas_gl_cocoa_window = NULL;
 {
    NSOpenGLPixelFormat * pf = [EvasGLView basicPixelFormat];
    self = [super initWithFrame: frameRect pixelFormat: pf];
+
+
+   NSOpenGLContext *ctx;
+   if (!_evas_gl_cocoa_shared_context) {
+     _evas_gl_cocoa_shared_context = [[NSOpenGLContext alloc] initWithFormat: [EvasGLView basicPixelFormat] shareContext: nil];
+     ctx = _evas_gl_cocoa_shared_context;
+   } else {
+     ctx = [[NSOpenGLContext alloc] initWithFormat: [EvasGLView basicPixelFormat] shareContext: _evas_gl_cocoa_shared_context];
+   }
+   [self setOpenGLContext: ctx];
+   [ctx setView: self];
+
    return self;
+}
+
+- (void)unlockFocus
+{
+   //[super unlockFocus];
+}
+
+- (void)lockFocus
+{
+   NSOpenGLContext* context = [self openGLContext];
+
+   //[super lockFocus];
+   if ([context view] != self) {
+      [context setView:self];
+   }
+   [context makeCurrentContext];
 }
 
 @end
@@ -51,18 +79,14 @@ static Evas_GL_Cocoa_Window *_evas_gl_cocoa_window = NULL;
 
 Evas_GL_Cocoa_Window *
 eng_window_new(void *window,
-	       int      w,
-	       int      h)
+               int      w,
+               int      h)
 {
    Evas_GL_Cocoa_Window *gw;
-   int context_attrs[3];
-   int config_attrs[20];
-   int major_version, minor_version;
-   int num_config;
 
    gw = calloc(1, sizeof(Evas_GL_Cocoa_Window));
    if (!gw) return NULL;
- 
+
    _evas_gl_cocoa_window = gw;
    gw->window = window;
    gw->view = [[EvasGLView alloc] initWithFrame:NSMakeRect(0,0,w,h)];
@@ -72,8 +96,8 @@ eng_window_new(void *window,
 
    if (!gw->gl_context)
      {
-	free(gw);
-	return NULL;
+        free(gw);
+        return NULL;
      }
    evas_gl_common_context_use(gw->gl_context);
    evas_gl_common_context_resize(gw->gl_context, w, h, 0);
@@ -84,9 +108,12 @@ eng_window_new(void *window,
 void
 eng_window_free(Evas_GL_Cocoa_Window *gw)
 {
-   if (gw == _evas_gl_cocoa_window) _evas_gl_cocoa_window = NULL;
+   if (gw == _evas_gl_cocoa_window)
+       _evas_gl_cocoa_window = NULL;
+
    evas_gl_common_context_free(gw->gl_context);
-   free(gw);
+   [(EvasGLView*)gw->view release];
+    free(gw);
 }
 
 void
@@ -94,10 +121,10 @@ eng_window_use(Evas_GL_Cocoa_Window *gw)
 {
    if (_evas_gl_cocoa_window != gw)
      {
-	[[(NSOpenGLView*)gw->view openGLContext] makeCurrentContext];
+        [[(NSOpenGLView*)gw->view openGLContext] makeCurrentContext];
         if (_evas_gl_cocoa_window)
           evas_gl_common_context_flush(_evas_gl_cocoa_window->gl_context);
-	_evas_gl_cocoa_window = gw;
+        _evas_gl_cocoa_window = gw;
 
      }
    evas_gl_common_context_use(gw->gl_context);
@@ -110,7 +137,7 @@ eng_window_swap_buffers(Evas_GL_Cocoa_Window *gw)
 }
 
 void
-eng_window_vsync_set(int on)
+eng_window_vsync_set(int on EINA_UNUSED)
 {
 
 }
@@ -132,3 +159,14 @@ eng_window_resize(Evas_GL_Cocoa_Window *gw, int width, int height)
   [[(NSOpenGLView*)gw->view openGLContext] flushBuffer];
 }
 
+void
+eng_window_lock_focus(Evas_GL_Cocoa_Window *gw)
+{
+  [(NSOpenGLView*)gw->view lockFocus];
+}
+
+void
+eng_window_unlock_focus(Evas_GL_Cocoa_Window *gw)
+{
+  [(NSOpenGLView*)gw->view unlockFocus];
+}

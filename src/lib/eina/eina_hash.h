@@ -1067,34 +1067,34 @@ EAPI void           eina_hash_foreach(const Eina_Hash  *hash,
  */
 EAPI void eina_hash_list_append(Eina_Hash *hash, const void *key, const void *data) EINA_ARG_NONNULL(1, 2, 3);
 /**
- * @brief Append data to an #Eina_List inside a hash
+ * @brief Prepend data to an #Eina_List inside a hash
  *
  * This function is identical to the sequence of calling
- * eina_hash_find(), eina_list_append(), eina_hash_set(),
+ * eina_hash_find(), eina_list_prepend(), eina_hash_set(),
  * but with one fewer required hash lookup.
  * @param hash The hash table
  * @param key The key associated with the data
- * @param data The data to append to the list
+ * @param data The data to prepend to the list
  * @since 1.10
  */
 EAPI void eina_hash_list_prepend(Eina_Hash *hash, const void *key, const void *data) EINA_ARG_NONNULL(1, 2, 3);
 /**
- * @brief Append data to an #Eina_List inside a hash
+ * @brief Remove data from an #Eina_List inside a hash
  *
  * This function is identical to the sequence of calling
- * eina_hash_find(), eina_list_append(), eina_hash_set(),
+ * eina_hash_find(), eina_list_remove(), eina_hash_set(),
  * but with one fewer required hash lookup.
  * @param hash The hash table
  * @param key The key associated with the data
- * @param data The data to append to the list
+ * @param data The data to remove from the list
  * @since 1.10
  */
 EAPI void eina_hash_list_remove(Eina_Hash *hash, const void *key, const void *data) EINA_ARG_NONNULL(1, 2, 3);
-				      
-/** 
- * @brief 
- * Paul Hsieh (http://www.azillionmonkeys.com/qed/hash.html) hash function used by WebCore (http://webkit.org/blog/8/hashtables-part-2/) 
- * 
+
+/**
+ * @brief
+ * Paul Hsieh (http://www.azillionmonkeys.com/qed/hash.html) hash function used by WebCore (http://webkit.org/blog/8/hashtables-part-2/)
+ *
  * @param key The key to hash
  * @param len The length of the key
  * @return The hash value
@@ -1102,20 +1102,21 @@ EAPI void eina_hash_list_remove(Eina_Hash *hash, const void *key, const void *da
 EAPI int eina_hash_superfast(const char *key,
                              int         len) EINA_ARG_NONNULL(1);
 
-/** 
- * @brief 
- * Hash function first reported by Dan Bernstein many years ago in comp.lang.c 
- * 
+/**
+ * @brief
+ * Hash function first reported by Dan Bernstein many years ago in comp.lang.c
+ *
  * @param key The key to hash
  * @param len The length of the key
  * @return The hash value
  */
 static inline int eina_hash_djb2(const char *key,
                                  int         len) EINA_ARG_NONNULL(1);
-/** 
- * @brief 
- * Hash function first reported by Dan Bernstein many years ago in comp.lang.c 
- * 
+
+/**
+ * @brief
+ * Hash function first reported by Dan Bernstein many years ago in comp.lang.c
+ *
  * @param key The key to hash
  * @param plen The length of the key
  * @return The hash value
@@ -1123,20 +1124,21 @@ static inline int eina_hash_djb2(const char *key,
 static inline int eina_hash_djb2_len(const char *key,
                                      int        *plen) EINA_ARG_NONNULL(1, 2);
 
-/** 
- * @brief 
- * Hash function from http://www.concentric.net/~Ttwang/tech/inthash.htm  
- * 
+/**
+ * @brief
+ * Hash function from http://www.concentric.net/~Ttwang/tech/inthash.htm
+ *
  * @param pkey The key to hash
  * @param len The length of the key
  * @return The hash value
  */
 static inline int eina_hash_int32(const unsigned int *pkey,
                                   int                 len) EINA_ARG_NONNULL(1);
-/** 
- * @brief 
- * Hash function from http://www.concentric.net/~Ttwang/tech/inthash.htm  
- * 
+
+/**
+ * @brief
+ * Hash function from http://www.concentric.net/~Ttwang/tech/inthash.htm
+ *
  * @param pkey The key to hash
  * @param len The length of the key
  * @return The hash value
@@ -1144,10 +1146,10 @@ static inline int eina_hash_int32(const unsigned int *pkey,
 static inline int eina_hash_int64(const unsigned long long int *pkey,
                                   int                      len) EINA_ARG_NONNULL(1);
 
-/** 
- * @brief 
- * Hash function from http://sites.google.com/site/murmurhash/  
- * 
+/**
+ * @brief
+ * Hash function from http://sites.google.com/site/murmurhash/
+ *
  * @param key The key to hash
  * @param len The length of the key
  * @return The hash value

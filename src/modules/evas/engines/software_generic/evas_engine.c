@@ -5,6 +5,10 @@
 #include "evas_cs2_private.h"
 #endif
 
+#include <software/Ector_Software.h>
+
+#include "ector_cairo_software_surface.eo.h"
+
 #ifdef HAVE_DLSYM
 # include <dlfcn.h>      /* dlopen,dlclose,etc */
 
@@ -56,6 +60,9 @@
 #define OSMESA_TYPE		0x23
 #define OSMESA_MAX_WIDTH	0x24  /* new in 4.0 */
 #define OSMESA_MAX_HEIGHT	0x25  /* new in 4.0 */
+
+/* Required for orient */
+#define TILE 32
 
 
 typedef void (*OSMESAproc)();
@@ -289,6 +296,8 @@ typedef struct _Evas_Thread_Command_Image Evas_Thread_Command_Image;
 typedef struct _Evas_Thread_Command_Font Evas_Thread_Command_Font;
 typedef struct _Evas_Thread_Command_Map Evas_Thread_Command_Map;
 typedef struct _Evas_Thread_Command_Multi_Font Evas_Thread_Command_Multi_Font;
+typedef struct _Evas_Thread_Command_Ector Evas_Thread_Command_Ector;
+typedef struct _Evas_Thread_Command_Ector_Surface Evas_Thread_Command_Ector_Surface;
 
 struct _Evas_Thread_Command_Rect
 {
@@ -349,6 +358,7 @@ struct _Evas_Thread_Command_Font
    void *gl_draw;
    void *font_ext_data;
    DATA32 col;
+   DATA32 mul_col;
    Eina_Rectangle clip_rect, ext;
    int im_w, im_h;
    void *mask;
@@ -379,6 +389,23 @@ struct _Evas_Thread_Command_Multi_Font
    Evas_Font_Array *texts;
 };
 
+struct _Evas_Thread_Command_Ector
+{
+   Ector_Renderer *r;
+   Eina_Array *clips;
+
+   DATA32 mul_col;
+   Ector_Rop render_op;
+
+   Eina_Bool free_it;
+};
+
+struct _Evas_Thread_Command_Ector_Surface
+{
+   void *surface;
+   int x, y;
+};
+
 Eina_Mempool *_mp_command_rect = NULL;
 Eina_Mempool *_mp_command_line = NULL;
 Eina_Mempool *_mp_command_polygon = NULL;
@@ -386,7 +413,8 @@ Eina_Mempool *_mp_command_image = NULL;
 Eina_Mempool *_mp_command_font = NULL;
 Eina_Mempool *_mp_command_map = NULL;
 Eina_Mempool *_mp_command_multi_font = NULL;
-
+Eina_Mempool *_mp_command_ector = NULL;
+Eina_Mempool *_mp_command_ector_surface = NULL;
 /*
  *****
  **
@@ -1292,6 +1320,380 @@ eng_image_data_put(void *data, void *image, DATA32 *image_data)
 }
 
 static void
+_image_flip_horizontal(DATA32 *pixels_out, const DATA32 *pixels_in,
+                       int iw, int ih)
+{
+   const unsigned int *pi1, *pi2;
+   unsigned int *po1, *po2;
+   int x, y;
+
+   for (y = 0; y < ih; y++)
+     {
+        pi1 = pixels_in + (y * iw);
+        pi2 = pixels_in + ((y + 1) * iw) - 1;
+        po1 = pixels_out + (y * iw);
+        po2 = pixels_out + ((y + 1) * iw) - 1;
+        for (x = 0; x < (iw >> 1); x++)
+          {
+             *po2 = *pi1;
+             *po1 = *pi2;
+             pi1++; po1++;
+             pi2--; po2--;
+          }
+     }
+}
+
+static void
+_image_flip_vertical(DATA32 *pixels_out, const DATA32 *pixels_in,
+                     int iw, int ih)
+{
+   const unsigned int *pi1, *pi2;
+   unsigned int *po1, *po2;
+   int x, y;
+
+   for (y = 0; y < (ih >> 1); y++)
+     {
+        pi1 = pixels_in + (y * iw);
+        pi2 = pixels_in + ((ih - 1 - y) * iw);
+        po1 = pixels_out + (y * iw);
+        po2 = pixels_out + ((ih - 1 - y) * iw);
+        for (x = 0; x < iw; x++)
+          {
+             *po2 = *pi1;
+             *po1 = *pi2;
+             pi1++; po1++;
+             pi2++; po2++;
+          }
+     }
+}
+
+static void
+_image_rotate_180(DATA32 *pixels_out, const DATA32 *pixels_in,
+                  int iw, int ih)
+{
+   const unsigned int *pi1, *pi2;
+   unsigned int *po1, *po2;
+   int hw;
+
+   hw = iw * ih;
+   pi1 = pixels_in;
+   pi2 = pixels_in + hw - 1;
+   po1 = pixels_out;
+   po2 = pixels_out + hw - 1;
+   for (; pi1 < pi2; )
+     {
+        *po2 = *pi1;
+        *po1 = *pi2;
+        pi1++; po1++;
+        pi2--; po2--;
+     }
+}
+
+static void
+_image_rotate_90(DATA32 *pixels_out, const DATA32 *pixels_in, int iw, int ih)
+{
+   int x, y, xx, yy, xx2, yy2;
+
+   for (y = 0; y < ih; y += TILE)
+     {
+        yy2 = y + TILE;
+        if (yy2 > ih) yy2 = ih;
+        for (x = 0; x < iw; x += TILE)
+          {
+             xx2 = x + TILE;
+             if (xx2 > iw) xx2 = iw;
+             for (yy = y; yy < yy2; yy++)
+               {
+                  const unsigned int *src;
+                  unsigned int *dst;
+
+                  src = pixels_in + (yy * iw) + x;
+                  dst = pixels_out + (x * ih) + (ih - yy - 1);
+                  for (xx = x; xx < xx2; xx++)
+                    {
+                       *dst = *src;
+                       src++;
+                       dst += ih;
+                    }
+               }
+          }
+     }
+}
+
+static void
+_image_rotate_270(DATA32 *pixels_out, const DATA32 *pixels_in, int iw, int ih)
+{
+   int x, y, xx, yy, xx2, yy2;
+
+   for (y = 0; y < ih; y += TILE)
+     {
+        yy2 = y + TILE;
+        if (yy2 > ih) yy2 = ih;
+        for (x = 0; x < iw; x += TILE)
+          {
+             xx2 = x + TILE;
+             if (xx2 > iw) xx2 = iw;
+             for (yy = y; yy < yy2; yy++)
+               {
+                  const unsigned int *src;
+                  unsigned int *dst;
+
+                  src = pixels_in + (yy * iw) + x;
+                  dst = pixels_out + ((iw - x - 1) * ih) + yy;
+                  for (xx = x; xx < xx2; xx++)
+                    {
+                       *dst = *src;
+                       src++;
+                       dst -= ih;
+                    }
+               }
+          }
+     }
+}
+
+static void
+_image_flip_transpose(DATA32 *pixels_out, const DATA32 *pixels_in,
+                      int iw, int ih)
+{
+   int x, y;
+   const unsigned int *src;
+
+   src = pixels_in;
+   for (y = 0; y < ih; y++)
+     {
+        unsigned int *dst;
+
+        dst = pixels_out + y;
+        for (x = 0; x < iw; x++)
+          {
+             unsigned int tmp = *src;
+             *dst = tmp;
+             src++;
+             dst += ih;
+          }
+     }
+}
+
+static void
+_image_flip_transverse(DATA32 *pixels_out, const DATA32 *pixels_in,
+                       int iw, int ih)
+{
+   int x, y;
+   const unsigned int *src;
+
+   src = pixels_in + (iw * ih) - 1;
+   for (y = 0; y < ih; y++)
+     {
+        unsigned int *dst;
+
+        dst = pixels_out + y;
+        for (x = 0; x < iw; x++)
+          {
+             *dst = *src;
+             src--;
+             dst += ih;
+          }
+     }
+}
+
+static void *
+eng_image_orient_set(void *data EINA_UNUSED, void *image, Evas_Image_Orient orient)
+{
+   Image_Entry *im;
+   Image_Entry *im_new;
+   void *pixels_in;
+   void *pixels_out;
+   int tw, th;
+   int w, h;
+
+   if (!image) return NULL;
+   im = image;
+   if (im->orient == orient) return im;
+
+   if (im->orient == EVAS_IMAGE_ORIENT_90 ||
+       im->orient == EVAS_IMAGE_ORIENT_270 ||
+       im->orient == EVAS_IMAGE_FLIP_TRANSPOSE ||
+       im->orient == EVAS_IMAGE_FLIP_TRANSVERSE)
+     {
+        tw = im->h;
+        th = im->w;
+     }
+   else
+     {
+        th = im->h;
+        tw = im->w;
+     }
+
+   if (orient == EVAS_IMAGE_ORIENT_90 ||
+       orient == EVAS_IMAGE_ORIENT_270 ||
+       orient == EVAS_IMAGE_FLIP_TRANSPOSE ||
+       orient == EVAS_IMAGE_FLIP_TRANSVERSE)
+     {
+        w = th;
+        h = tw;
+     }
+   else
+     {
+        h = th;
+        w = tw;
+     }
+
+   im_new = evas_cache_image_copied_data(evas_common_image_cache_get(),
+                                         w, h, NULL, im->flags.alpha,
+                                         EVAS_COLORSPACE_ARGB8888);
+   if (!im_new) return im;
+
+#if EVAS_CSERVE2
+   if (evas_cserve2_use_get() && evas_cache2_image_cached(im))
+     evas_cache2_image_load_data(im);
+   else
+#endif
+     evas_cache_image_load_data(im);
+
+   pixels_in = evas_cache_image_pixels(im);
+   pixels_out = evas_cache_image_pixels(im_new);
+
+   if (!pixels_out || !pixels_in) goto on_error;
+
+   if ((im->orient >= EVAS_IMAGE_ORIENT_0) &&
+       (im->orient <= EVAS_IMAGE_ORIENT_270) &&
+       (orient >= EVAS_IMAGE_ORIENT_0) &&
+       (orient <= EVAS_IMAGE_ORIENT_270))
+     {
+        // we are rotating from one anglee to another, so figure out delta
+        // and apply that delta
+        Evas_Image_Orient rot_delta = (4 + orient - im->orient) % 4;
+        switch (rot_delta)
+          {
+           case EVAS_IMAGE_ORIENT_0:
+              ERR("You shouldn't get this message, wrong orient value");
+              goto on_error;
+           case EVAS_IMAGE_ORIENT_90:
+              _image_rotate_90(pixels_out, pixels_in, im->w, im->h);
+              break;
+           case EVAS_IMAGE_ORIENT_180:
+              _image_rotate_180(pixels_out, pixels_in, im->w, im->h);
+              break;
+           case EVAS_IMAGE_ORIENT_270:
+              _image_rotate_270(pixels_out, pixels_in, im->w, im->h);
+              break;
+           default:
+              ERR("Wrong orient value");
+              goto on_error;
+          }
+     }
+   else if (((im->orient == EVAS_IMAGE_ORIENT_NONE) &&
+             (orient == EVAS_IMAGE_FLIP_HORIZONTAL)) ||
+            ((im->orient == EVAS_IMAGE_FLIP_HORIZONTAL) &&
+             (orient == EVAS_IMAGE_ORIENT_NONE)))
+     {
+        // flip horizontally to get the new orientation
+        _image_flip_horizontal(pixels_out, pixels_in, im->w, im->h);
+     }
+   else if (((im->orient == EVAS_IMAGE_ORIENT_NONE) &&
+             (orient == EVAS_IMAGE_FLIP_VERTICAL)) ||
+            ((im->orient == EVAS_IMAGE_FLIP_VERTICAL) &&
+             (orient == EVAS_IMAGE_ORIENT_NONE)))
+     {
+        // flip vertically to get the new orientation
+        _image_flip_vertical(pixels_out, pixels_in, im->w, im->h);
+     }
+   else
+     {
+        // generic solution - undo the previous orientation and then apply the
+        // new one after that
+        void *pixels_tmp;
+
+        pixels_tmp = malloc(sizeof (unsigned int) * w * h);
+        if (!pixels_tmp) goto on_error;
+
+        // Undoing previous rotation
+        switch (im->orient)
+          {
+           case EVAS_IMAGE_ORIENT_0:
+              // FIXME: could be easily optimized away
+              memcpy(pixels_tmp, pixels_in, sizeof (unsigned int) * w * h);
+              break;
+           case EVAS_IMAGE_ORIENT_90:
+              _image_rotate_270(pixels_tmp, pixels_in, im->w, im->h);
+              break;
+           case EVAS_IMAGE_ORIENT_180:
+              _image_rotate_180(pixels_tmp, pixels_in, im->w, im->h);
+              break;
+           case EVAS_IMAGE_ORIENT_270:
+              _image_rotate_90(pixels_tmp, pixels_in, im->w, im->h);
+              break;
+           case EVAS_IMAGE_FLIP_HORIZONTAL:
+              _image_flip_horizontal(pixels_tmp, pixels_in, im->w, im->h);
+              break;
+           case EVAS_IMAGE_FLIP_VERTICAL:
+              _image_flip_vertical(pixels_tmp, pixels_in, im->w, im->h);
+              break;
+           case EVAS_IMAGE_FLIP_TRANSPOSE:
+              _image_flip_transpose(pixels_tmp, pixels_in, im->w, im->h);
+              break;
+           case EVAS_IMAGE_FLIP_TRANSVERSE:
+              _image_flip_transverse(pixels_tmp, pixels_in, im->w, im->h);
+              break;
+           default:
+              ERR("Wrong orient value");
+              goto on_error;
+          }
+
+        // Doing the new requested one
+        switch (orient)
+          {
+           case EVAS_IMAGE_ORIENT_0:
+              // FIXME: could be easily optimized away
+              memcpy(pixels_out, pixels_tmp, sizeof (unsigned int) * w * h);
+              break;
+           case EVAS_IMAGE_ORIENT_90:
+              _image_rotate_90(pixels_out, pixels_tmp, tw, th);
+              break;
+           case EVAS_IMAGE_ORIENT_180:
+              _image_rotate_180(pixels_out, pixels_tmp, tw, th);
+              break;
+           case EVAS_IMAGE_ORIENT_270:
+              _image_rotate_270(pixels_out, pixels_tmp, tw, th);
+              break;
+           case EVAS_IMAGE_FLIP_HORIZONTAL:
+              _image_flip_horizontal(pixels_out, pixels_tmp, tw, th);
+              break;
+           case EVAS_IMAGE_FLIP_VERTICAL:
+              _image_flip_vertical(pixels_out, pixels_tmp, tw, th);
+              break;
+           case EVAS_IMAGE_FLIP_TRANSPOSE:
+              _image_flip_transpose(pixels_out, pixels_tmp, tw, th);
+              break;
+           case EVAS_IMAGE_FLIP_TRANSVERSE:
+              _image_flip_transverse(pixels_out, pixels_tmp, tw, th);
+              break;
+          }
+
+        free(pixels_tmp);
+     }
+
+   im_new->orient = orient;
+   evas_cache_image_drop(im);
+
+   return im_new;
+
+ on_error:
+   evas_cache_image_drop(im_new);
+   return im;
+}
+
+static Evas_Image_Orient
+eng_image_orient_get(void *data EINA_UNUSED, void *image)
+{
+   Image_Entry *im;
+
+   if (!image) return EVAS_IMAGE_ORIENT_NONE;
+   im = image;
+   return im->orient;
+}
+
+static void
 eng_image_data_preload_request(void *data EINA_UNUSED, void *image, const Eo *target)
 {
    RGBA_Image *im = image;
@@ -1449,6 +1851,8 @@ eng_image_draw(void *data EINA_UNUSED, void *context, void *surface, void *image
 
    if (!image) return EINA_FALSE;
    im = image;
+   if (im->native.func.bind)
+      im->native.func.bind(data, image, src_x, src_y, src_w, src_h);
 
    if (do_async)
      {
@@ -1506,6 +1910,8 @@ eng_image_draw(void *data EINA_UNUSED, void *context, void *surface, void *image
         evas_common_cpu_end_opt();
      }
 
+   if (im->native.func.unbind)
+      im->native.func.unbind(data, image);
    return EINA_FALSE;
 }
 
@@ -2265,6 +2671,8 @@ _draw_thread_font_draw(void *data)
    dc.font_ext.func.gl_free = font->gl_free;
    dc.font_ext.func.gl_draw = font->gl_draw;
    dc.col.col = font->col;
+   dc.mul.col = font->mul_col;
+   dc.mul.use = (font->mul_col == 0xffffffff) ? 0 : 1;
    dc.clip.use = font->clip_use;
    dc.clip.x = font->clip_rect.x;
    dc.clip.y = font->clip_rect.y;
@@ -2299,6 +2707,7 @@ _font_draw_thread_cmd(RGBA_Image *dst, RGBA_Draw_Context *dc, int x, int y, Evas
    cf->gl_draw = dc->font_ext.func.gl_draw;
    cf->font_ext_data = dc->font_ext.data;
    cf->col = dc->col.col;
+   cf->mul_col = dc->mul.use ? dc->mul.col : 0xffffffff;
    cf->clip_use = dc->clip.use;
    EINA_RECTANGLE_SET(&cf->clip_rect,
                       dc->clip.x, dc->clip.y, dc->clip.w, dc->clip.h);
@@ -3029,8 +3438,10 @@ eng_output_redraws_next_update_get(void *data, int *x, int *y, int *w, int *h, i
         surface = re->outbuf_new_region_for_update(re->ob,
                                                    *x, *y, *w, *h,
                                                    cx, cy, cw, ch);
-        if (!re->cur_rect)
+        if ((!re->cur_rect) || (!surface))
           {
+             evas_common_tilebuf_free_render_rects(re->rects);
+             re->rects = NULL;
              re->end = 1;
           }
         return surface;
@@ -3079,6 +3490,257 @@ eng_output_idle_flush(void *data)
    if (re->outbuf_idle_flush) re->outbuf_idle_flush(re->ob);
 }
 
+static Ector_Surface *_software_ector = NULL;
+static Eina_Bool use_cairo;
+
+static Ector_Surface *
+eng_ector_get(void *data EINA_UNUSED)
+{
+   if (!_software_ector)
+     {
+        const char *ector_backend;
+
+        ector_backend = getenv("ECTOR_BACKEND");
+        if (ector_backend && !strcasecmp(ector_backend, "freetype"))
+          {
+             _software_ector = eo_add(ECTOR_SOFTWARE_SURFACE_CLASS, NULL);
+             use_cairo = EINA_FALSE;
+          }
+        else
+          {
+             _software_ector = eo_add(ECTOR_CAIRO_SOFTWARE_SURFACE_CLASS, NULL);
+             use_cairo = EINA_TRUE;
+          }
+     }
+   return _software_ector;
+}
+
+static Ector_Rop
+_evas_render_op_to_ector_rop(Evas_Render_Op op)
+{
+   switch (op)
+     {
+      case EVAS_RENDER_BLEND:
+         return ECTOR_ROP_BLEND;
+      case EVAS_RENDER_COPY:
+         return ECTOR_ROP_COPY;
+      default:
+         return ECTOR_ROP_BLEND;
+     }
+}
+
+static void
+_draw_thread_ector_cleanup(Evas_Thread_Command_Ector *ector)
+{
+   Eina_Rectangle *r;
+
+   while ((r = eina_array_pop(ector->clips)))
+     eina_rectangle_free(r);
+   eina_array_free(ector->clips);
+   eo_unref(ector->r);
+
+   if (ector->free_it)
+     eina_mempool_free(_mp_command_ector, ector);
+}
+
+static void
+_draw_thread_ector_draw(void *data)
+{
+   Evas_Thread_Command_Ector *ector = data;
+
+   eo_do(ector->r,
+         ector_renderer_draw(ector->render_op,
+                             ector->clips,
+                             ector->mul_col));
+
+   _draw_thread_ector_cleanup(ector);
+}
+
+static void
+eng_ector_renderer_draw(void *data EINA_UNUSED, void *context, void *surface, Ector_Renderer *renderer, Eina_Array *clips, Eina_Bool do_async)
+{
+   RGBA_Image *dst = surface;
+   RGBA_Draw_Context *dc = context;
+   Evas_Thread_Command_Ector ector;
+   Eina_Array *c;
+   Eina_Rectangle *r;
+   Eina_Rectangle clip;
+   Eina_Array_Iterator it;
+   unsigned int i;
+
+   if (dc->clip.use)
+     {
+        clip.x = dc->clip.x;
+        clip.y = dc->clip.y;
+        clip.w = dc->clip.w;
+        clip.h = dc->clip.h;
+     }
+   else
+     {
+        clip.x = 0;
+        clip.y = 0;
+        clip.w = dst->cache_entry.w;
+        clip.h = dst->cache_entry.h;
+     }
+
+   c = eina_array_new(8);
+   if (clips)
+     {
+        EINA_ARRAY_ITER_NEXT(clips, i, r, it)
+          {
+             Eina_Rectangle *rc;
+
+             rc = eina_rectangle_new(r->x, r->y, r->w, r->h);
+             if (!rc) continue;
+
+             if (eina_rectangle_intersection(rc, &clip))
+               eina_array_push(c, rc);
+             else
+               eina_rectangle_free(rc);
+          }
+
+        if (eina_array_count(c) == 0 &&
+            eina_array_count(clips) > 0)
+          {
+             eina_array_free(c);
+             return;
+          }
+     }
+
+   if (eina_array_count(c) == 0)
+     eina_array_push(c, eina_rectangle_new(clip.x, clip.y, clip.w, clip.h));
+
+   ector.r = eo_ref(renderer);
+   ector.clips = c;
+   ector.render_op = _evas_render_op_to_ector_rop(dc->render_op);
+   ector.mul_col = ector_color_multiply(dc->mul.use ? dc->mul.col : 0xffffffff,
+                                        dc->col.col);;
+   ector.free_it = EINA_FALSE;
+
+   if (do_async)
+     {
+        Evas_Thread_Command_Ector *ne;
+
+        ne = eina_mempool_malloc(_mp_command_ector, sizeof (Evas_Thread_Command_Ector));
+        if (!ne)
+          {
+             _draw_thread_ector_cleanup(&ector);
+             return;
+          }
+
+        memcpy(ne, &ector, sizeof (Evas_Thread_Command_Ector));
+        ne->free_it = EINA_TRUE;
+
+        evas_thread_cmd_enqueue(_draw_thread_ector_draw, ne);
+     }
+   else
+     {
+        _draw_thread_ector_draw(&ector);
+     }
+}
+
+static void
+_draw_thread_ector_surface_set(void *data)
+{
+   Evas_Thread_Command_Ector_Surface *ector_surface = data;
+   RGBA_Image *surface = ector_surface->surface;
+   void *pixels = NULL;
+   unsigned int w = 0;
+   unsigned int h = 0;
+   unsigned int x = 0;
+   unsigned int y = 0;
+
+   // flush the cpu pipeline before ector drawing.
+   evas_common_cpu_end_opt();
+
+   if (surface)
+     {
+        pixels = evas_cache_image_pixels(&surface->cache_entry);
+        w = surface->cache_entry.w;
+        h = surface->cache_entry.h;
+        x = ector_surface->x;
+        y = ector_surface->y;
+     }
+
+   if (use_cairo)
+     {
+        eo_do(_software_ector,
+              ector_cairo_software_surface_set(pixels, w, h),
+              ector_surface_reference_point_set(x, y));
+     }
+   else
+     {
+        eo_do(_software_ector,
+              ector_software_surface_set(pixels, w, h),
+              ector_surface_reference_point_set(x, y));
+     }
+
+   eina_mempool_free(_mp_command_ector_surface, ector_surface);
+}
+
+static void
+eng_ector_begin(void *data EINA_UNUSED, void *context EINA_UNUSED, void *surface, int x, int y, Eina_Bool do_async)
+{
+   if (do_async)
+     {
+        Evas_Thread_Command_Ector_Surface *nes;
+
+        nes = eina_mempool_malloc(_mp_command_ector_surface, sizeof (Evas_Thread_Command_Ector_Surface));
+        if (!nes) return ;
+
+        nes->surface = surface;
+        nes->x = x;
+        nes->y = y;
+
+        evas_thread_cmd_enqueue(_draw_thread_ector_surface_set, nes);
+     }
+   else
+     {
+        RGBA_Image *sf = surface;
+        void *pixels = NULL;
+        unsigned int w = 0;
+        unsigned int h = 0;
+
+        pixels = evas_cache_image_pixels(&sf->cache_entry);
+        w = sf->cache_entry.w;
+        h = sf->cache_entry.h;
+
+        if (use_cairo)
+          {
+             eo_do(_software_ector,
+                   ector_cairo_software_surface_set(pixels, w, h),
+                   ector_surface_reference_point_set(x, y));
+          }
+        else
+          {
+             eo_do(_software_ector,
+                   ector_software_surface_set(pixels, w, h),
+                   ector_surface_reference_point_set(x, y));
+          }
+     }
+}
+
+static void
+eng_ector_end(void *data EINA_UNUSED, void *context EINA_UNUSED, void *surface EINA_UNUSED, Eina_Bool do_async)
+{
+   if (do_async)
+     {
+        Evas_Thread_Command_Ector_Surface *nes;
+
+        nes = eina_mempool_malloc(_mp_command_ector_surface, sizeof (Evas_Thread_Command_Ector_Surface));
+        if (!nes) return ;
+
+        nes->surface = NULL;
+
+        evas_thread_cmd_enqueue(_draw_thread_ector_surface_set, nes);
+     }
+   else
+     {
+        eo_do(_software_ector, ector_cairo_software_surface_set(NULL, 0, 0));
+
+        evas_common_cpu_end_opt();
+     }
+}
 
 //------------------------------------------------//
 
@@ -3154,6 +3816,8 @@ static Evas_Func func =
      eng_image_data_preload_cancel,
      eng_image_alpha_set,
      eng_image_alpha_get,
+     eng_image_orient_set,
+     eng_image_orient_get,
      eng_image_border_set,
      eng_image_border_get,
      eng_image_draw,
@@ -3200,6 +3864,7 @@ static Evas_Func func =
      eng_image_map_surface_new,
      eng_image_map_surface_free,
      eng_image_map_clean,
+     NULL, // eng_image_scaled_get - used for live scaling in GL only (fastpath)
      NULL, // eng_image_content_hint_set - software doesn't use it
      NULL, // eng_image_content_hint_get - software doesn't use it
      eng_font_pen_coords_get,
@@ -3226,6 +3891,10 @@ static Evas_Func func =
      NULL, // need software mesa for gl rendering <- gl_rotation_angle_get
      NULL, // need software mesa for gl rendering <- gl_surface_query
      NULL, // need software mesa for gl rendering <- gl_surface_direct_renderable_get
+     NULL, // need software mesa for gl rendering <- gl_image_direct_set
+     NULL, // need software mesa for gl rendering <- gl_image_direct_get
+     NULL, // need software mesa for gl rendering <- gl_get_pixels_pre
+     NULL, // need software mesa for gl rendering <- gl_get_pixels_post
      eng_image_load_error_get,
      eng_font_run_font_end_get,
      eng_image_animated_get,
@@ -3242,7 +3911,10 @@ static Evas_Func func =
      NULL, // eng_drawable_free
      NULL, // eng_drawable_size_get
      NULL, // eng_image_drawable_set
-     NULL, // eng_drawable_render_scene
+     NULL, // eng_drawable_scene_render
+     NULL, // eng_drawable_scene_render_to_texture
+     NULL, // eng_drawable_texture_color_pick_id_get
+     NULL, // eng_drawable_texture_pixel_color_get
      NULL, // eng_texture_new
      NULL, // eng_texture_free
      NULL, // eng_texture_data_set
@@ -3254,6 +3926,10 @@ static Evas_Func func =
      NULL, // eng_texture_filter_set
      NULL, // eng_texture_filter_get
      NULL, // eng_texture_image_set
+     eng_ector_get,
+     eng_ector_begin,
+     eng_ector_renderer_draw,
+     eng_ector_end
    /* FUTURE software generic calls go here */
 };
 
@@ -4302,6 +4978,12 @@ module_open(Evas_Module *em)
    _mp_command_multi_font =
      eina_mempool_add("chained_mempool", "Evas_Thread_Command_Multi_Font",
                       NULL, sizeof(Evas_Thread_Command_Multi_Font), 128);
+   _mp_command_ector =
+     eina_mempool_add("chained_mempool", "Evas_Thread_Command_Ector",
+                      NULL, sizeof(Evas_Thread_Command_Ector), 128);
+   _mp_command_ector_surface =
+     eina_mempool_add("chained_mempool", "Evas_Thread_Command_Ector_Surface",
+                      NULL, sizeof(Evas_Thread_Command_Ector_Surface), 128);
 
    init_gl();
    evas_common_pipe_init();
@@ -4320,6 +5002,7 @@ module_close(Evas_Module *em EINA_UNUSED)
    eina_mempool_del(_mp_command_image);
    eina_mempool_del(_mp_command_font);
    eina_mempool_del(_mp_command_map);
+   eina_mempool_del(_mp_command_ector);
    eina_log_domain_unregister(_evas_soft_gen_log_dom);
 }
 
@@ -4334,7 +5017,19 @@ static Evas_Module_Api evas_modapi =
    }
 };
 
-EVAS_MODULE_DEFINE(EVAS_MODULE_TYPE_ENGINE, engine, software_generic);
+Eina_Bool evas_engine_software_generic_init(void)
+{
+   return evas_module_register(&evas_modapi, EVAS_MODULE_TYPE_ENGINE);
+}
+
+// Time to destroy the ector context
+void evas_engine_software_generic_shutdown(void)
+{
+   if (_software_ector) eo_del(_software_ector);
+   _software_ector = NULL;
+
+   evas_module_unregister(&evas_modapi, EVAS_MODULE_TYPE_ENGINE);
+}
 
 #ifndef EVAS_STATIC_BUILD_SOFTWARE_GENERIC
 EVAS_EINA_MODULE_DEFINE(engine, software_generic);

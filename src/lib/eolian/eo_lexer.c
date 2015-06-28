@@ -692,7 +692,10 @@ _temps_free(Eo_Lexer_Temps *tmp)
      eina_strbuf_free(buf);
 
    EINA_LIST_FREE(tmp->type_defs, tp)
-     database_type_del(tp);
+     if (tp->type == EOLIAN_TYPE_ALIAS)
+       database_typedef_del(tp);
+     else
+       database_type_del(tp);
 
    EINA_LIST_FREE(tmp->strs, s)
      if (s) eina_stringshare_del(s);
@@ -785,7 +788,7 @@ eo_lexer_token_to_str(int token, char *buf)
      {
         memcpy(buf, "<eof>", 6);
      }
-   if (token < START_CUSTOM)
+   else if (token < START_CUSTOM)
      {
         assert((unsigned char)token == token);
         if (iscntrl(token))

@@ -253,7 +253,6 @@ ecore_evas_wayland_egl_new_internal(const char *disp_name, unsigned int parent,
 
  err:
    ecore_evas_free(ee);
-   _ecore_evas_wl_common_shutdown();
 
  ee_err:
    ecore_wl_shutdown();
@@ -373,7 +372,6 @@ _ecore_evas_wl_hide(Ecore_Evas *ee)
    if (!ee->visible) return;
    ee->visible = 0;
    ee->should_be_visible = 0;
-   _ecore_evas_wl_common_frame_callback_clean(ee);
 
    if (ee->func.fn_hide) ee->func.fn_hide(ee);
 }

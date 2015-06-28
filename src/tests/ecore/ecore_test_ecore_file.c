@@ -5,6 +5,9 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <libgen.h>
 
 #include <Ecore_File.h>
 #include <Ecore.h>
@@ -55,29 +58,6 @@ get_tmp_file()
    return tmp_file;
 }
 
-int
-_compare_path(const char *filePathA, const char *filePathB)
-{
-   char realFilePathA[MAXSIZE];
-   char realFilePathB[MAXSIZE];
-#ifdef _WIN32
-   GetFullPathName(filePathA, MAXSIZE, realFilePathA, NULL);
-   GetFullPathName(filePathB, MAXSIZE, realFilePathB, NULL);
-#else
-   realpath(filePathA, realFilePathA);
-   realpath(filePathB, realFilePathB);
-#endif
-   return strcmp(realFilePathA, realFilePathB);
-}
-
-#define assert_path_eq(X, Y)                                            \
-  do {                                                                  \
-     const char* _ck_x = (X);                                           \
-     const char* _ck_y = (Y);                                           \
-     ck_assert_msg(0 == _compare_path(_ck_y, _ck_x),                    \
-                   "Assertion '%s' failed: %s==\"%s\", %s==\"%s\"", #X"=="#Y, #X, _ck_x, #Y, _ck_y); \
-  } while (0)
-
 static void
 file_monitor_cb(void *data EINA_UNUSED, Ecore_File_Monitor *em EINA_UNUSED,
                 Ecore_File_Event event, const char *path)
@@ -116,6 +96,13 @@ completion_cb(void *data EINA_UNUSED, const char *file EINA_UNUSED, int status)
    ecore_main_loop_quit();
 }
 
+void
+err_completion_cb(void *data EINA_UNUSED, const char *file EINA_UNUSED, int status)
+{
+   fail_if(status != 1);
+   ecore_main_loop_quit();
+}
+
 int
 progress_cb(void *data EINA_UNUSED, const char *file EINA_UNUSED,
             long int dltotal, long int dlnow,
@@ -140,13 +127,21 @@ END_TEST
 START_TEST(ecore_test_ecore_file_operations)
 {
    const char* dirs[] = {"b", "b/c", "b/c/d", "d", 0};
+   char *dirs2[] = {"a2", "b2", "c2", 0};
    const char *src_dir, *src_file, *dest_file;
+   const char *not_exist_file;
    const char *tmpdir = NULL;
+   char *dup_dir, *path;
    char *random_text = "This is random test String";
+   char *escaped_text = "This\\ is\\ random\\ test\\ String";
+   char *exe_cmd = "test.sh --opt1=a --opt2=b";
+   char *exe = "test.sh";
    char dir[MAXSIZE] = {'\0'};
    unsigned int ret;
+   int fd;
+   int i;
    Eina_Bool res;
-   Eina_List *list;
+   Eina_List *list, *l;
 
 #ifndef HAVE_EVIL
 #if defined(HAVE_GETUID) && defined(HAVE_GETEUID)
@@ -227,8 +222,8 @@ START_TEST(ecore_test_ecore_file_operations)
 
    res = ecore_file_symlink(src_file, dest_file);
    fail_if(res != EINA_TRUE);
-   assert_path_eq(ecore_file_readlink(dest_file), src_file);
-   assert_path_eq(ecore_file_realpath(dest_file), src_file);
+   ck_assert_str_eq(ecore_file_readlink(dest_file), src_file);
+   ck_assert_str_eq(ecore_file_realpath(dest_file), src_file);
    res = ecore_file_unlink(dest_file);
    fail_if(res != EINA_TRUE);
 
@@ -241,14 +236,153 @@ START_TEST(ecore_test_ecore_file_operations)
    res = ecore_file_exists(src_file);
    fail_if(res != EINA_FALSE);
 
-   assert_path_eq(ecore_file_dir_get(dest_file), tmpdir);
-   assert_path_eq(ecore_file_realpath(dest_file), dest_file);
+   ck_assert_str_eq(ecore_file_dir_get(dest_file), tmpdir);
+   ck_assert_str_eq(ecore_file_realpath(dest_file), dest_file);
    fail_if(ecore_file_mod_time(dest_file) == 0);
    fail_if(ecore_file_can_read(dest_file) != EINA_TRUE);
    fail_if(ecore_file_can_write(dest_file) != EINA_TRUE);
    fail_if(ecore_file_can_exec(dest_file) != EINA_FALSE);
    res = ecore_file_remove(dest_file);
    fail_if(res != EINA_TRUE);
+
+   ck_assert_str_eq(ecore_file_app_exe_get(exe_cmd), exe);
+   ck_assert_str_eq(ecore_file_escape_name(random_text), escaped_text);
+   ck_assert_str_eq(ecore_file_strip_ext(exe), "test");
+   res = ecore_file_app_installed(random_text);
+   fail_if(res != EINA_FALSE);
+   src_file = get_tmp_file();
+   fail_if(!src_file);
+   fail_if(ecore_file_remove(src_file) != EINA_TRUE);
+   fd = open(src_file, O_RDWR|O_CREAT, 0700);
+   fail_if(fd < 0);
+   fail_if(close(fd) != 0);
+   fail_if(ecore_file_can_exec(src_file) != EINA_TRUE);
+   dup_dir = strdup(src_file);
+   fail_if(!dup_dir);
+   dest_file = basename(dup_dir);
+   dup_dir = strdup(src_file);
+
+   src_dir = getenv("PATH");
+   fail_if(!src_dir);
+   path = malloc(strlen(src_dir) + strlen(dup_dir) + 1);
+   strcat(path, src_dir);
+   strcat(path, ":");
+   strcat(path, dirname(dup_dir));
+   ret = setenv("PATH", path, 1);
+   fail_if(ret != 0);
+   free(dup_dir);
+   free(path);
+   ret = ecore_file_shutdown();
+   fail_if(ret != 0);
+   ret = ecore_file_init();
+   fail_if(ret != 1);
+
+   res = ecore_file_app_installed(dest_file);
+   fail_if(res != EINA_TRUE);
+   res = ecore_file_app_installed(src_file);
+   fail_if(res != EINA_TRUE);
+   list = NULL;
+   list = ecore_file_app_list();
+   fd = 0;
+   EINA_LIST_FOREACH(list, l, path)
+     {
+        if (strcmp(path, src_file) == 0)
+          {
+             fd = 1;
+             break;
+          }
+     }
+   fail_if(fd == 0);
+   EINA_LIST_FREE(list, dup_dir)
+     free(dup_dir);
+   ret = setenv("PATH", src_dir, 1);
+   fail_if(ret != 0);
+
+   src_dir = get_tmp_dir();
+   fail_if(!src_dir);
+   strcpy(dir, src_dir);
+   strcat(dir, "/");
+   strcat(dir, dirs[0]);
+   fail_if(ecore_file_mkdir(dir) != EINA_TRUE);
+
+   fail_if(ecore_file_mkdirs(NULL) != -1);
+   for (i = 0; i < 3; i++)
+     {
+        char tmp[PATH_MAX];
+        strcpy(tmp, src_dir);
+        strcat(tmp, "/");
+        strcat(tmp, dirs2[i]);
+        dirs2[i] = strdup(tmp);
+     }
+   fail_if(ecore_file_mkdirs((const char **)dirs2) != 3);
+   for (i = 0; i < 3; i++)
+     free(dirs2[i]);
+
+   fail_if(ecore_file_mksubdirs(src_dir, NULL) != -1);
+   fail_if(ecore_file_mksubdirs(NULL, dirs) != -1);
+   fail_if(ecore_file_mksubdirs("", dirs) != -1);
+   fail_if(ecore_file_mksubdirs(src_file, dirs) != 0);
+
+   src_dir = get_tmp_dir();
+   fail_if(!src_dir);
+   fail_if(ecore_file_rmdir(src_dir) != EINA_TRUE);
+   fail_if(ecore_file_dir_is_empty(src_dir) != -1);
+   fail_if(ecore_file_ls(src_dir) != NULL);
+
+   not_exist_file = get_tmp_file();
+   fail_if(!not_exist_file);
+   fail_if(ecore_file_remove(not_exist_file) != EINA_TRUE);
+   fail_if(ecore_file_exists(not_exist_file) != EINA_FALSE);
+   fail_if(ecore_file_mod_time(not_exist_file) != 0);
+   fail_if(ecore_file_size(not_exist_file) != 0);
+
+   ck_assert_str_eq(ecore_file_realpath(NULL), "");
+   ck_assert_str_eq(ecore_file_realpath(not_exist_file), "");
+
+   src_file = get_tmp_file();
+   fail_if(!src_file);
+   fail_if(ecore_file_remove(src_file) != EINA_TRUE);
+   fd = open(src_file, O_RDWR|O_CREAT, 0400);
+   fail_if(fd < 0);
+   fail_if(close(fd) != 0);
+   fail_if(ecore_file_can_read(src_file) != EINA_TRUE);
+   fail_if(ecore_file_can_write(src_file) != EINA_FALSE);
+   fail_if(ecore_file_can_exec(src_file) != EINA_FALSE);
+   fail_if(ecore_file_cp(src_file, src_file) != EINA_FALSE);
+
+   src_file = get_tmp_file();
+   fail_if(!src_file);
+   fail_if(ecore_file_remove(src_file) != EINA_TRUE);
+   fd = open(src_file, O_RDWR|O_CREAT, 0200);
+   fail_if(fd < 0);
+   fail_if(close(fd) != 0);
+   fail_if(ecore_file_can_read(src_file) != EINA_FALSE);
+   fail_if(ecore_file_can_write(src_file) != EINA_TRUE);
+   fail_if(ecore_file_can_exec(src_file) != EINA_FALSE);
+
+   src_file = get_tmp_file();
+   fail_if(!src_file);
+   fail_if(ecore_file_remove(src_file) != EINA_TRUE);
+   fd = open(src_file, O_RDWR|O_CREAT, 0100);
+   fail_if(fd < 0);
+   fail_if(close(fd) != 0);
+   fail_if(ecore_file_can_read(src_file) != EINA_FALSE);
+   fail_if(ecore_file_can_write(src_file) != EINA_FALSE);
+   fail_if(ecore_file_can_exec(src_file) != EINA_TRUE);
+
+   fail_if(ecore_file_unlink(not_exist_file) != EINA_FALSE);
+   fail_if(ecore_file_remove(not_exist_file) != EINA_FALSE);
+   fail_if(ecore_file_cp(not_exist_file, "test_file") != EINA_FALSE);
+   fail_if(ecore_file_mv(not_exist_file, "test_file") != EINA_FALSE);
+
+   fail_if(ecore_file_mkpath(src_dir) != EINA_TRUE);
+   fail_if(ecore_file_mkpath(NULL) != EINA_FALSE);
+   fail_if(ecore_file_mkpaths(dirs) != 4);
+   fail_if(ecore_file_mkpaths(NULL) != -1);
+
+   fail_if(ecore_file_dir_get(NULL) != NULL);
+   fail_if(ecore_file_strip_ext(NULL) != NULL);
+   fail_if(ecore_file_escape_name(NULL) != NULL);
 
    ret = ecore_file_shutdown();
    fail_if(ret != 0);
@@ -286,7 +420,7 @@ START_TEST(ecore_test_ecore_file_monitor)
    _writeToFile(file_name, random_text);
    _writeToFile(file_name, random_text);
 
-   assert_path_eq(ecore_file_monitor_path_get(mon), realp);
+   ck_assert_str_eq(ecore_file_monitor_path_get(mon), realp);
 
    ret = ecore_file_mksubdirs(src_dir, sub_dir);
    fail_if(ret != 1);
@@ -319,6 +453,7 @@ START_TEST(ecore_test_ecore_file_download)
    char dest_name[MAXSIZE] = {'\0'};
    Eina_Bool res;
    Eina_Hash *headers;
+   Ecore_File_Download_Job *job = NULL;
    int ret;
 
    ret = ecore_file_init();
@@ -328,17 +463,32 @@ START_TEST(ecore_test_ecore_file_download)
    fail_if(!download_dir);
    download_file = ecore_file_file_get(download_url);
    fail_if(!download_file);
+   fail_if(!ecore_file_download_protocol_available("http://"));
    strcat(dest_name, download_dir);
    strcat(dest_name, "/");
    strcat(dest_name, download_file);
    res = ecore_file_download(download_url, dest_name, completion_cb,
-                             progress_cb, NULL, NULL);
+                             progress_cb, NULL, &job);
    fail_if(res != EINA_TRUE);
+   fail_if(!job);
    ecore_main_loop_begin();
    fprintf(stderr, "Downloaded %lld bytes\n", ecore_file_size(dest_name));
    res = ecore_file_exists(dest_name);
    fail_if(res != EINA_TRUE);
    res = ecore_file_unlink(dest_name);
+   fail_if(res != EINA_TRUE);
+
+   res = ecore_file_download("xxyyzz", dest_name, completion_cb,
+                             progress_cb, NULL, &job);
+   fail_if(res != EINA_FALSE);
+
+   res = ecore_file_download(download_url, dest_name, err_completion_cb,
+                             progress_cb, NULL, &job);
+   fail_if(res != EINA_TRUE);
+   fail_if(!job);
+   ecore_file_download_abort(job);
+   ecore_main_loop_begin();
+   res = ecore_file_remove(dest_name);
    fail_if(res != EINA_TRUE);
 
    headers = eina_hash_string_small_new(NULL);
@@ -350,6 +500,9 @@ START_TEST(ecore_test_ecore_file_download)
    ecore_main_loop_begin();
    fprintf(stderr, "Downloaded %lld bytes\n", ecore_file_size(dest_name));
    res = ecore_file_exists(dest_name);
+   fail_if(res != EINA_TRUE);
+
+   res = ecore_file_recursive_rm(download_dir);
    fail_if(res != EINA_TRUE);
 
    ret = ecore_file_shutdown();

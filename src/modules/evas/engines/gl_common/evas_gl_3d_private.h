@@ -7,6 +7,7 @@ typedef struct _E3D_Program   E3D_Program;
 typedef struct _E3D_Draw_Data E3D_Draw_Data;
 typedef unsigned long         E3D_Shader_Flag;
 
+// NOTE: order here should be equal with flag names in file evas_gl_3d_shader.c
 #define E3D_SHADER_FLAG_NORMALIZE_NORMALS       (1 << 0)
 #define E3D_SHADER_FLAG_VERTEX_POSITION         (1 << 1)
 #define E3D_SHADER_FLAG_VERTEX_POSITION_BLEND   (1 << 2)
@@ -25,19 +26,20 @@ typedef unsigned long         E3D_Shader_Flag;
 #define E3D_SHADER_FLAG_DIFFUSE                 (1 << 15)
 #define E3D_SHADER_FLAG_SPECULAR                (1 << 16)
 #define E3D_SHADER_FLAG_EMISSION                (1 << 17)
-#define E3D_SHADER_FLAG_DIFFUSE_TEXTURE         (1 << 19)
-#define E3D_SHADER_FLAG_AMBIENT_TEXTURE         (1 << 20)
-#define E3D_SHADER_FLAG_SPECULAR_TEXTURE        (1 << 21)
-#define E3D_SHADER_FLAG_EMISSION_TEXTURE        (1 << 22)
-#define E3D_SHADER_FLAG_NORMAL_TEXTURE          (1 << 23)
-#define E3D_SHADER_FLAG_DIFFUSE_TEXTURE_BLEND   (1 << 24)
-#define E3D_SHADER_FLAG_AMBIENT_TEXTURE_BLEND   (1 << 25)
-#define E3D_SHADER_FLAG_SPECULAR_TEXTURE_BLEND  (1 << 26)
-#define E3D_SHADER_FLAG_EMISSION_TEXTURE_BLEND  (1 << 27)
-#define E3D_SHADER_FLAG_NORMAL_TEXTURE_BLEND    (1 << 28)
-#define E3D_SHADER_FLAG_FOG_ENABLED             (1 << 29)
+#define E3D_SHADER_FLAG_DIFFUSE_TEXTURE         (1 << 18)
+#define E3D_SHADER_FLAG_AMBIENT_TEXTURE         (1 << 19)
+#define E3D_SHADER_FLAG_SPECULAR_TEXTURE        (1 << 20)
+#define E3D_SHADER_FLAG_EMISSION_TEXTURE        (1 << 21)
+#define E3D_SHADER_FLAG_NORMAL_TEXTURE          (1 << 22)
+#define E3D_SHADER_FLAG_DIFFUSE_TEXTURE_BLEND   (1 << 23)
+#define E3D_SHADER_FLAG_AMBIENT_TEXTURE_BLEND   (1 << 24)
+#define E3D_SHADER_FLAG_SPECULAR_TEXTURE_BLEND  (1 << 25)
+#define E3D_SHADER_FLAG_EMISSION_TEXTURE_BLEND  (1 << 26)
+#define E3D_SHADER_FLAG_NORMAL_TEXTURE_BLEND    (1 << 27)
+#define E3D_SHADER_FLAG_FOG_ENABLED             (1 << 28)
+#define E3D_SHADER_FLAG_ALPHA_TEST_ENABLED      (1 << 29)
 #define E3D_SHADER_FLAG_SHADOWED                (1 << 30)
-
+#define E3D_SHADER_FLAG_COUNT                    31
 
 static inline Eina_Bool
 _flags_need_tex_coord(E3D_Shader_Flag flags)
@@ -89,6 +91,10 @@ struct _E3D_Draw_Data
    Evas_3D_Blend_Func      blend_dfactor;
    Eina_Bool               blending : 1;
 
+   Evas_3D_Comparison      alpha_comparison;
+   Evas_Real               alpha_ref_value;
+   Eina_Bool               alpha_test_enabled :1;
+
    struct {
         Evas_Vec4   position;
         Evas_Vec3   spot_dir;
@@ -100,6 +106,7 @@ struct _E3D_Draw_Data
         Evas_Color  specular;
    } light;
    Evas_Color fog_color;
+   double color_pick_key;
 };
 
 struct _E3D_Texture
@@ -126,13 +133,14 @@ struct _E3D_Drawable
    GLenum   format;
    GLenum   depth_format;
    GLenum   stencil_format;
-
    GLuint   tex;
    GLuint   fbo;
    GLuint   depth_stencil_buf;
    GLuint   depth_buf;
    GLuint   stencil_buf;
    GLuint   texDepth;
+   GLuint texcolorpick;
+   GLuint color_pick_fb_id;
 };
 
 /* Texture internal functions. */

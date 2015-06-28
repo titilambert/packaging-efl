@@ -6,6 +6,7 @@
 #include <Ecore_Cocoa.h>
 #include "ecore_cocoa_private.h"
 #import "ecore_cocoa_window.h"
+#include <Ecore_Input.h>
 
 @implementation EcoreCocoaWindow
 
@@ -49,6 +50,17 @@
 - (void)windowWillClose:(NSNotification *) EINA_UNUSED notification
 {
    NSLog(@"window is going to be closed");
+   Ecore_Cocoa_Event_Window *event;
+
+   event = malloc(sizeof(Ecore_Cocoa_Event_Window));
+   if (event == NULL)
+     {
+	   // FIXME Use Eina_Log
+	   printf("Failed to allocate Ecore_Cocoa_Event_Window_destroy\n");
+	   return;
+     }
+   event->wid = [notification object];
+   ecore_event_add(ECORE_COCOA_EVENT_WINDOW_DESTROY, event, NULL, NULL);
 }
 
 - (void)windowDidResize:(NSNotification *) EINA_UNUSED notif
@@ -67,7 +79,6 @@
       (([self isFullScreen] == YES) ? 0 : ecore_cocoa_titlebar_height_get());
    event->wid = [notif object];
    ecore_event_add(ECORE_COCOA_EVENT_RESIZE, event, NULL, NULL);
-   ecore_main_loop_iterate();
 }
 
 - (void)windowDidBecomeKey:(NSNotification *)notification
@@ -98,11 +109,139 @@
   ecore_event_add(ECORE_COCOA_EVENT_LOST_FOCUS, e, NULL, NULL);
 }
 
+- (void) mouseDown:(NSEvent*) event
+{
+   unsigned int time = (unsigned int)((unsigned long long)(ecore_time_get() * 1000.0) & 0xffffffff);
+
+   NSView *view = [self contentView];
+   NSPoint event_location = [event locationInWindow];
+   NSPoint pt = [view convertPoint:event_location fromView:nil];
+
+   int h = [view frame].size.height;
+   int x = pt.x;
+   int y = h - pt.y;
+
+   Ecore_Event_Mouse_Button * ev = calloc(1, sizeof(Ecore_Event_Mouse_Button));
+   if (!ev) return;
+
+   ev->x = x;
+   ev->y = y;
+   ev->root.x = ev->x;
+   ev->root.y = ev->y;
+   ev->timestamp = time;
+   switch ([event buttonNumber])
+     {
+      case 0: ev->buttons = 1; break;
+      case 1: ev->buttons = 3; break;
+      case 2: ev->buttons = 2; break;
+      default: ev->buttons = 0; break;
+     }
+   ev->window = (Ecore_Window)self.ecore_window_data;
+   ev->event_window = ev->window;
+
+   if ([event clickCount] == 2)
+     ev->double_click = 1;
+   else
+     ev->double_click = 0;
+
+   if ([event clickCount] >= 3)
+     ev->triple_click = 1;
+   else
+     ev->triple_click = 0;
+
+   ecore_event_add(ECORE_EVENT_MOUSE_BUTTON_DOWN, ev, NULL, NULL);
+}
+
+- (void) rightMouseDown:(NSEvent*) event
+{
+	[self mouseDown: event];
+}
+
+- (void) otherMouseDown:(NSEvent*) event
+{
+	[self mouseDown: event];
+}
+
+- (void) mouseUp:(NSEvent*) event
+{
+   unsigned int time = (unsigned int)((unsigned long long)(ecore_time_get() * 1000.0) & 0xffffffff);
+
+   NSView *view = [self contentView];
+   NSPoint event_location = [event locationInWindow];
+   NSPoint pt = [view convertPoint:event_location fromView:nil];
+
+   int h = [view frame].size.height;
+   int x = pt.x;
+   int y = h - pt.y;
+
+   Ecore_Event_Mouse_Button * ev = calloc(1, sizeof(Ecore_Event_Mouse_Button));
+   if (!ev) return;
+
+   ev->x = x;
+   ev->y = y;
+   ev->root.x = ev->x;
+   ev->root.y = ev->y;
+   ev->timestamp = time;
+   switch ([event buttonNumber])
+     {
+      case 0: ev->buttons = 1; break;
+      case 1: ev->buttons = 3; break;
+      case 2: ev->buttons = 2; break;
+      default: ev->buttons = 0; break;
+     }
+   ev->window = (Ecore_Window)self.ecore_window_data;
+   ev->event_window = ev->window;
+
+   if ([event clickCount] == 2)
+     ev->double_click = 1;
+   else
+     ev->double_click = 0;
+
+   if ([event clickCount] >= 3)
+     ev->triple_click = 1;
+   else
+     ev->triple_click = 0;
+
+   ecore_event_add(ECORE_EVENT_MOUSE_BUTTON_UP, ev, NULL, NULL);
+}
+
+- (void) rightMouseUp:(NSEvent*) event
+{
+	[self mouseUp: event];
+}
+
+- (void) otherMouseUp:(NSEvent*) event
+{
+	[self mouseUp: event];
+}
+
+- (void) mouseMoved:(NSEvent*) event
+{
+   Ecore_Event_Mouse_Move * ev = calloc(1, sizeof(Ecore_Event_Mouse_Move));
+   if (!ev) return;
+
+   NSView *view = [self contentView];
+   NSPoint event_location = [event locationInWindow];
+   NSPoint pt = [view convertPoint:event_location fromView:nil];
+
+   ev->x = pt.x;
+   ev->y = [view frame].size.height - pt.y;
+   ev->root.x = ev->x;
+   ev->root.y = ev->y;
+   ev->timestamp = time;
+   ev->window = (Ecore_Window)self.ecore_window_data;
+   ev->event_window = ev->window;
+   ev->modifiers = 0; /* FIXME: keep modifier around. */
+
+   ecore_event_add(ECORE_EVENT_MOUSE_MOVE, ev, NULL, NULL);
+}
+
+- (void) mouseDragged: (NSEvent*) event
+{
+   [self mouseMoved:event];
+}
+
 @end
-
-
-#include "Ecore_Cocoa.h"
-#include "ecore_cocoa_private.h"
 
 Ecore_Cocoa_Window *
 ecore_cocoa_window_new(int x,
@@ -151,6 +290,39 @@ ecore_cocoa_window_free(Ecore_Cocoa_Window *window)
 
   [window->window release];
   free(window);
+}
+
+void
+ecore_cocoa_window_size_min_set(Ecore_Cocoa_Window *window,
+                                unsigned int w,
+                                unsigned int h)
+{
+  if (!window)
+    return;
+  NSSize size = {w,h};
+  window->window.contentMinSize = size;
+}
+
+void
+ecore_cocoa_window_size_max_set(Ecore_Cocoa_Window *window,
+                                unsigned int w,
+                                unsigned int h)
+{
+  if (!window)
+    return;
+  NSSize size = {w,h};
+  window->window.contentMaxSize = size;
+}
+
+void
+ecore_cocoa_window_size_step_set(Ecore_Cocoa_Window *window,
+                                 unsigned int w,
+                                 unsigned int h)
+{
+  if (!window)
+    return;
+  NSSize size = {w,h};
+  window->window.contentResizeIncrements = size;
 }
 
 void
@@ -236,6 +408,46 @@ ecore_cocoa_window_hide(Ecore_Cocoa_Window *window)
     return;
 
   [window->window orderOut:NSApp];
+}
+
+void ecore_cocoa_window_raise(Ecore_Cocoa_Window *window)
+{
+  if (!window)
+    return;
+
+  [window->window orderFront:nil];
+}
+
+void ecore_cocoa_window_lower(Ecore_Cocoa_Window *window)
+{
+   if (!window)
+     return;
+
+   [window->window orderBack:nil];
+}
+
+void ecore_cocoa_window_activate(Ecore_Cocoa_Window *window)
+{
+   if (!window)
+     return;
+
+   [window->window makeKeyAndOrderFront:nil];
+}
+
+void ecore_cocoa_window_iconified_set(Ecore_Cocoa_Window *window,
+                                      int                 on)
+{
+   if (!window)
+     return;
+
+   if (on)
+     {
+        [window->window miniaturize:nil];
+     }
+   else
+     {
+        [window->window deminiaturize:nil];
+     }
 }
 
 void

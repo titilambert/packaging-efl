@@ -1,0 +1,10 @@
+varying  vec4        vColor;
+
+FRAGMENT_SHADER_USE_FOG
+
+void main()
+{
+   gl_FragColor = vColor;
+   FRAGMENT_SHADER_FOG_APPLY
+}
+

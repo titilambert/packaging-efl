@@ -30,6 +30,12 @@ lib_ethumb_libethumb_la_LDFLAGS = @EFL_LTLIBRARY_FLAGS@
 if BUILD_LOADER_PNG
 ethumbmoduleemotiondir = $(libdir)/ethumb/modules/emotion/$(MODULE_ARCH)
 ethumbmoduleemotion_LTLIBRARIES = modules/ethumb/emotion/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_ethumbmoduleemotionLTLIBRARIES = install-ethumbmoduleemotionLTLIBRARIES
+$(install_ethumbmoduleemotionLTLIBRARIES): install-libLTLIBRARIES
+
 modules_ethumb_emotion_module_la_SOURCES = \
 modules/ethumb/emotion/emotion.c
 modules_ethumb_emotion_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
@@ -49,7 +55,7 @@ modules_ethumb_emotion_module_la_LDFLAGS = -module @EFL_LTMODULE_FLAGS@
 modules_ethumb_emotion_module_la_LIBTOOLFLAGS = --tag=disable-static
 
 modules/ethumb/emotion/template.edj: modules/ethumb/emotion/template.edc modules/ethumb/emotion/placeholder.png bin/edje/edje_cc${EXEEXT}
-	@$(mkdir_p) modules/ethumb/emotion
+	$(MKDIR_P) modules/ethumb/emotion
 	$(AM_V_EDJ)$(EDJE_CC) $(EDJE_CC_FLAGS) -id $(srcdir)/modules/ethumb/emotion $< $@
 
 ethumbmoduleemotion_DATA = modules/ethumb/emotion/template.edj

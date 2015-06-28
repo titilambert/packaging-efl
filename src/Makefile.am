@@ -4,12 +4,14 @@ BUILT_SOURCES =
 
 EOLIAN_FLAGS = -I$(srcdir)\
 	       -I$(srcdir)/lib/eo \
+	       -I$(srcdir)/lib/ector \
 	       -I$(srcdir)/lib/evas/canvas \
 	       -I$(srcdir)/lib/edje \
 	       -I$(srcdir)/lib/efl/interfaces \
 	       -I$(srcdir)/lib/ecore_audio \
 	       -I$(srcdir)/lib/ecore \
-	       -I$(srcdir)/lib/ecore_con
+	       -I$(srcdir)/lib/ecore_con \
+	       -I$(srcdir)/lib/eio
 
 DIST_SUBDIRS =
 SUBDIRS =
@@ -31,45 +33,41 @@ include Makefile_Escape.am
 include Makefile_Eina.am
 include Makefile_Eo.am
 include Makefile_Efl.am
+include Makefile_Emile.am
 include Makefile_Eet.am
 include Makefile_Eolian.am
+include Makefile_Ector.am
+include Makefile_Evas.am
 include Makefile_Ecore.am
 include Makefile_Ecore_Con.am
 include Makefile_Ecore_Ipc.am
 include Makefile_Ecore_File.am
-include Makefile_Ecore_Avahi.am
-include Makefile_Embryo.am
-include Makefile_Eio.am
-include Makefile_Eldbus.am
-include Makefile_Efreet.am
-include Makefile_Eeze.am
-
-if BUILD_GUI
-include Makefile_Evas.am
 include Makefile_Ecore_Input.am
 include Makefile_Ecore_Input_Evas.am
 include Makefile_Ecore_Cocoa.am
-include Makefile_Ecore_Drm.am
 include Makefile_Ecore_FB.am
 include Makefile_Ecore_Psl1ght.am
 include Makefile_Ecore_SDL.am
 include Makefile_Ecore_Wayland.am
 include Makefile_Ecore_Win32.am
 include Makefile_Ecore_X.am
-include Makefile_Ecore_Audio.am
 include Makefile_Ecore_IMF.am
 include Makefile_Ecore_IMF_Evas.am
+include Makefile_Eldbus.am
+include Makefile_Eeze.am
+include Makefile_Ecore_Drm.am
 include Makefile_Ecore_Evas.am
+include Makefile_Ecore_Audio.am
+include Makefile_Ecore_Audio_Cxx.am
+include Makefile_Ecore_Avahi.am
+include Makefile_Embryo.am
+include Makefile_Eio.am
+include Makefile_Efreet.am
 include Makefile_EPhysics.am
 include Makefile_Edje.am
 include Makefile_Emotion.am
 include Makefile_Ethumb.am
 include Makefile_Ethumb_Client.am
-
-include Makefile_Ecore_Audio_Cxx.am
-include Makefile_Edje_Cxx.am
-include Makefile_Evas_Cxx.am
-endif
 
 include Makefile_Eina_Cxx.am
 include Makefile_Ecore_Cxx.am
@@ -78,6 +76,10 @@ include Makefile_Eolian_Cxx.am
 include Makefile_Eet_Cxx.am
 include Makefile_Eo_Cxx.am
 include Makefile_Efl_Cxx.am
+include Makefile_Edje_Cxx.am
+include Makefile_Evas_Cxx.am
+include Makefile_Eio_Cxx.am
+
 include Makefile_Elua.am
 include Makefile_Elocation.am
 
@@ -146,6 +148,7 @@ clean-local:
 	find . -type f -name check-results.xml -delete
 
 install-exec-hook:
+	$(MKDIR_P) $(DESTDIR)$(libdir)
 	for i in $(lib_LTLIBRARIES); do \
 	   FNAME="$(DESTDIR)$(libdir)/`echo $$i | sed "s#lib/.*/##"`"; \
 	   FNAMEEXT="$$FNAME.$$$$"; \

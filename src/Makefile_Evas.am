@@ -31,7 +31,15 @@ evas_eolian_files = \
 	lib/evas/canvas/evas_3d_mesh.eo\
 	lib/evas/canvas/evas_3d_node.eo\
 	lib/evas/canvas/evas_3d_scene.eo\
-	lib/evas/canvas/evas_3d_object.eo
+	lib/evas/canvas/evas_3d_object.eo \
+	lib/evas/canvas/evas_vg.eo \
+	lib/evas/canvas/efl_vg_base.eo \
+	lib/evas/canvas/efl_vg_container.eo \
+	lib/evas/canvas/efl_vg_shape.eo \
+	lib/evas/canvas/efl_vg_root_node.eo \
+	lib/evas/canvas/efl_vg_gradient.eo \
+	lib/evas/canvas/efl_vg_gradient_radial.eo \
+	lib/evas/canvas/efl_vg_gradient_linear.eo
 
 evas_eolian_c = $(evas_eolian_files:%.eo=%.eo.c)
 evas_eolian_h = $(evas_eolian_files:%.eo=%.eo.h) \
@@ -76,7 +84,8 @@ lib/evas/include/evas_macros.h \
 lib/evas/include/evas_mmx.h \
 lib/evas/include/evas_common_private.h \
 lib/evas/include/evas_blend_ops.h \
-lib/evas/include/evas_filter.h
+lib/evas/include/evas_filter.h \
+lib/evas/canvas/evas_vg_private.h
 
 # Linebreak
 
@@ -131,9 +140,8 @@ lib/evas/canvas/evas_object_grid.c \
 lib/evas/canvas/evas_font_dir.c \
 lib/evas/canvas/evas_rectangle.c \
 lib/evas/canvas/evas_render.c \
-lib/evas/canvas/evas_render2.c \
-lib/evas/canvas/evas_render2.h \
-lib/evas/canvas/evas_render2_updates.c \
+lib/evas/canvas/render2/evas_render2.c \
+lib/evas/canvas/render2/evas_render2.h \
 lib/evas/canvas/evas_smart.c \
 lib/evas/canvas/evas_stack.c \
 lib/evas/canvas/evas_async_events.c \
@@ -177,6 +185,7 @@ lib/evas/file/evas_path.h
 lib_evas_libevas_la_SOURCES += \
 $(lib_evas_file_SOURCES)
 
+# Evas_3D
 noinst_HEADERS += \
 lib/evas/include/evas_3d_utils.h
 
@@ -188,7 +197,8 @@ lib/evas/canvas/evas_3d_camera.c \
 lib/evas/canvas/evas_3d_light.c \
 lib/evas/canvas/evas_3d_mesh.c \
 lib/evas/canvas/evas_3d_texture.c \
-lib/evas/canvas/evas_3d_material.c 
+lib/evas/canvas/evas_3d_material.c \
+lib/evas/canvas/evas_3d_node_callback.h
 
 # Model savers/loaders (will be replaced to modules in next commits)
 lib_evas_libevas_la_SOURCES += \
@@ -200,6 +210,18 @@ modules/evas/model_savers/eet/evas_model_save_eet.c \
 modules/evas/model_savers/obj/evas_model_save_obj.c \
 modules/evas/model_savers/ply/evas_model_save_ply.c \
 lib/evas/canvas/evas_3d_eet.c
+
+# Evas_VG
+lib_evas_libevas_la_SOURCES += \
+lib/evas/canvas/evas_object_vg.c \
+lib/evas/canvas/evas_vg_node.c \
+lib/evas/canvas/evas_vg_container.c \
+lib/evas/canvas/evas_vg_root_node.c \
+lib/evas/canvas/evas_vg_gradient.c \
+lib/evas/canvas/evas_vg_gradient_linear.c \
+lib/evas/canvas/evas_vg_gradient_radial.c \
+lib/evas/canvas/evas_vg_utils.c \
+lib/evas/canvas/evas_vg_shape.c
 
 # Engine
 lib_evas_libevas_la_SOURCES += \
@@ -286,11 +308,16 @@ lib/evas/common/evas_text_utils.h \
 lib/evas/common/evas_font_ot.h
 
 lib_evas_libevas_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
+-I$(top_srcdir)/src/lib/evas/canvas \
+-I$(top_srcdir)/src/lib/evas/canvas/render2 \
 -I$(top_srcdir)/src/lib/evas/common \
 -I$(top_srcdir)/src/lib/evas/cserve2 \
 -I$(top_srcdir)/src/lib/evas/file \
 -I$(top_srcdir)/src/lib/evas/include \
 -I$(top_srcdir)/src/static_libs/libunibreak \
+-I$(top_builddir)/src/lib/evas/canvas \
+-I$(top_builddir)/src/modules/evas/engines/software_generic \
+-I$(top_builddir)/src/modules/evas/engines/gl_generic \
 -DPACKAGE_BIN_DIR=\"$(bindir)\" \
 -DPACKAGE_LIB_DIR=\"$(libdir)\" \
 -DPACKAGE_DATA_DIR=\"$(datadir)/evas\" \
@@ -490,19 +517,34 @@ lib/evas/filters/blur/blur_box_rgba_i386.c \
 lib/evas/filters/blur/blur_box_rgba_sse3.c \
 lib/evas/filters/blur/blur_box_rgba_neon.c
 
+### Vector surface helper
+
+EXTRA_DIST += \
+modules/evas/engines/software_generic/ector_cairo_software_surface.eo \
+modules/evas/engines/gl_generic/ector_cairo_software_surface.eo
 
 ### Engines
 
 if EVAS_STATIC_BUILD_SOFTWARE_GENERIC
-lib_evas_libevas_la_SOURCES += modules/evas/engines/software_generic/evas_engine.c modules/evas/engines/software_generic/Evas_Engine_Software_Generic.h
+BUILT_SOURCES += \
+modules/evas/engines/software_generic/ector_cairo_software_surface.eo.c \
+modules/evas/engines/software_generic/ector_cairo_software_surface.eo.h
+lib_evas_libevas_la_SOURCES += modules/evas/engines/software_generic/evas_engine.c modules/evas/engines/software_generic/ector_surface.c modules/evas/engines/software_generic/Evas_Engine_Software_Generic.h
 lib_evas_libevas_la_LIBADD +=
 else
 enginesoftwaregenericpkgdir = $(libdir)/evas/modules/engines/software_generic/$(MODULE_ARCH)
 enginesoftwaregenericpkg_LTLIBRARIES = modules/evas/engines/software_generic/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_enginesoftwaregenericpkgLTLIBRARIES = install-enginesoftwaregenericpkgLTLIBRARIES
+$(install_enginesoftwaregenericpkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_engines_software_generic_module_la_SOURCES = modules/evas/engines/software_generic/evas_engine.c modules/evas/engines/software_generic/Evas_Engine_Software_Generic.h
 modules_evas_engines_software_generic_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
 -I$(top_srcdir)/src/lib/evas/cserve2 \
+-I$(top_builddir)/src/modules/evas/engines/software_generic \
 @EVAS_CFLAGS@
 modules_evas_engines_software_generic_module_la_LIBADD = @USE_EVAS_LIBS@
 modules_evas_engines_software_generic_module_la_DEPENDENCIES = @USE_EVAS_INTERNAL_LIBS@
@@ -521,6 +563,12 @@ lib_evas_libevas_la_SOURCES += $(BUFFER_SOURCES)
 else
 enginebufferpkgdir = $(libdir)/evas/modules/engines/buffer/$(MODULE_ARCH)
 enginebufferpkg_LTLIBRARIES = modules/evas/engines/buffer/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_enginebufferpkgLTLIBRARIES = install-enginebufferpkgLTLIBRARIES
+$(install_enginebufferpkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_engines_buffer_module_la_SOURCES = $(BUFFER_SOURCES)
 modules_evas_engines_buffer_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
@@ -548,6 +596,12 @@ lib_evas_libevas_la_LIBADD += @evas_engine_fb_libs@
 else
 enginefbpkgdir = $(libdir)/evas/modules/engines/fb/$(MODULE_ARCH)
 enginefbpkg_LTLIBRARIES = modules/evas/engines/fb/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_enginefbpkgLTLIBRARIES = install-enginefbpkgLTLIBRARIES
+$(install_enginefbpkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_engines_fb_module_la_SOURCES = $(FB_SOURCES)
 modules_evas_engines_fb_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
@@ -564,6 +618,10 @@ endif
 endif
 
 if BUILD_ENGINE_GL_COMMON
+BUILT_SOURCES += \
+modules/evas/engines/gl_generic/ector_cairo_software_surface.eo.c \
+modules/evas/engines/gl_generic/ector_cairo_software_surface.eo.h
+
 GL_COMMON_SOURCES = \
 modules/evas/engines/gl_common/evas_gl_private.h \
 modules/evas/engines/gl_common/evas_gl_common.h \
@@ -586,6 +644,7 @@ modules/evas/engines/gl_common/evas_gl_api.c \
 modules/evas/engines/gl_common/evas_gl_api_gles1.c \
 modules/evas/engines/gl_common/evas_gl_api_ext.c \
 modules/evas/engines/gl_common/shader/evas_gl_shaders.x \
+modules/evas/engines/gl_common/shader_3d/evas_gl_3d_shaders.x \
 modules/evas/engines/gl_common/shader/evas_gl_enum.x
 
 # 3D
@@ -597,132 +656,53 @@ modules/evas/engines/gl_common/evas_gl_3d_renderer.c \
 modules/evas/engines/gl_common/evas_gl_3d_shader.c
 
 GL_SHADERS_GEN = \
-modules/evas/engines/gl_common/shader/font_frag.shd \
-modules/evas/engines/gl_common/shader/font_vert.shd \
-modules/evas/engines/gl_common/shader/font_mask_frag.shd \
-modules/evas/engines/gl_common/shader/font_mask_vert.shd \
-modules/evas/engines/gl_common/shader/img_12_bgra_frag.shd \
-modules/evas/engines/gl_common/shader/img_12_bgra_nomul_frag.shd \
-modules/evas/engines/gl_common/shader/img_12_bgra_nomul_vert.shd \
-modules/evas/engines/gl_common/shader/img_12_bgra_vert.shd \
-modules/evas/engines/gl_common/shader/img_12_frag.shd \
-modules/evas/engines/gl_common/shader/img_12_nomul_frag.shd \
-modules/evas/engines/gl_common/shader/img_12_nomul_vert.shd \
-modules/evas/engines/gl_common/shader/img_12_vert.shd \
-modules/evas/engines/gl_common/shader/img_21_bgra_frag.shd \
-modules/evas/engines/gl_common/shader/img_21_bgra_nomul_frag.shd \
-modules/evas/engines/gl_common/shader/img_21_bgra_nomul_vert.shd \
-modules/evas/engines/gl_common/shader/img_21_bgra_vert.shd \
-modules/evas/engines/gl_common/shader/img_21_frag.shd \
-modules/evas/engines/gl_common/shader/img_21_nomul_frag.shd \
-modules/evas/engines/gl_common/shader/img_21_nomul_vert.shd \
-modules/evas/engines/gl_common/shader/img_21_vert.shd \
-modules/evas/engines/gl_common/shader/img_22_bgra_frag.shd \
-modules/evas/engines/gl_common/shader/img_22_bgra_nomul_frag.shd \
-modules/evas/engines/gl_common/shader/img_22_bgra_nomul_vert.shd \
-modules/evas/engines/gl_common/shader/img_22_bgra_vert.shd \
-modules/evas/engines/gl_common/shader/img_22_frag.shd \
-modules/evas/engines/gl_common/shader/img_22_nomul_frag.shd \
-modules/evas/engines/gl_common/shader/img_22_nomul_vert.shd \
-modules/evas/engines/gl_common/shader/img_22_vert.shd \
-modules/evas/engines/gl_common/shader/img_bgra_frag.shd \
-modules/evas/engines/gl_common/shader/img_bgra_nomul_frag.shd \
-modules/evas/engines/gl_common/shader/img_bgra_nomul_vert.shd \
-modules/evas/engines/gl_common/shader/img_bgra_vert.shd \
-modules/evas/engines/gl_common/shader/img_frag.shd \
-modules/evas/engines/gl_common/shader/img_nomul_frag.shd \
-modules/evas/engines/gl_common/shader/img_nomul_vert.shd \
-modules/evas/engines/gl_common/shader/img_vert.shd \
-modules/evas/engines/gl_common/shader/nv12_frag.shd \
-modules/evas/engines/gl_common/shader/nv12_nomul_frag.shd \
-modules/evas/engines/gl_common/shader/nv12_nomul_vert.shd \
-modules/evas/engines/gl_common/shader/nv12_vert.shd \
-modules/evas/engines/gl_common/shader/rect_frag.shd \
-modules/evas/engines/gl_common/shader/rect_vert.shd \
-modules/evas/engines/gl_common/shader/rgb_a_pair_frag.shd \
-modules/evas/engines/gl_common/shader/rgb_a_pair_nomul_frag.shd \
-modules/evas/engines/gl_common/shader/rgb_a_pair_nomul_vert.shd \
-modules/evas/engines/gl_common/shader/rgb_a_pair_vert.shd \
-modules/evas/engines/gl_common/shader/tex_12_frag.shd \
-modules/evas/engines/gl_common/shader/tex_12_vert.shd \
-modules/evas/engines/gl_common/shader/tex_12_nomul_frag.shd \
-modules/evas/engines/gl_common/shader/tex_12_nomul_vert.shd \
-modules/evas/engines/gl_common/shader/tex_21_frag.shd \
-modules/evas/engines/gl_common/shader/tex_21_vert.shd \
-modules/evas/engines/gl_common/shader/tex_21_nomul_frag.shd \
-modules/evas/engines/gl_common/shader/tex_21_nomul_vert.shd \
-modules/evas/engines/gl_common/shader/tex_22_frag.shd \
-modules/evas/engines/gl_common/shader/tex_22_vert.shd \
-modules/evas/engines/gl_common/shader/tex_22_nomul_frag.shd \
-modules/evas/engines/gl_common/shader/tex_22_nomul_vert.shd \
-modules/evas/engines/gl_common/shader/tex_frag.shd \
-modules/evas/engines/gl_common/shader/tex_vert.shd \
-modules/evas/engines/gl_common/shader/tex_nomul_frag.shd \
-modules/evas/engines/gl_common/shader/tex_nomul_vert.shd \
-modules/evas/engines/gl_common/shader/tex_afill_frag.shd \
-modules/evas/engines/gl_common/shader/tex_afill_vert.shd \
-modules/evas/engines/gl_common/shader/tex_22_afill_frag.shd \
-modules/evas/engines/gl_common/shader/tex_22_afill_vert.shd \
-modules/evas/engines/gl_common/shader/tex_21_afill_frag.shd \
-modules/evas/engines/gl_common/shader/tex_21_afill_vert.shd \
-modules/evas/engines/gl_common/shader/tex_12_afill_frag.shd \
-modules/evas/engines/gl_common/shader/tex_12_afill_vert.shd \
-modules/evas/engines/gl_common/shader/tex_22_nomul_afill_frag.shd \
-modules/evas/engines/gl_common/shader/tex_22_nomul_afill_vert.shd \
-modules/evas/engines/gl_common/shader/tex_21_nomul_afill_frag.shd \
-modules/evas/engines/gl_common/shader/tex_21_nomul_afill_vert.shd \
-modules/evas/engines/gl_common/shader/tex_12_nomul_afill_frag.shd \
-modules/evas/engines/gl_common/shader/tex_12_nomul_afill_vert.shd \
-modules/evas/engines/gl_common/shader/tex_nomul_afill_frag.shd \
-modules/evas/engines/gl_common/shader/tex_nomul_afill_vert.shd \
-modules/evas/engines/gl_common/shader/yuv_frag.shd \
-modules/evas/engines/gl_common/shader/yuv_nomul_frag.shd \
-modules/evas/engines/gl_common/shader/yuv_nomul_vert.shd \
-modules/evas/engines/gl_common/shader/yuv_vert.shd \
-modules/evas/engines/gl_common/shader/yuy2_frag.shd \
-modules/evas/engines/gl_common/shader/yuy2_nomul_frag.shd \
-modules/evas/engines/gl_common/shader/yuy2_nomul_vert.shd \
-modules/evas/engines/gl_common/shader/yuy2_vert.shd \
-modules/evas/engines/gl_common/shader/img_mask_frag.shd \
-modules/evas/engines/gl_common/shader/img_mask_vert.shd \
-modules/evas/engines/gl_common/shader/img_mask_nomul_frag.shd \
-modules/evas/engines/gl_common/shader/img_mask_nomul_vert.shd \
-modules/evas/engines/gl_common/shader/img_mask_bgra_frag.shd \
-modules/evas/engines/gl_common/shader/img_mask_bgra_vert.shd \
-modules/evas/engines/gl_common/shader/img_mask_bgra_nomul_frag.shd \
-modules/evas/engines/gl_common/shader/img_mask_bgra_nomul_vert.shd \
-modules/evas/engines/gl_common/shader/yuv_mask_frag.shd \
-modules/evas/engines/gl_common/shader/yuv_mask_vert.shd \
-modules/evas/engines/gl_common/shader/nv12_mask_frag.shd \
-modules/evas/engines/gl_common/shader/nv12_mask_vert.shd \
-modules/evas/engines/gl_common/shader/yuy2_mask_frag.shd \
-modules/evas/engines/gl_common/shader/yuy2_mask_vert.shd \
-modules/evas/engines/gl_common/shader/rgb_a_pair_mask_frag.shd \
-modules/evas/engines/gl_common/shader/rgb_a_pair_mask_vert.shd \
-modules/evas/engines/gl_common/shader/rect_mask_frag.shd \
-modules/evas/engines/gl_common/shader/rect_mask_vert.shd \
-modules/evas/engines/gl_common/shader/map_mask_frag.shd \
-modules/evas/engines/gl_common/shader/map_mask_vert.shd \
-modules/evas/engines/gl_common/shader/map_mask_nomul_frag.shd \
-modules/evas/engines/gl_common/shader/map_mask_nomul_vert.shd \
-modules/evas/engines/gl_common/shader/map_mask_bgra_frag.shd \
-modules/evas/engines/gl_common/shader/map_mask_bgra_vert.shd \
-modules/evas/engines/gl_common/shader/map_mask_bgra_nomul_frag.shd \
-modules/evas/engines/gl_common/shader/map_mask_bgra_nomul_vert.shd \
+modules/evas/engines/gl_common/shader/gen_shaders.sh \
+modules/evas/engines/gl_common/shader/shaders.txt \
+modules/evas/engines/gl_common/shader/fragment.glsl \
+modules/evas/engines/gl_common/shader/vertex.glsl \
 $(NULL)
 
-EXTRA_DIST += \
-modules/evas/engines/gl_common/shader/gen_shaders.sh \
-$(GL_SHADERS_GEN)
+EXTRA_DIST += $(GL_SHADERS_GEN)
+EXTRA_lib_evas_libevas_la_DEPENDENCIES = modules/evas/engines/gl_common/shader/evas_gl_enum.x
 
-modules/evas/engines/gl_common/shader/evas_gl_shaders.x: modules/evas/engines/gl_common/shader/gen_shaders.sh $(GL_SHADERS_GEN)
+modules/evas/engines/gl_common/shader/evas_gl_shaders.x: $(GL_SHADERS_GEN)
 	@echo "  SHADERS  $@"
-	@modules/evas/engines/gl_common/shader/gen_shaders.sh $(GL_SHADERS_GEN)
+	@bash $(builddir)/modules/evas/engines/gl_common/shader/gen_shaders.sh
 
 modules/evas/engines/gl_common/shader/evas_gl_enum.x: modules/evas/engines/gl_common/shader/evas_gl_shaders.x
 
+# NOTE: order here should be equal with modes in file Evas_Eo.h
+GL_SHADERS_3D_GEN = \
+modules/evas/engines/gl_common/shader_3d/vertex_color_vert.shd \
+modules/evas/engines/gl_common/shader_3d/vertex_color_frag.shd \
+modules/evas/engines/gl_common/shader_3d/diffuse_vert.shd \
+modules/evas/engines/gl_common/shader_3d/diffuse_frag.shd \
+modules/evas/engines/gl_common/shader_3d/flat_vert.shd \
+modules/evas/engines/gl_common/shader_3d/flat_frag.shd \
+modules/evas/engines/gl_common/shader_3d/phong_vert.shd \
+modules/evas/engines/gl_common/shader_3d/phong_frag.shd \
+modules/evas/engines/gl_common/shader_3d/normal_map_vert.shd \
+modules/evas/engines/gl_common/shader_3d/normal_map_frag.shd \
+modules/evas/engines/gl_common/shader_3d/shadow_map_vert.shd \
+modules/evas/engines/gl_common/shader_3d/shadow_map_frag.shd \
+modules/evas/engines/gl_common/shader_3d/color_pick_vert.shd \
+modules/evas/engines/gl_common/shader_3d/color_pick_frag.shd \
+modules/evas/engines/gl_common/shader_3d/parallax_occlusion_vert.shd \
+modules/evas/engines/gl_common/shader_3d/parallax_occlusion_frag.shd \
+$(NULL)
+
+EXTRA_DIST += \
+modules/evas/engines/gl_common/shader_3d/gen_shaders_3d.sh \
+$(GL_SHADERS_3D_GEN)
+
+modules/evas/engines/gl_common/shader_3d/evas_gl_3d_shaders.x: modules/evas/engines/gl_common/shader_3d/gen_shaders_3d.sh $(GL_SHADERS_3D_GEN)
+	@echo "  SHADERS  $@"
+	@bash $^
+
+
 GL_GENERIC_SOURCES = \
 modules/evas/engines/gl_generic/evas_engine.c \
+modules/evas/engines/gl_generic/ector_surface.c \
 modules/evas/engines/gl_generic/Evas_Engine_GL_Generic.h
 
 if EVAS_STATIC_BUILD_GL_COMMON
@@ -739,12 +719,19 @@ modules_evas_engines_gl_common_libevas_engine_gl_common_la_CPPFLAGS = -I$(top_bu
 # The generic backend for GL
 engineglgenericpkgdir = $(libdir)/evas/modules/engines/gl_generic/$(MODULE_ARCH)
 engineglgenericpkg_LTLIBRARIES = modules/evas/engines/gl_generic/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_engineglgenericpkgLTLIBRARIES = install-engineglgenericpkgLTLIBRARIES
+$(install_engineglgenericpkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_engines_gl_generic_module_la_SOURCES = $(GL_GENERIC_SOURCES)
 modules_evas_engines_gl_generic_module_la_CFLAGS = \
 -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
 -I$(top_srcdir)/src/lib/evas/cserve2 \
 -I$(top_srcdir)/src/modules/evas/engines/gl_common \
+-I$(top_builddir)/src/modules/evas/engines/gl_generic \
 @evas_engine_gl_common_cflags@ \
 @EVAS_CFLAGS@
 modules_evas_engines_gl_generic_module_la_LIBADD = \
@@ -788,6 +775,12 @@ lib_evas_libevas_la_LIBADD += @evas_engine_gl_cocoa_libs@
 else
 engineglcocoapkgdir = $(libdir)/evas/modules/engines/gl_cocoa/$(MODULE_ARCH)
 engineglcocoapkg_LTLIBRARIES = modules/evas/engines/gl_cocoa/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_engineglcocoapkgLTLIBRARIES = install-engineglcocoapkgLTLIBRARIES
+$(install_engineglcocoapkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_engines_gl_cocoa_module_la_SOURCES = $(GL_COCOA_SOURCES)
 modules_evas_engines_gl_cocoa_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
@@ -825,6 +818,12 @@ lib_evas_libevas_la_LIBADD += @evas_engine_gl_sdl_libs@
 else
 engineglsdlpkgdir = $(libdir)/evas/modules/engines/gl_sdl/$(MODULE_ARCH)
 engineglsdlpkg_LTLIBRARIES = modules/evas/engines/gl_sdl/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_engineglsdlpkgLTLIBRARIES = install-engineglsdlpkgLTLIBRARIES
+$(install_engineglsdlpkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_engines_gl_sdl_module_la_SOURCES = $(GL_SDL_SOURCES)
 modules_evas_engines_gl_sdl_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
@@ -857,6 +856,12 @@ lib_evas_libevas_la_LIBADD += \
 else
 engineglx11pkgdir = $(libdir)/evas/modules/engines/gl_x11/$(MODULE_ARCH)
 engineglx11pkg_LTLIBRARIES = modules/evas/engines/gl_x11/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_engineglx11pkgLTLIBRARIES = install-engineglx11pkgLTLIBRARIES
+$(install_engineglx11pkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_engines_gl_x11_module_la_SOURCES = $(GL_X11_SOURCES)
 modules_evas_engines_gl_x11_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
@@ -889,6 +894,12 @@ lib_evas_libevas_la_LIBADD += @evas_engine_psl1ght_libs@
 else
 enginepsl1ghtpkgdir = $(libdir)/evas/modules/engines/psl1ght/$(MODULE_ARCH)
 enginepsl1ghtpkg_LTLIBRARIES = modules/evas/engines/psl1ght/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_enginepsl1ghtpkgLTLIBRARIES = install-enginepsl1ghtpkgLTLIBRARIES
+$(install_enginepsl1ghtpkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_engines_psl1ght_module_la_SOURCES = $(PSL1GHT_SOURCES)
 modules_evas_engines_psl1ght_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
@@ -920,6 +931,12 @@ lib_evas_libevas_la_LIBADD += @evas_engine_software_ddraw_libs@
 else
 enginesoftwareddrawpkgdir = $(libdir)/evas/modules/engines/software_ddraw/$(MODULE_ARCH)
 enginesoftwareddrawpkg_LTLIBRARIES = modules/evas/engines/software_ddraw/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_enginesoftwareddrawpkgLTLIBRARIES = install-enginesoftwareddrawpkgLTLIBRARIES
+$(install_enginesoftwareddrawpkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_engines_software_ddraw_module_la_SOURCES = $(SOFTWARE_DDRAW_SOURCES)
 modules_evas_engines_software_ddraw_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
@@ -951,6 +968,12 @@ lib_evas_libevas_la_LIBADD += @evas_engine_software_gdi_libs@
 else
 enginesoftwaregdipkgdir = $(libdir)/evas/modules/engines/software_gdi/$(MODULE_ARCH)
 enginesoftwaregdipkg_LTLIBRARIES = modules/evas/engines/software_gdi/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_enginesoftwaregdipkgLTLIBRARIES = install-enginesoftwaregdipkgLTLIBRARIES
+$(install_enginesoftwaregdipkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_engines_software_gdi_module_la_SOURCES = $(SOFTWARE_GDI_SOURCES)
 modules_evas_engines_software_gdi_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
@@ -972,10 +995,12 @@ SOFTWARE_X11_SOURCES = \
 modules/evas/engines/software_x11/evas_engine.c \
 modules/evas/engines/software_x11/evas_engine.h \
 modules/evas/engines/software_x11/evas_x_egl.c \
-modules/evas/engines/software_x11/evas_x_egl.h
+modules/evas/engines/software_x11/evas_x_egl.h \
+modules/evas/engines/software_x11/evas_native_tbm.c
 SOFTWARE_X11_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
 -I$(top_srcdir)/src/lib/evas/cserve2 \
+@ECORE_X_CFLAGS@ \
 @EVAS_CFLAGS@
 SOFTWARE_X11_LIBADD =
 if BUILD_ENGINE_SOFTWARE_XLIB
@@ -986,11 +1011,13 @@ modules/evas/engines/software_x11/evas_xlib_buffer.c \
 modules/evas/engines/software_x11/evas_xlib_color.c \
 modules/evas/engines/software_x11/evas_xlib_main.c \
 modules/evas/engines/software_x11/evas_xlib_swapper.c \
+modules/evas/engines/software_x11/evas_xlib_image.c \
 modules/evas/engines/software_x11/evas_xlib_outbuf.h \
 modules/evas/engines/software_x11/evas_xlib_swapbuf.h \
 modules/evas/engines/software_x11/evas_xlib_buffer.h \
 modules/evas/engines/software_x11/evas_xlib_color.h \
-modules/evas/engines/software_x11/evas_xlib_swapper.h
+modules/evas/engines/software_x11/evas_xlib_swapper.h \
+modules/evas/engines/software_x11/evas_xlib_image.h
 SOFTWARE_X11_CPPFLAGS += @evas_engine_software_xlib_cflags@
 SOFTWARE_X11_LIBADD += @evas_engine_software_xlib_libs@
 endif
@@ -1001,10 +1028,12 @@ modules/evas/engines/software_x11/evas_xcb_outbuf.c \
 modules/evas/engines/software_x11/evas_xcb_buffer.c \
 modules/evas/engines/software_x11/evas_xcb_color.c \
 modules/evas/engines/software_x11/evas_xcb_main.c \
+modules/evas/engines/software_x11/evas_xcb_image.c \
 modules/evas/engines/software_x11/evas_xcb_outbuf.h \
 modules/evas/engines/software_x11/evas_xcb_buffer.h \
 modules/evas/engines/software_x11/evas_xcb_color.h \
-modules/evas/engines/software_x11/evas_xcb_xdefaults.h
+modules/evas/engines/software_x11/evas_xcb_xdefaults.h \
+modules/evas/engines/software_x11/evas_xcb_image.h
 SOFTWARE_X11_CPPFLAGS += @evas_engine_software_xcb_cflags@
 SOFTWARE_X11_LIBADD += @evas_engine_software_xcb_libs@
 endif
@@ -1015,10 +1044,16 @@ lib_evas_libevas_la_LIBADD += $(SOFTWARE_X11_LIBADD)
 else
 enginesoftwarex11pkgdir = $(libdir)/evas/modules/engines/software_x11/$(MODULE_ARCH)
 enginesoftwarex11pkg_LTLIBRARIES = modules/evas/engines/software_x11/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_enginesoftwarex11pkgLTLIBRARIES = install-enginesoftwarex11pkgLTLIBRARIES
+$(install_enginesoftwarex11pkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_engines_software_x11_module_la_SOURCES = $(SOFTWARE_X11_SOURCES)
 modules_evas_engines_software_x11_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl $(SOFTWARE_X11_CPPFLAGS)
-modules_evas_engines_software_x11_module_la_LIBADD = @USE_EVAS_LIBS@ $(SOFTWARE_X11_LIBADD)
-modules_evas_engines_software_x11_module_la_DEPENDENCIES = @USE_EVAS_INTERNAL_LIBS@
+modules_evas_engines_software_x11_module_la_LIBADD = @USE_ECORE_X_LIBS@ @USE_EVAS_LIBS@ $(SOFTWARE_X11_LIBADD)
+modules_evas_engines_software_x11_module_la_DEPENDENCIES = @USE_ECORE_X_INTERNAL_LIBS@ @USE_EVAS_INTERNAL_LIBS@
 modules_evas_engines_software_x11_module_la_LDFLAGS = -module @EFL_LTMODULE_FLAGS@
 modules_evas_engines_software_x11_module_la_LIBTOOLFLAGS = --tag=disable-static
 endif
@@ -1037,6 +1072,12 @@ lib_evas_libevas_la_LIBADD += @evas_engine_wayland_egl_libs@
 else
 enginewaylandeglpkgdir = $(libdir)/evas/modules/engines/wayland_egl/$(MODULE_ARCH)
 enginewaylandeglpkg_LTLIBRARIES = modules/evas/engines/wayland_egl/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_enginewaylandeglpkgLTLIBRARIES = install-enginewaylandeglpkgLTLIBRARIES
+$(install_enginewaylandeglpkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_engines_wayland_egl_module_la_SOURCES = $(WAYLAND_EGL_SOURCES)
 modules_evas_engines_wayland_egl_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
@@ -1059,10 +1100,8 @@ WAYLAND_SHM_SOURCES = \
 modules/evas/engines/wayland_shm/Evas_Engine_Wayland_Shm.h \
 modules/evas/engines/wayland_shm/evas_engine.c \
 modules/evas/engines/wayland_shm/evas_engine.h \
-modules/evas/engines/wayland_shm/evas_swapbuf.c \
-modules/evas/engines/wayland_shm/evas_swapbuf.h \
-modules/evas/engines/wayland_shm/evas_swapper.c \
-modules/evas/engines/wayland_shm/evas_swapper.h
+modules/evas/engines/wayland_shm/evas_shm.c \
+modules/evas/engines/wayland_shm/evas_outbuf.c
 if EVAS_STATIC_BUILD_WAYLAND_SHM
 lib_evas_libevas_la_SOURCES += $(WAYLAND_SHM_SOURCES)
 lib_evas_libevas_la_CPPFLAGS += @evas_engine_wayland_shm_cflags@
@@ -1070,6 +1109,12 @@ lib_evas_libevas_la_LIBADD += @evas_engine_wayland_shm_libs@
 else
 enginewaylandshmpkgdir = $(libdir)/evas/modules/engines/wayland_shm/$(MODULE_ARCH)
 enginewaylandshmpkg_LTLIBRARIES = modules/evas/engines/wayland_shm/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_enginewaylandshmpkgLTLIBRARIES = install-enginewaylandshmpkgLTLIBRARIES
+$(install_enginewaylandshmpkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_engines_wayland_shm_module_la_SOURCES = $(WAYLAND_SHM_SOURCES)
 modules_evas_engines_wayland_shm_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
@@ -1088,8 +1133,6 @@ endif
 if BUILD_ENGINE_DRM
 dist_installed_evasmainheaders_DATA += modules/evas/engines/drm/Evas_Engine_Drm.h
 DRM_SOURCES = \
-modules/evas/engines/drm/evas_drm.c \
-modules/evas/engines/drm/evas_bufmgr.c \
 modules/evas/engines/drm/evas_outbuf.c \
 modules/evas/engines/drm/evas_engine.c \
 modules/evas/engines/drm/evas_engine.h \
@@ -1101,6 +1144,12 @@ lib_evas_libevas_la_LIBADD += @evas_engine_drm_libs@
 else
 enginedrmpkgdir = $(libdir)/evas/modules/engines/drm/$(MODULE_ARCH)
 enginedrmpkg_LTLIBRARIES = modules/evas/engines/drm/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_enginedrmpkgLTLIBRARIES = install-enginedrmpkgLTLIBRARIES
+$(install_enginedrmpkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_engines_drm_module_la_SOURCES = $(DRM_SOURCES)
 modules_evas_engines_drm_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
@@ -1135,6 +1184,12 @@ lib_evas_libevas_la_LIBADD += @evas_engine_gl_drm_libs@
 else
 enginegl_drmpkgdir = $(libdir)/evas/modules/engines/gl_drm/$(MODULE_ARCH)
 enginegl_drmpkg_LTLIBRARIES = modules/evas/engines/gl_drm/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_enginegl_drmpkgLTLIBRARIES = install-enginegl_drmpkgLTLIBRARIES
+$(install_enginegl_drmpkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_engines_gl_drm_module_la_SOURCES = $(GL_DRM_SOURCES)
 modules_evas_engines_gl_drm_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
@@ -1205,7 +1260,7 @@ bin/evas/evas_cserve2_client.c
 bin_evas_evas_cserve2_client_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas \
 -I$(top_srcdir)/src/lib/evas/cserve2 \
-@EINA_CFLAGS@
+@EVAS_CFLAGS@
 bin_evas_evas_cserve2_client_LDADD = @USE_EINA_LIBS@
 bin_evas_evas_cserve2_client_DEPENDENCIES = @USE_EINA_INTERNAL_LIBS@
 
@@ -1214,7 +1269,7 @@ bin/evas/evas_cserve2_usage.c
 bin_evas_evas_cserve2_usage_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas \
 -I$(top_srcdir)/src/lib/evas/cserve2 \
-@EINA_CFLAGS@
+@EVAS_CFLAGS@
 bin_evas_evas_cserve2_usage_LDADD = @USE_EINA_LIBS@
 bin_evas_evas_cserve2_usage_DEPENDENCIES = @USE_EINA_INTERNAL_LIBS@
 
@@ -1223,7 +1278,7 @@ bin/evas/evas_cserve2_debug.c
 bin_evas_evas_cserve2_debug_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas \
 -I$(top_srcdir)/src/lib/evas/cserve2 \
-@EINA_CFLAGS@
+@EVAS_CFLAGS@
 bin_evas_evas_cserve2_debug_LDADD = @USE_EINA_LIBS@
 bin_evas_evas_cserve2_debug_DEPENDENCIES = @USE_EINA_INTERNAL_LIBS@
 
@@ -1232,7 +1287,7 @@ bin/evas/evas_cserve2_shm_debug.c
 bin_evas_evas_cserve2_shm_debug_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas \
 -I$(top_srcdir)/src/lib/evas/cserve2 \
-@EINA_CFLAGS@
+@EVAS_CFLAGS@
 bin_evas_evas_cserve2_shm_debug_LDADD = @USE_EINA_LIBS@
 bin_evas_evas_cserve2_shm_debug_DEPENDENCIES = @USE_EINA_INTERNAL_LIBS@
 
@@ -1253,8 +1308,8 @@ bin_evas_evas_cserve2_slave_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -DEVAS_MODULE_NO_IMAGE_SAVERS=1 \
 @EVAS_CFLAGS@
 
-bin_evas_evas_cserve2_slave_LDADD = @EVAS_CSERVE2_SLAVE_LIBS@ @USE_EINA_LIBS@
-bin_evas_evas_cserve2_slave_DEPENDENCIES = @USE_EINA_INTERNAL_LIBS@ @USE_EO_INTERNAL_LIBS@
+bin_evas_evas_cserve2_slave_LDADD = @EVAS_CSERVE2_SLAVE_LIBS@ @USE_EINA_LIBS@ @USE_EMILE_LIBS@
+bin_evas_evas_cserve2_slave_DEPENDENCIES = @USE_EINA_INTERNAL_LIBS@ @USE_EO_INTERNAL_LIBS@ @USE_EMILE_INTERNAL_LIBS@
 bin_evas_evas_cserve2_slave_LDFLAGS = -export-dynamic
 
 bin_evas_dummy_slave_SOURCES = \
@@ -1289,6 +1344,12 @@ endif
 else
 loaderbmppkgdir = $(libdir)/evas/modules/image_loaders/bmp/$(MODULE_ARCH)
 loaderbmppkg_LTLIBRARIES = modules/evas/image_loaders/bmp/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_loaderbmppkgLTLIBRARIES = install-loaderbmppkgLTLIBRARIES
+$(install_loaderbmppkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_image_loaders_bmp_module_la_SOURCES = modules/evas/image_loaders/bmp/evas_image_load_bmp.c
 modules_evas_image_loaders_bmp_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
@@ -1322,6 +1383,12 @@ endif
 else
 loaderddspkgdir = $(libdir)/evas/modules/image_loaders/dds/$(MODULE_ARCH)
 loaderddspkg_LTLIBRARIES = modules/evas/image_loaders/dds/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_loaderddspkgLTLIBRARIES = install-loaderddspkgLTLIBRARIES
+$(install_loaderddspkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_image_loaders_dds_module_la_SOURCES = \
 modules/evas/image_loaders/dds/evas_image_load_dds.c \
 modules/evas/image_loaders/dds/s3tc_decoder.c \
@@ -1353,6 +1420,12 @@ endif
 else
 loadereetpkgdir = $(libdir)/evas/modules/image_loaders/eet/$(MODULE_ARCH)
 loadereetpkg_LTLIBRARIES = modules/evas/image_loaders/eet/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_loadereetpkgLTLIBRARIES = install-loadereetpkgLTLIBRARIES
+$(install_loadereetpkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_image_loaders_eet_module_la_SOURCES = modules/evas/image_loaders/eet/evas_image_load_eet.c
 modules_evas_image_loaders_eet_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
@@ -1380,6 +1453,12 @@ endif
 else
 loadergenericpkgdir = $(libdir)/evas/modules/image_loaders/generic/$(MODULE_ARCH)
 loadergenericpkg_LTLIBRARIES = modules/evas/image_loaders/generic/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_loadergenericpkgLTLIBRARIES = install-loadergenericpkgLTLIBRARIES
+$(install_loadergenericpkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_image_loaders_generic_module_la_SOURCES = modules/evas/image_loaders/generic/evas_image_load_generic.c
 modules_evas_image_loaders_generic_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
@@ -1407,6 +1486,12 @@ endif
 else
 loadergifpkgdir = $(libdir)/evas/modules/image_loaders/gif/$(MODULE_ARCH)
 loadergifpkg_LTLIBRARIES = modules/evas/image_loaders/gif/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_loadergifpkgLTLIBRARIES = install-loadergifpkgLTLIBRARIES
+$(install_loadergifpkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_image_loaders_gif_module_la_SOURCES = modules/evas/image_loaders/gif/evas_image_load_gif.c
 modules_evas_image_loaders_gif_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
@@ -1434,6 +1519,12 @@ endif
 else
 loadericopkgdir = $(libdir)/evas/modules/image_loaders/ico/$(MODULE_ARCH)
 loadericopkg_LTLIBRARIES = modules/evas/image_loaders/ico/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_loadericopkgLTLIBRARIES = install-loadericopkgLTLIBRARIES
+$(install_loadericopkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_image_loaders_ico_module_la_SOURCES = modules/evas/image_loaders/ico/evas_image_load_ico.c
 modules_evas_image_loaders_ico_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
@@ -1462,6 +1553,12 @@ endif
 else
 loaderjpegpkgdir = $(libdir)/evas/modules/image_loaders/jpeg/$(MODULE_ARCH)
 loaderjpegpkg_LTLIBRARIES = modules/evas/image_loaders/jpeg/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_loaderjpegpkgLTLIBRARIES = install-loaderjpegpkgLTLIBRARIES
+$(install_loaderjpegpkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_image_loaders_jpeg_module_la_SOURCES = modules/evas/image_loaders/jpeg/evas_image_load_jpeg.c
 modules_evas_image_loaders_jpeg_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
@@ -1475,6 +1572,12 @@ modules_evas_image_loaders_jpeg_module_la_LDFLAGS = -module @EFL_LTMODULE_FLAGS@
 modules_evas_image_loaders_jpeg_module_la_LIBTOOLFLAGS = --tag=disable-static
 saverjpegpkgdir = $(libdir)/evas/modules/image_savers/jpeg/$(MODULE_ARCH)
 saverjpegpkg_LTLIBRARIES = modules/evas/image_savers/jpeg/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_saverjpegpkgLTLIBRARIES = install-saverjpegpkgLTLIBRARIES
+$(install_saverjpegpkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_image_savers_jpeg_module_la_SOURCES = modules/evas/image_savers/jpeg/evas_image_save_jpeg.c
 modules_evas_image_savers_jpeg_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
@@ -1502,6 +1605,12 @@ endif
 else
 loaderjp2kpkgdir = $(libdir)/evas/modules/image_loaders/jp2k/$(MODULE_ARCH)
 loaderjp2kpkg_LTLIBRARIES = modules/evas/image_loaders/jp2k/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_loaderjp2kpkgLTLIBRARIES = install-loaderjp2kpkgLTLIBRARIES
+$(install_loaderjp2kpkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_image_loaders_jp2k_module_la_SOURCES = modules/evas/image_loaders/jp2k/evas_image_load_jp2k.c
 modules_evas_image_loaders_jp2k_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
@@ -1529,6 +1638,12 @@ endif
 else
 loaderpmapspkgdir = $(libdir)/evas/modules/image_loaders/pmaps/$(MODULE_ARCH)
 loaderpmapspkg_LTLIBRARIES = modules/evas/image_loaders/pmaps/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_loaderpmapspkgLTLIBRARIES = install-loaderpmapspkgLTLIBRARIES
+$(install_loaderpmapspkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_image_loaders_pmaps_module_la_SOURCES = modules/evas/image_loaders/pmaps/evas_image_load_pmaps.c
 modules_evas_image_loaders_pmaps_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
@@ -1556,6 +1671,12 @@ endif
 else
 loaderpngpkgdir = $(libdir)/evas/modules/image_loaders/png/$(MODULE_ARCH)
 loaderpngpkg_LTLIBRARIES = modules/evas/image_loaders/png/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_loaderpngpkgLTLIBRARIES = install-loaderpngpkgLTLIBRARIES
+$(install_loaderpngpkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_image_loaders_png_module_la_SOURCES = modules/evas/image_loaders/png/evas_image_load_png.c
 modules_evas_image_loaders_png_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
@@ -1570,6 +1691,12 @@ modules_evas_image_loaders_png_module_la_LIBTOOLFLAGS = --tag=disable-static
 
 saverpngpkgdir = $(libdir)/evas/modules/image_savers/png/$(MODULE_ARCH)
 saverpngpkg_LTLIBRARIES = modules/evas/image_savers/png/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_saverpngpkgLTLIBRARIES = install-saverpngpkgLTLIBRARIES
+$(install_saverpngpkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_image_savers_png_module_la_SOURCES = modules/evas/image_savers/png/evas_image_save_png.c
 modules_evas_image_savers_png_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
@@ -1597,6 +1724,12 @@ endif
 else
 loaderpsdpkgdir = $(libdir)/evas/modules/image_loaders/psd/$(MODULE_ARCH)
 loaderpsdpkg_LTLIBRARIES = modules/evas/image_loaders/psd/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_loaderpsdpkgLTLIBRARIES = install-loaderpsdpkgLTLIBRARIES
+$(install_loaderpsdpkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_image_loaders_psd_module_la_SOURCES = modules/evas/image_loaders/psd/evas_image_load_psd.c
 modules_evas_image_loaders_psd_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
@@ -1624,6 +1757,12 @@ endif
 else
 loadertgapkgdir = $(libdir)/evas/modules/image_loaders/tga/$(MODULE_ARCH)
 loadertgapkg_LTLIBRARIES = modules/evas/image_loaders/tga/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_loadertgapkgLTLIBRARIES = install-loadertgapkgLTLIBRARIES
+$(install_loadertgapkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_image_loaders_tga_module_la_SOURCES = modules/evas/image_loaders/tga/evas_image_load_tga.c
 modules_evas_image_loaders_tga_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
@@ -1651,6 +1790,12 @@ endif
 else
 loadertiffpkgdir = $(libdir)/evas/modules/image_loaders/tiff/$(MODULE_ARCH)
 loadertiffpkg_LTLIBRARIES = modules/evas/image_loaders/tiff/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_loadertiffpkgLTLIBRARIES = install-loadertiffpkgLTLIBRARIES
+$(install_loadertiffpkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_image_loaders_tiff_module_la_SOURCES = modules/evas/image_loaders/tiff/evas_image_load_tiff.c
 modules_evas_image_loaders_tiff_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
@@ -1665,6 +1810,12 @@ modules_evas_image_loaders_tiff_module_la_LIBTOOLFLAGS = --tag=disable-static
 
 savertiffpkgdir = $(libdir)/evas/modules/image_savers/tiff/$(MODULE_ARCH)
 savertiffpkg_LTLIBRARIES = modules/evas/image_savers/tiff/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_savertiffpkgLTLIBRARIES = install-savertiffpkgLTLIBRARIES
+$(install_savertiffpkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_image_savers_tiff_module_la_SOURCES = modules/evas/image_savers/tiff/evas_image_save_tiff.c
 modules_evas_image_savers_tiff_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
@@ -1692,6 +1843,12 @@ endif
 else
 loaderwbmppkgdir = $(libdir)/evas/modules/image_loaders/wbmp/$(MODULE_ARCH)
 loaderwbmppkg_LTLIBRARIES = modules/evas/image_loaders/wbmp/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_loaderwbmppkgLTLIBRARIES = install-loaderwbmppkgLTLIBRARIES
+$(install_loaderwbmppkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_image_loaders_wbmp_module_la_SOURCES = modules/evas/image_loaders/wbmp/evas_image_load_wbmp.c
 modules_evas_image_loaders_wbmp_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
@@ -1719,6 +1876,12 @@ endif
 else
 loaderwebppkgdir = $(libdir)/evas/modules/image_loaders/webp/$(MODULE_ARCH)
 loaderwebppkg_LTLIBRARIES = modules/evas/image_loaders/webp/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_loaderwebppkgLTLIBRARIES = install-loaderwebppkgLTLIBRARIES
+$(install_loaderwebppkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_image_loaders_webp_module_la_SOURCES = modules/evas/image_loaders/webp/evas_image_load_webp.c
 modules_evas_image_loaders_webp_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
@@ -1733,6 +1896,12 @@ modules_evas_image_loaders_webp_module_la_LIBTOOLFLAGS = --tag=disable-static
 
 saverwebppkgdir = $(libdir)/evas/modules/image_savers/webp/$(MODULE_ARCH)
 saverwebppkg_LTLIBRARIES = modules/evas/image_savers/webp/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_saverwebppkgLTLIBRARIES = install-saverwebppkgLTLIBRARIES
+$(install_saverwebppkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_image_savers_webp_module_la_SOURCES = modules/evas/image_savers/webp/evas_image_save_webp.c
 modules_evas_image_savers_webp_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
@@ -1760,6 +1929,12 @@ endif
 else
 loaderxpmpkgdir = $(libdir)/evas/modules/image_loaders/xpm/$(MODULE_ARCH)
 loaderxpmpkg_LTLIBRARIES = modules/evas/image_loaders/xpm/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_loaderxpmpkgLTLIBRARIES = install-loaderxpmpkgLTLIBRARIES
+$(install_loaderxpmpkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_image_loaders_xpm_module_la_SOURCES = modules/evas/image_loaders/xpm/evas_image_load_xpm.c
 modules_evas_image_loaders_xpm_module_la_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -I$(top_srcdir)/src/lib/evas/include \
@@ -1825,6 +2000,12 @@ endif
 else
 loadertgvpkgdir = $(libdir)/evas/modules/image_loaders/tgv/$(MODULE_ARCH)
 loadertgvpkg_LTLIBRARIES = modules/evas/image_loaders/tgv/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_loadertgvpkgLTLIBRARIES = install-loadertgvpkgLTLIBRARIES
+$(install_loadertgvpkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_image_loaders_tgv_module_la_SOURCES = \
 modules/evas/image_loaders/tgv/evas_image_load_tgv.c \
 static_libs/rg_etc/rg_etc1.c \
@@ -1855,6 +2036,12 @@ modules_evas_image_loaders_tgv_module_la_LIBTOOLFLAGS = --tag=disable-static
 
 savertgvpkgdir = $(libdir)/evas/modules/image_savers/tgv/$(MODULE_ARCH)
 savertgvpkg_LTLIBRARIES = modules/evas/image_savers/tgv/module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_savertgvpkgLTLIBRARIES = install-savertgvpkgLTLIBRARIES
+$(install_savertgvpkgLTLIBRARIES): install-libLTLIBRARIES
+
 modules_evas_image_savers_tgv_module_la_SOURCES = \
 modules/evas/image_savers/tgv/evas_image_save_tgv.c \
 static_libs/rg_etc/rg_etc1.c \

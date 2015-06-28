@@ -1010,6 +1010,26 @@ EAPI Eina_Bool eolian_parameter_const_attribute_get(const Eolian_Function_Parame
 EAPI Eina_Bool eolian_parameter_is_nonull(const Eolian_Function_Parameter *param_desc);
 
 /*
+ * @brief Indicates if a parameter is nullable.
+ *
+ * @param[in] param_desc parameter handle
+ * @return EINA_TRUE if nullable, EINA_FALSE otherwise
+ *
+ * @ingroup Eolian
+ */
+EAPI Eina_Bool eolian_parameter_is_nullable(const Eolian_Function_Parameter *param_desc);
+
+/*
+ * @brief Indicates if a parameter is optional.
+ *
+ * @param[in] param_desc parameter handle
+ * @return EINA_TRUE if optional, EINA_FALSE otherwise
+ *
+ * @ingroup Eolian
+ */
+EAPI Eina_Bool eolian_parameter_is_optional(const Eolian_Function_Parameter *param_desc);
+
+/*
  * @brief Get the return type of a function.
  *
  * @param[in] function_id id of the function
@@ -1076,6 +1096,29 @@ EAPI Eina_Bool eolian_function_return_is_warn_unused(const Eolian_Function *foo_
  * @ingroup Eolian
  */
 EAPI Eina_Bool eolian_function_object_is_const(const Eolian_Function *function_id);
+
+/*
+ * @brief Return the Eolian class associated to the function.
+ *
+ * @param[in] function_id id of the function
+ * @return the class, NULL otherwise
+ *
+ * @ingroup Eolian
+ */
+EAPI const Eolian_Class *eolian_function_class_get(const Eolian_Function *function_id);
+
+/*
+ * @brief Determine if a function is implemented in the inheritance of the given class
+ *
+ * @param[in] function_id id of the function
+ * @param[in] func_type type requested
+ * @param[in] klass the top class to begin with
+ * @return EINA_TRUE if found, EINA_FALSE otherwise
+ *
+ * @ingroup Eolian
+ */
+EAPI Eina_Bool eolian_function_is_implemented(const Eolian_Function *function_id,
+      Eolian_Function_Type func_type, const Eolian_Class *klass);
 
 /*
  * @brief Get full string of an overriding function (implement).

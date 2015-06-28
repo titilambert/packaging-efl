@@ -351,7 +351,6 @@ typedef struct _Edje_Calc_Params_Map Edje_Calc_Params_Map;
 typedef struct _Edje_Calc_Params_Physics Edje_Calc_Params_Physics;
 typedef struct _Edje_Pending_Program Edje_Pending_Program;
 typedef struct _Edje_Text_Style Edje_Text_Style;
-typedef struct _Edje_Color_Class Edje_Color_Class;
 typedef struct _Edje_Text_Class Edje_Text_Class;
 typedef struct _Edje_Var Edje_Var;
 typedef struct _Edje_Var_Int Edje_Var_Int;
@@ -633,7 +632,6 @@ struct _Edje_Model_Directory
 struct _Edje_Model_Directory_Entry
 {
    const char *entry; /* the nominal name of the model - if any */
-   int   source_type; /* alternate source mode. 0 = none */
    int   id; /* the id no. of the image */
 };
 
@@ -1149,6 +1147,9 @@ struct _Edje_Part_Description_Common
          int id_center;
          FLOAT_T x, y, z;
       } rot;
+      struct {
+         FLOAT_T x, y;
+      } zoom;
       Edje_Map_Color **colors;    /* List of the Edje_Map_Color */
       unsigned int colors_count;
       Eina_Bool backcull;
@@ -1324,9 +1325,10 @@ struct _Edje_Part_Description_Spec_Mesh_Node
       unsigned int           tweens_count;
       int                    id;
 
+      Eina_Bool              need_texture;
+      Eina_Bool              textured;
       Eina_Bool              set;
 
-      Evas_3D_Shade_Mode shade;
       Evas_3D_Wrap_Mode wrap1;
       Evas_3D_Wrap_Mode wrap2;
       Evas_3D_Texture_Filter filter1;
@@ -1339,6 +1341,7 @@ struct _Edje_Part_Description_Spec_Mesh_Node
       Edje_Float_Color      specular;
       Eina_Bool             normal;
       FLOAT_T               shininess;
+      Evas_3D_Shade_Mode    shade;
 
       Evas_3D_Material_Attrib material_attrib;
    } properties;
@@ -1385,8 +1388,8 @@ struct _Edje_Part_Description_Spec_Camera
    struct {
       Evas_Real       fovy;
       Evas_Real       aspect;
-      /* Evas_Real       near; */
-      /* Evas_Real       far; */
+      Evas_Real       frustum_near;
+      Evas_Real       frustum_far;
    } camera;
 
    struct {
@@ -1589,6 +1592,9 @@ struct _Edje_Calc_Params_Map
       int x, y, z;
       int focal;
    } persp; // 16
+   struct {
+      FLOAT_T x, y;
+   } zoom; //16
    Edje_Map_Color **colors;
    unsigned int colors_count;
 };
@@ -1854,14 +1860,6 @@ struct _Edje_Text_Style
       signed   char x, y; /* offset */
       unsigned char alpha;
    } members[32];
-};
-
-struct _Edje_Color_Class
-{
-   const char    *name;
-   unsigned char  r, g, b, a;
-   unsigned char  r2, g2, b2, a2;
-   unsigned char  r3, g3, b3, a3;
 };
 
 struct _Edje_Text_Class
@@ -2131,6 +2129,8 @@ extern Eina_Mempool *_edje_real_part_state_mp;
 extern Eina_Cow *_edje_calc_params_map_cow;
 extern Eina_Cow *_edje_calc_params_physics_cow;
 
+extern Eina_Hash       *_edje_file_hash;
+
 EAPI extern Eina_Mempool *_emp_RECTANGLE;
 EAPI extern Eina_Mempool *_emp_TEXT;
 EAPI extern Eina_Mempool *_emp_IMAGE;
@@ -2250,6 +2250,7 @@ void              _edje_color_class_on_del(Edje *ed, Edje_Part *ep);
 void              _edje_color_class_members_free(void);
 void              _edje_color_class_hash_free(void);
 
+const char       * _edje_find_alias(Eina_Hash *aliased, char *src, int *length);
 Edje_Text_Class  *_edje_text_class_find(Edje *ed, const char *text_class);
 void              _edje_text_class_member_add(Edje *ed, const char *text_class);
 void              _edje_text_class_member_del(Edje *ed, const char *text_class);
@@ -2363,8 +2364,8 @@ void          _edje_message_queue_process   (void);
 void          _edje_message_queue_clear     (void);
 void          _edje_message_del             (Edje *ed);
 
-void _edje_textblock_styles_add(Edje *ed);
-void _edje_textblock_styles_del(Edje *ed);
+void _edje_textblock_styles_add(Edje *ed, Edje_Real_Part *ep);
+void _edje_textblock_styles_del(Edje *ed, Edje_Part *pt);
 void _edje_textblock_styles_cache_free(Edje *ed, const char *text_class);
 void _edje_textblock_style_all_update(Edje *ed);
 void _edje_textblock_style_parse_and_fix(Edje_File *edf);
@@ -2641,6 +2642,7 @@ void _thaw(Eo *obj, void *_pd, va_list *list);
 void _color_class_set(Eo *obj, void *_pd, va_list *list);
 void _color_class_get(Eo *obj, void *_pd, va_list *list);
 void _text_class_set(Eo *obj, void *_pd, va_list *list);
+void _text_class_get(Eo *obj, void *_pd, va_list *list);
 void _part_exists(Eo *obj, void *_pd, va_list *list);
 void _part_object_get(Eo *obj, void *_pd, va_list *list);
 void _part_geometry_get(Eo *obj, void *_pd, va_list *list);

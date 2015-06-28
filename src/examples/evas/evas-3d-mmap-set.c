@@ -1,22 +1,28 @@
 /**
-* Simple Evas example illustrating import from mmap.
-*
-* Open files to Eina_Files.
-* Read meshes from Eina_Files.
-* Show the results.
-*
-* @verbatim
-* gcc -o evas-3d-mmap-set evas-3d-mmap-set.c `pkg-config --libs --cflags evas ecore ecore-evas eina eo` -lm
-* @endverbatim
-*/
+ * Simple Evas example illustrating import from mmap.
+ *
+ * Open files to Eina_Files.
+ * Read meshes from Eina_Files.
+ * Show the results.
+ *
+ * @verbatim
+ * gcc -o evas-3d-mmap-set evas-3d-mmap-set.c `pkg-config --libs --cflags efl evas ecore ecore-evas eina eo` -lm
+ * @endverbatim
+ */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#else
+#define PACKAGE_EXAMPLES_DIR "."
 #define EFL_EO_API_SUPPORT
 #define EFL_BETA_API_SUPPORT
+#endif
 
 #include <Eo.h>
 #include <Evas.h>
 #include <Ecore.h>
 #include <Ecore_Evas.h>
+#include "evas-common.h"
 
 #include <math.h>
 
@@ -24,10 +30,11 @@
 #define  HEIGHT 1000
 
 #define LOAD_AND_ADD_MESH(extention, number)                                          \
-   extention##_file = eina_file_open("mesh_mmap_set/mesh."#extention, 0);             \
+   snprintf(buffer, PATH_MAX, "%s%s", template_path, #extention);                     \
+   extention##_file = eina_file_open(buffer , 0);                                     \
    mesh_##extention = eo_add(EVAS_3D_MESH_CLASS, evas);                               \
    eo_do(mesh_##extention,                                                            \
-         evas_3d_mesh_mmap_set(extention##_file, NULL),                               \
+         efl_file_mmap_set(extention##_file, NULL),                                   \
          evas_3d_mesh_frame_material_set(0, material),                                \
          evas_3d_mesh_shade_mode_set(EVAS_3D_SHADE_MODE_PHONG));                      \
    node_##extention = eo_add(EVAS_3D_NODE_CLASS, evas,                                \
@@ -45,6 +52,8 @@
                                                  initial_node_data[number * 10 + 8],  \
                                                  initial_node_data[number * 10 + 9]));\
    ecore_timer_add(0.01, _animate_##extention, node_##extention);
+
+static const char *template_path = PACKAGE_EXAMPLES_DIR EVAS_MODEL_FOLDER "/mesh_for_mmap.";
 
 Ecore_Evas *ecore_evas = NULL;
 Evas *evas = NULL;
@@ -70,7 +79,7 @@ static float md2_animation_parameter = 0.0;
 static float obj_animation_velocity = 1.0;
 static float ply_animation_velocity = 1.0;
 static float eet_animation_velocity = 1.0;
-static float md2_animation_velocity = 32.0;
+static float md2_animation_velocity = 1.0;
 
 static const float initial_node_data[] =
  /*position              scale                 rotation*/
@@ -92,7 +101,7 @@ _animate_obj(void *data)
    float oap = obj_animation_parameter/200;
 
    eo_do((Evas_3D_Node *)data,
-         evas_3d_node_scale_set(oap, oap, pow(obj_animation_parameter, 2) / 2000),
+         evas_3d_node_scale_set(oap, oap, oap),
          evas_3d_node_orientation_angle_axis_set(obj_animation_parameter, 0.0, 1.0, 0.0));
 
    if (obj_animation_parameter >= 360.0 || obj_animation_parameter <= 0.0)
@@ -134,7 +143,8 @@ _animate_md2(void *data)
    eo_do((Evas_3D_Node *)data,
          evas_3d_node_mesh_frame_set(mesh_md2, md2_animation_parameter));
 
-   if (md2_animation_parameter > 256 * 100) md2_animation_parameter = 0;
+   if (md2_animation_parameter >= 360.0 || md2_animation_parameter <= 0.0)
+     md2_animation_velocity *= -1.0;
 
    return EINA_TRUE;
 }
@@ -151,13 +161,14 @@ _on_canvas_resize(Ecore_Evas *ee)
    int w, h;
 
    ecore_evas_geometry_get(ee, NULL, NULL, &w, &h);
-   eo_do(background, evas_obj_size_set(w, h));
-   eo_do(image, evas_obj_size_set(w, h));
+   eo_do(background, efl_gfx_size_set(w, h));
+   eo_do(image, efl_gfx_size_set(w, h));
 }
 
 int
 main(void)
 {
+   char buffer[PATH_MAX];
    Eina_File *obj_file, *ply_file, *eet_file, *md2_file;
 
    //Unless Evas 3D supports Software renderer, we set gl backened forcely.
@@ -247,15 +258,15 @@ main(void)
    /* Add a background rectangle objects. */
    background = eo_add(EVAS_RECTANGLE_CLASS, evas);
    eo_do(background,
-         evas_obj_color_set(20, 20, 200, 255),
-         evas_obj_size_set(WIDTH, HEIGHT),
-         evas_obj_visibility_set(EINA_TRUE));
+         efl_gfx_color_set(20, 20, 200, 255),
+         efl_gfx_size_set(WIDTH, HEIGHT),
+         efl_gfx_visible_set(EINA_TRUE));
 
    /* Add an image object for 3D scene rendering. */
    image = evas_object_image_filled_add(evas);
    eo_do(image,
-         evas_obj_size_set(WIDTH, HEIGHT),
-         evas_obj_visibility_set(EINA_TRUE));
+         efl_gfx_size_set(WIDTH, HEIGHT),
+         efl_gfx_visible_set(EINA_TRUE));
 
    /* Set the image object as render target for 3D scene. */
    eo_do(image, evas_obj_image_scene_set(scene));

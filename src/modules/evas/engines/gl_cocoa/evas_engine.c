@@ -78,8 +78,6 @@ eng_info_free(Evas *e EINA_UNUSED, void *info)
 {
    Evas_Engine_Info_GL_Cocoa *in;
 
-   DBG("Info %p", info);
-   eina_log_domain_unregister(_evas_engine_gl_cocoa_log_dom);
    in = (Evas_Engine_Info_GL_Cocoa *)info;
    free(in);
 }
@@ -111,18 +109,7 @@ eng_setup(Evas *eo_e, void *in)
 	     return 0;
 	  }
 
-	evas_common_cpu_init();
-
-	evas_common_blend_init();
-	evas_common_image_init();
-	evas_common_convert_init();
-	evas_common_scale_init();
-	evas_common_rectangle_init();
-	evas_common_polygon_init();
-	evas_common_line_init();
-	evas_common_font_init();
-	evas_common_draw_init();
-	evas_common_tilebuf_init();
+        evas_common_init();
      }
    else
      {
@@ -153,8 +140,7 @@ eng_output_free(void *data)
    eng_window_free(re->win);
    free(re);
 
-   evas_common_font_shutdown();
-   evas_common_image_shutdown();
+   evas_common_shutdown();
 }
 
 static void
@@ -185,6 +171,7 @@ eng_output_redraws_rect_add(void *data, int x, int y, int w, int h)
 
    DBG("Redraw rect %d %d %d %d", x, y, w, h);
    re = (Render_Engine *)data;
+   eng_window_lock_focus(re->win);
    evas_gl_common_context_resize(re->win->gl_context, re->win->width, re->win->height, 0);
    /* simple bounding box */
    RECTS_CLIP_TO_RECT(x, y, w, h, 0, 0, re->win->width, re->win->height);
@@ -211,6 +198,7 @@ eng_output_redraws_rect_add(void *data, int x, int y, int w, int h)
 	if ((y + h - 1) > re->win->draw.y2) re->win->draw.y2 = y + h - 1;
      }
    re->win->draw.redraw = 1;
+   eng_window_unlock_focus(re->win);
 }
 
 static void
@@ -310,9 +298,9 @@ eng_output_flush(void *data, Evas_Render_Mode render_mode)
 #ifdef VSYNC_TO_SCREEN
    eng_window_vsync_set(1);
 #endif
-
+   eng_window_lock_focus(re->win);
    eng_window_swap_buffers(re->win);
-
+   eng_window_unlock_focus(re->win);
 }
 
 static void
@@ -1058,14 +1046,20 @@ eng_font_draw(void *data, void *context, void *surface, Evas_Font_Set *font EINA
    					      re->win->gl_context,
    					      evas_gl_font_texture_new,
    					      evas_gl_font_texture_free,
-   					      evas_gl_font_texture_draw);
+   					      evas_gl_font_texture_draw,
+                                              NULL,
+                                              NULL,
+                                              NULL);
 	    evas_common_font_draw_prepare(intl_props);
 	    evas_common_font_draw(im, context, x, y, intl_props->glyphs);
 	    evas_common_draw_context_font_ext_set(context,
 					      NULL,
 					      NULL,
 					      NULL,
-					      NULL);
+                                              NULL,
+                                              NULL,
+                                              NULL,
+                                              NULL);
      }
 
    return EINA_FALSE;

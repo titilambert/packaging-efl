@@ -32,15 +32,20 @@ evas_common_draw_context_cutouts_del(Cutout_Rects* rects, int idx)
      }
 }
 
-void
+static int _init_count = 0;
+
+EAPI void
 evas_common_init(void)
 {
+   if (_init_count++) return ;
+
    evas_common_cpu_init();
 
    evas_common_blend_init();
    evas_common_image_init();
    evas_common_convert_init();
    evas_common_scale_init();
+   evas_common_scale_sample_init();
    evas_common_rectangle_init();
    evas_common_polygon_init();
    evas_common_line_init();
@@ -49,11 +54,16 @@ evas_common_init(void)
    evas_common_tilebuf_init();
 }
 
-void
+EAPI void
 evas_common_shutdown(void)
 {
+   if (--_init_count) return ;
+
    evas_font_dir_cache_free();
+   evas_common_font_shutdown();
+   evas_common_image_shutdown();
    evas_common_image_cache_free();
+   evas_common_scale_sample_shutdown();
 }
 
 EAPI void
@@ -98,15 +108,21 @@ evas_common_draw_context_clear_cutouts(RGBA_Draw_Context *dc)
 
 EAPI void
 evas_common_draw_context_font_ext_set(RGBA_Draw_Context *dc,
-				      void *data,
-				      void *(*gl_new)  (void *data, RGBA_Font_Glyph *fg),
-				      void  (*gl_free) (void *ext_dat),
-				      void  (*gl_draw) (void *data, void *dest, void *context, RGBA_Font_Glyph *fg, int x, int y))
+                                      void *data,
+                                      void *(*gl_new)  (void *data, RGBA_Font_Glyph *fg),
+                                      void  (*gl_free) (void *ext_dat),
+                                      void  (*gl_draw) (void *data, void *dest, void *context, RGBA_Font_Glyph *fg, int x, int y),
+                                      void *(*gl_image_new_from_data) (void *gc, unsigned int w, unsigned int h, DATA32 *image_data, int alpha, Evas_Colorspace cspace),
+                                      void  (*gl_image_free) (void *image),
+                                      void  (*gl_image_draw) (void *gc, void *im, int sx, int sy, int sw, int sh, int dx, int dy, int dw, int dh, int smooth))
 {
    dc->font_ext.data = data;
    dc->font_ext.func.gl_new = gl_new;
    dc->font_ext.func.gl_free = gl_free;
    dc->font_ext.func.gl_draw = gl_draw;
+   dc->font_ext.func.gl_image_new_from_data = gl_image_new_from_data;
+   dc->font_ext.func.gl_image_free = gl_image_free;
+   dc->font_ext.func.gl_image_draw = gl_image_draw;
 }
 
 EAPI void

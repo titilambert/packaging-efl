@@ -26,15 +26,10 @@
 # include <libinput.h>
 # include <xkbcommon/xkbcommon.h>
 
-# include <xf86drm.h>
-# include <xf86drmMode.h>
-# include <drm_fourcc.h>
-
 # ifdef HAVE_SYSTEMD_LOGIN
 #  include <systemd/sd-login.h>
 # endif
 
-# include <Eeze.h>
 # include <Eldbus.h>
 # include <Ecore_Drm.h>
 
@@ -75,13 +70,22 @@
 
 extern int _ecore_drm_log_dom;
 
-#define EVDEV_MAX_SLOTS 32
+# define EVDEV_MAX_SLOTS 32
 
-#define ERR(...) EINA_LOG_DOM_ERR(_ecore_drm_log_dom, __VA_ARGS__)
-#define DBG(...) EINA_LOG_DOM_DBG(_ecore_drm_log_dom, __VA_ARGS__)
-#define INF(...) EINA_LOG_DOM_INFO(_ecore_drm_log_dom, __VA_ARGS__)
-#define WRN(...) EINA_LOG_DOM_WARN(_ecore_drm_log_dom, __VA_ARGS__)
-#define CRIT(...) EINA_LOG_DOM_CRIT(_ecore_drm_log_dom, __VA_ARGS__)
+# define ERR(...) EINA_LOG_DOM_ERR(_ecore_drm_log_dom, __VA_ARGS__)
+# define DBG(...) EINA_LOG_DOM_DBG(_ecore_drm_log_dom, __VA_ARGS__)
+# define INF(...) EINA_LOG_DOM_INFO(_ecore_drm_log_dom, __VA_ARGS__)
+# define WRN(...) EINA_LOG_DOM_WARN(_ecore_drm_log_dom, __VA_ARGS__)
+# define CRIT(...) EINA_LOG_DOM_CRIT(_ecore_drm_log_dom, __VA_ARGS__)
+
+# define ALEN(array) (sizeof(array) / sizeof(array)[0])
+
+typedef struct _Ecore_Drm_Pageflip_Callback
+{
+   Ecore_Drm_Pageflip_Cb func;
+   void *data;
+   int count;
+} Ecore_Drm_Pageflip_Callback;
 
 struct _Ecore_Drm_Output_Mode
 {
@@ -114,26 +118,35 @@ struct _Ecore_Drm_Output
    unsigned int crtc_id;
    unsigned int conn_id;
    drmModeCrtcPtr crtc;
-   Eeze_Udev_Watch *watch;
+   drmModePropertyPtr dpms;
 
-   int x, y;
-   int drm_fd;
+   int x, y, phys_width, phys_height;
 
-   Eina_Bool need_repaint : 1;
-   Eina_Bool repaint_scheduled : 1;
-
-   Eina_Bool pending_flip : 1;
-   Eina_Bool pending_vblank : 1;
-
+   int pipe;
    const char *make, *model, *name;
    unsigned int subpixel;
+   uint16_t gamma;
 
    Ecore_Drm_Output_Mode *current_mode;
    Eina_List *modes;
 
-   Ecore_Drm_Fb *current, *next;
-   Ecore_Drm_Fb *dumb[NUM_FRAME_BUFFERS];
+   struct
+     {
+        char eisa[13];
+        char monitor[13];
+        char pnp[5];
+        char serial[13];
+     } edid;
+
    Ecore_Drm_Backlight *backlight;   
+
+   Eina_Bool enabled : 1;
+   Eina_Bool cloned : 1;
+   Eina_Bool need_repaint : 1;
+   Eina_Bool repaint_scheduled : 1;
+   Eina_Bool pending_destroy : 1;
+   Eina_Bool pending_flip : 1;
+   Eina_Bool pending_vblank : 1;
 };
 
 struct _Ecore_Drm_Seat
@@ -183,9 +196,11 @@ struct _Ecore_Drm_Evdev
 
    struct 
      {
-        int x, y;
+        int ix, iy;
+        int minx, miny, maxw, maxh;
+        double dx, dy;
         unsigned int last, prev;
-        double threshold;
+        uint32_t threshold;
         Eina_Bool did_double : 1;
         Eina_Bool did_triple : 1;
         uint32_t prev_button, last_button;
@@ -252,6 +267,7 @@ void _ecore_drm_fb_destroy(Ecore_Drm_Fb *fb);
 void _ecore_drm_output_fb_release(Ecore_Drm_Output *output, Ecore_Drm_Fb *fb);
 void _ecore_drm_output_repaint_start(Ecore_Drm_Output *output);
 void _ecore_drm_output_frame_finish(Ecore_Drm_Output *output);
+void _ecore_drm_outputs_update(Ecore_Drm_Device *dev);
 
 Eina_Bool _ecore_drm_logind_connect(Ecore_Drm_Device *dev);
 void _ecore_drm_logind_disconnect(Ecore_Drm_Device *dev);

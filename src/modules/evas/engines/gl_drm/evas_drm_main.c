@@ -118,7 +118,10 @@ eng_window_new(Evas_Engine_Info_GL_Drm *info, Evas *e, struct gbm_device *gbm, s
    config_attrs[n++] = EGL_OPENGL_ES2_BIT;
    config_attrs[n++] = EGL_NONE;
 
+#ifdef GL_DRM_DBG
    DBG("GBM DEVICE: %x", (unsigned int)gbm);
+#endif
+
    gw->egl_disp = eglGetDisplay((EGLNativeDisplayType)(gw->gbm));
    if (gw->egl_disp  == EGL_NO_DISPLAY)
      {
@@ -221,8 +224,10 @@ eng_window_new(Evas_Engine_Info_GL_Drm *info, Evas *e, struct gbm_device *gbm, s
         return NULL;
      }
 
+#ifdef GL_GLES
    gw->gl_context->egldisp = gw->egl_disp;
    gw->gl_context->eglctxt = gw->egl_context[0];
+#endif
 
    eng_window_use(gw);
    glsym_evas_gl_common_context_resize(gw->gl_context, w, h, rot);

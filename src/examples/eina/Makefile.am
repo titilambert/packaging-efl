@@ -120,12 +120,14 @@ eina_tiler_01_CPPFLAGS = \
 -I$(top_srcdir)/src/lib/eina \
 -I$(top_srcdir)/src/lib/eo \
 -I$(top_srcdir)/src/lib/evas \
+-I$(top_srcdir)/src/lib/emile \
 -I$(top_srcdir)/src/lib/ecore \
 -I$(top_srcdir)/src/lib/ecore_input \
 -I$(top_srcdir)/src/lib/ecore_evas \
 -I$(top_builddir)/src/lib/efl \
 -I$(top_builddir)/src/lib/efl/interfaces \
 -I$(top_builddir)/src/lib/eina \
+-I$(top_builddir)/src/lib/emile \
 -I$(top_builddir)/src/lib/eo \
 -I$(top_builddir)/src/lib/evas \
 -I$(top_builddir)/src/lib/ecore \
@@ -135,6 +137,7 @@ eina_tiler_01_CPPFLAGS = \
 
 eina_tiler_01_LDADD = \
 $(top_builddir)/src/lib/eina/libeina.la \
+$(top_builddir)/src/lib/emile/libemile.la \
 $(top_builddir)/src/lib/eo/libeo.la \
 $(top_builddir)/src/lib/ecore/libecore.la \
 $(top_builddir)/src/lib/ecore_input/libecore_input.la \
@@ -152,7 +155,7 @@ clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 
 install-examples:
-	mkdir -p $(datadir)/eina/examples
+	$(MKDIR_P) $(datadir)/eina/examples
 	cd $(srcdir) && $(install_sh_DATA) -c $(SRCS) $(DATA_FILES) $(datadir)/eina/examples
 
 uninstall-local:

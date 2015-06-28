@@ -72,14 +72,12 @@ eina_tmpstr_add_length(const char *str, size_t length)
    Str *s;
 
    if (!str || !length) return NULL;
-   /* eina_tmpstr_strlen is expected to return strlen + 1 */
-   length += 1;
-   s = malloc(sizeof(Str) + length);
+   s = malloc(sizeof(Str) + length + 1);
    if (!s) return NULL;
    s->length = length;
    s->str = ((char *)s) + sizeof(Str);
-   strncpy(s->str, str, length - 1);
-   s->str[length - 1] = '\0';
+   strncpy(s->str, str, length);
+   s->str[length] = '\0';
    eina_lock_take(&_mutex);
    s->next = strs;
    strs = s;
@@ -120,20 +118,28 @@ eina_tmpstr_del(Eina_Tmpstr *tmpstr)
 EAPI size_t
 eina_tmpstr_strlen(Eina_Tmpstr *tmpstr)
 {
+   if (!tmpstr) return 0;
+   return eina_tmpstr_len(tmpstr) + 1;
+}
+
+EAPI size_t
+eina_tmpstr_len(Eina_Tmpstr *tmpstr)
+{
    Str *s;
 
    if (!tmpstr) return 0;
-   if (!strs) return strlen(tmpstr) + 1;
+   if (!strs) return strlen(tmpstr);
    eina_lock_take(&_mutex);
    for (s = strs; s; s = s->next)
      {
         if (s->str == tmpstr)
 	  {
+             size_t ret = s->length;
              eina_lock_release(&_mutex);
-             return s->length;
+             return ret;
 	  }
      }
    eina_lock_release(&_mutex);
 
-   return strlen(tmpstr) + 1;
+   return strlen(tmpstr);
 }

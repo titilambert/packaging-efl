@@ -16,6 +16,28 @@ typedef struct _Edje_Version
 
 EAPI extern Edje_Version *edje_version;
 
+#ifndef _EDJE_OBJECT_EO_CLASS_TYPE
+#define _EDJE_OBJECT_EO_CLASS_TYPE
+
+typedef Eo Edje_Object;
+
+#endif
+
+/**
+ * @typedef Edje_Color_Class
+ * Type for edje color class
+ */
+typedef struct _Edje_Color_Class Edje_Color_Class;
+
+struct _Edje_Color_Class
+{
+   const char       *name;
+
+   unsigned char  r, g, b, a;
+   unsigned char  r2, g2, b2, a2;
+   unsigned char  r3, g3, b3, a3;
+   Eina_Stringshare *desc;
+};
 
 /**
  * @defgroup Edje_Object_Communication_Interface_Signal Edje Communication Interface: Signal
@@ -960,7 +982,7 @@ typedef struct _Edje_Entry_Change_Info        Edje_Entry_Change_Info;
 
 /**
  * @typedef Edje_Text_Filter_Type
- * 
+ *
  * All Edje text filters type values.
  */
 typedef enum _Edje_Text_Filter_Type
@@ -973,7 +995,7 @@ typedef enum _Edje_Text_Filter_Type
 /**
  * @typedef Edje_Text_Autocapital_Type
  *
- * All Text auto capital mode type values 
+ * All Text auto capital mode type values
  *
  */
 typedef enum _Edje_Text_Autocapital_Type
@@ -986,7 +1008,7 @@ typedef enum _Edje_Text_Autocapital_Type
 
 /**
  * @typedef Edje_Input_Panel_Lang
- * 
+ *
  */
 typedef enum _Edje_Input_Panel_Lang
 {
@@ -1031,7 +1053,7 @@ typedef enum _Edje_Input_Panel_Layout
 
 /*
  * @typedef Edje_Input_Hints
- * @brief Edje input hints 
+ * @brief Edje input hints
  */
 typedef enum
 {
@@ -1244,6 +1266,28 @@ EAPI void         edje_color_class_del            (const char *color_class);
  *
  */
 EAPI Eina_List   *edje_color_class_list           (void);
+
+/**
+ * @brief Iterate over all the active class of an application.
+ *
+ * @return an iterator of Edje_Color_Class of the currently active color class
+ *
+ * This function only iterate over the Edje_Color_Class in use by
+ * an application.
+ *
+ * @since 1.14
+ */
+EAPI Eina_Iterator *edje_color_class_active_iterator_new(void);
+
+/**
+ * @brief Iterate over all the color class provided by an Edje file.
+ *
+ * @return an iterator of Edje_Color_Class provided by the Edje file.
+ *
+ * @since 1.14
+ */
+EAPI Eina_Iterator *edje_mmap_color_class_iterator_new(Eina_File *f);
+
 
 /**
  * @}
@@ -1632,6 +1676,24 @@ typedef enum _Edje_Object_Table_Homogeneous_Mode
 EAPI Eina_Bool    edje_text_class_set             (const char *text_class, const char *font, Evas_Font_Size size);
 
 /**
+ * @brief Get the font and the font size from Edje text class.
+ *
+ * @param text_class The text class name
+ * @param font The font name
+ * @param size The font size
+ *
+ * @return @c EINA_TRUE, on success or @c EINA_FALSE, on error
+ *
+ * This function gets the font and the font name from the specified Edje
+ * text class. The font string will only be valid until the text class is
+ * changed or edje is shut down.
+ * @see edje_text_class_set().
+ *
+ * @since 1.14
+ */
+EAPI Eina_Bool    edje_text_class_get             (const char *text_class, const char **font, Evas_Font_Size *size);
+
+/**
  * @brief Delete the text class.
  *
  * @param text_class The text class name string
@@ -1720,6 +1782,15 @@ EAPI void              edje_mmap_collection_list_free(Eina_List *lst);
  * @return 1 if a match is found, 0 otherwise
  */
 EAPI Eina_Bool         edje_mmap_group_exists(Eina_File *f, const char *glob);
+
+/**
+ * @brief Iterate over all the opened Edje file.
+ *
+ * @return an iterator of Eina_File currently opened Edje file.
+ *
+ * @since 1.14
+ */
+EAPI Eina_Iterator *edje_file_iterator_new(void);
 
 /**
  * Get a list of groups in an edje file
@@ -2182,7 +2253,7 @@ EAPI const Edje_Perspective *edje_evas_global_perspective_get(const Evas *e);
  *
  * @see edje_audio_channel_mute_set()
  * @see edje_audio_channel_mute_get()
- * 
+ *
  * @since 1.9
  */
 typedef enum _Edje_Channel

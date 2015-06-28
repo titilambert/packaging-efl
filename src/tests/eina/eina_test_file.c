@@ -101,7 +101,7 @@ START_TEST(eina_file_split_simple)
 #endif
 
 #ifdef _WIN32
-   ea = eina_file_split(strdup("\\this\\is\\a\\small\\test"));
+   ea = eina_file_split(strdup("\\this/is\\a/small/test"));
 #else
    ea = eina_file_split(strdup("/this/is/a/small/test"));
 #endif
@@ -119,7 +119,7 @@ START_TEST(eina_file_split_simple)
 #ifdef _WIN32
    ea =
       eina_file_split(strdup(
-                         "this\\\\is\\\\\\a \\more\\complex\\\\\\case\\\\\\"));
+                         "this\\/\\is\\//\\\\a \\more/\\complex///case\\\\\\"));
 #else
    ea = eina_file_split(strdup("this//is///a /more/complex///case///"));
 #endif
@@ -374,15 +374,18 @@ START_TEST(eina_file_map_new_test)
    fail_if(!file2_map);
    correct_map_check = strcmp((char*)file2_map, big_buffer + memory_page_size); 
    fail_if(correct_map_check != 0);  
-  
+
+   eina_file_map_free(e_file, file_map);
+   eina_file_map_free(e_file2, file2_map);
+   eina_file_close(e_file);
+   eina_file_close(e_file2);
+
    unlink(test_file_path);
    unlink(test_file2_path);
+   rmdir(test_dirname);
+
    free(test_file_path);
    free(test_file2_path);
-   eina_file_map_free(e_file, file_map);
-   eina_file_map_free(e_file2, file2_map);   
-   eina_file_close(e_file); 
-   eina_file_close(e_file2);
    eina_tmpstr_del(test_dirname);
 
    eina_shutdown();
@@ -390,7 +393,7 @@ START_TEST(eina_file_map_new_test)
 END_TEST
 
 static const char *virtual_file_data = "this\n"
-  "is a test for the sake of testing\n"
+  "is a test for the sake of testing\r\n"
   "it should detect all the line of this\n"
   "\n"
   "\r\n"
@@ -404,8 +407,7 @@ START_TEST(eina_test_file_virtualize)
    Eina_Iterator *it;
    Eina_File_Line *ln;
    void *map;
-   const unsigned int check[] = { 1, 2, 3, 6, 7 };
-   int i = 0;
+   unsigned int i = 0;
 
    eina_init();
 
@@ -427,13 +429,16 @@ START_TEST(eina_test_file_virtualize)
    it = eina_file_map_lines(f);
    EINA_ITERATOR_FOREACH(it, ln)
      {
-        fail_if(ln->index != check[i]);
         i++;
+        fail_if(ln->index != i);
+
+        if (i == 4 || i == 5)
+          fail_if(ln->length != 0);
      }
    fail_if(eina_iterator_container_get(it) != f);
    eina_iterator_free(it);
 
-   fail_if(i != 5);
+   fail_if(i != 7);
 
    eina_file_close(f);
 
@@ -498,6 +503,83 @@ START_TEST(eina_test_file_path)
 }
 END_TEST
 
+#ifdef XATTR_TEST_DIR
+START_TEST(eina_test_file_xattr)
+{
+   Eina_File *ef;
+   char *filename = "tmpfile";
+   const char *attribute[] =
+     {
+        "user.comment1",
+        "user.comment2",
+        "user.comment3"
+     };
+   const char *data[] =
+     {
+        "This is a test file",
+        "This line is a comment",
+        "This file has extra attributes"
+     };
+   char *ret_str;
+   unsigned int i;
+   Eina_Bool ret;
+   Eina_Tmpstr *test_file_path;
+   Eina_Iterator *it;
+   int fd, count=0;
+   Eina_Xattr *xattr;
+
+   eina_init();
+   test_file_path = get_full_path(XATTR_TEST_DIR, filename);
+
+   fd = open(test_file_path, O_RDONLY | O_CREAT | O_TRUNC, S_IRWXU | S_IRWXG | S_IRWXO);
+   fail_if(fd == 0);
+   close(fd);
+
+   for (i = 0; i < sizeof(attribute) / sizeof(attribute[0]); ++i)
+     {
+        ret = eina_xattr_set(test_file_path, attribute[i], data[i], strlen(data[i]), EINA_XATTR_INSERT);
+        fail_if(ret != EINA_TRUE);
+     }
+
+   ef = eina_file_open(test_file_path, EINA_FALSE);
+   fail_if(!ef);
+
+   it = eina_file_xattr_get(ef);
+   EINA_ITERATOR_FOREACH(it, ret_str)
+     {
+        for (i = 0; i < sizeof (attribute) / sizeof (attribute[0]); i++)
+          if (strcmp(attribute[i], ret_str) == 0)
+            {
+               count++;
+               break;
+            }
+     }
+   fail_if(count != sizeof (attribute) / sizeof (attribute[0]));
+   eina_iterator_free(it);
+
+   count = 0;
+   it = eina_file_xattr_value_get(ef);
+   EINA_ITERATOR_FOREACH(it, xattr)
+     {
+        for (i = 0; i < sizeof (data) / sizeof (data[0]); i++)
+          if (strcmp(attribute[i], xattr->name) == 0 &&
+              strcmp(data[i], xattr->value) == 0)
+            {
+               count++;
+               break;
+            }
+     }
+   fail_if(count != sizeof (data) / sizeof (data[0]));
+   eina_iterator_free(it);
+
+   unlink(test_file_path);
+   eina_tmpstr_del(test_file_path);
+   eina_file_close(ef);
+   eina_shutdown();
+}
+END_TEST
+#endif
+
 void
 eina_test_file(TCase *tc)
 {
@@ -508,4 +590,7 @@ eina_test_file(TCase *tc)
    tcase_add_test(tc, eina_test_file_virtualize);
    tcase_add_test(tc, eina_test_file_thread);
    tcase_add_test(tc, eina_test_file_path);
+#ifdef XATTR_TEST_DIR
+   tcase_add_test(tc, eina_test_file_xattr);
+#endif
 }

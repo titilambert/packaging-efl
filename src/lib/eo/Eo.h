@@ -486,32 +486,32 @@ EAPI extern Eo_Hook_Call eo_hook_call_post;
 
 #define EO_HOOK_CALL_PREPARE(Hook, FuncName)                                \
      if (Hook)                                                          \
-       Hook(call.klass, call.obj, FuncName, call.func);
+       Hook(___call.klass, ___call.obj, FuncName, ___call.func);
 
 #define EO_HOOK_CALL_PREPAREV(Hook, FuncName, ...)                          \
      if (Hook)                                                          \
-       Hook(call.klass, call.obj, FuncName, call.func, __VA_ARGS__);
+       Hook(___call.klass, ___call.obj, FuncName, ___call.func, __VA_ARGS__);
 
 // cache OP id, get real fct and object data then do the call
 #define EO_FUNC_COMMON_OP(Name, DefRet)                                 \
-     Eo_Op_Call_Data call;                                              \
-     Eina_Bool is_main_loop = eina_main_loop_is();                      \
-     static Eo_Op op = EO_NOOP;                                         \
-     if (op == EO_NOOP)                                                 \
-       op = _eo_api_op_id_get((void*) Name, is_main_loop, __FILE__, __LINE__); \
-     if (!_eo_call_resolve(#Name, op, &call, is_main_loop, __FILE__, __LINE__)) return DefRet; \
-     _Eo_##Name##_func _func_ = (_Eo_##Name##_func) call.func;        \
+     Eo_Op_Call_Data ___call;                                           \
+     Eina_Bool ___is_main_loop = eina_main_loop_is();                   \
+     static Eo_Op ___op = EO_NOOP;                                      \
+     if (___op == EO_NOOP)                                              \
+       ___op = _eo_api_op_id_get((void*) Name, ___is_main_loop, __FILE__, __LINE__); \
+     if (!_eo_call_resolve(#Name, ___op, &___call, ___is_main_loop, __FILE__, __LINE__)) return DefRet; \
+     _Eo_##Name##_func _func_ = (_Eo_##Name##_func) ___call.func;       \
 
 // to define an EAPI function
-#define EO_FUNC_BODY(Name, Ret, DefRet)                                \
+#define EO_FUNC_BODY(Name, Ret, DefRet)                                 \
   Ret                                                                   \
   Name(void)                                                            \
   {                                                                     \
-     typedef Ret (*_Eo_##Name##_func)(Eo *, void *obj_data);           \
+     typedef Ret (*_Eo_##Name##_func)(Eo *, void *obj_data);            \
      Ret _r;                                                            \
-     EO_FUNC_COMMON_OP(Name, DefRet);                                  \
-     EO_HOOK_CALL_PREPARE(eo_hook_call_pre, #Name);                    \
-     _r = _func_(call.obj, call.data);                                  \
+     EO_FUNC_COMMON_OP(Name, DefRet);                                   \
+     EO_HOOK_CALL_PREPARE(eo_hook_call_pre, #Name);                     \
+     _r = _func_(___call.obj, ___call.data);                            \
      EO_HOOK_CALL_PREPARE(eo_hook_call_post, #Name);                    \
      return _r;                                                         \
   }
@@ -520,35 +520,35 @@ EAPI extern Eo_Hook_Call eo_hook_call_post;
   void									\
   Name(void)                                                            \
   {                                                                     \
-     typedef void (*_Eo_##Name##_func)(Eo *, void *obj_data);          \
-     EO_FUNC_COMMON_OP(Name, );                                        \
-     EO_HOOK_CALL_PREPARE(eo_hook_call_pre, #Name);                          \
-     _func_(call.obj, call.data);                                       \
-     EO_HOOK_CALL_PREPARE(eo_hook_call_post, #Name);                         \
+     typedef void (*_Eo_##Name##_func)(Eo *, void *obj_data);           \
+     EO_FUNC_COMMON_OP(Name, );                                         \
+     EO_HOOK_CALL_PREPARE(eo_hook_call_pre, #Name);                     \
+     _func_(___call.obj, ___call.data);                                 \
+     EO_HOOK_CALL_PREPARE(eo_hook_call_post, #Name);                    \
   }
 
-#define EO_FUNC_BODYV(Name, Ret, DefRet, Arguments, ...)               \
+#define EO_FUNC_BODYV(Name, Ret, DefRet, Arguments, ...)                \
   Ret                                                                   \
   Name(__VA_ARGS__)                                                     \
   {                                                                     \
      typedef Ret (*_Eo_##Name##_func)(Eo *, void *obj_data, __VA_ARGS__); \
      Ret _r;                                                            \
-     EO_FUNC_COMMON_OP(Name, DefRet);                                  \
-     EO_HOOK_CALL_PREPAREV(eo_hook_call_pre, #Name, Arguments);              \
-     _r = _func_(call.obj, call.data, Arguments);                       \
-     EO_HOOK_CALL_PREPAREV(eo_hook_call_post, #Name, Arguments);             \
+     EO_FUNC_COMMON_OP(Name, DefRet);                                   \
+     EO_HOOK_CALL_PREPAREV(eo_hook_call_pre, #Name, Arguments);         \
+     _r = _func_(___call.obj, ___call.data, Arguments);                 \
+     EO_HOOK_CALL_PREPAREV(eo_hook_call_post, #Name, Arguments);        \
      return _r;                                                         \
   }
 
-#define EO_VOID_FUNC_BODYV(Name, Arguments, ...)                       \
+#define EO_VOID_FUNC_BODYV(Name, Arguments, ...)                        \
   void                                                                  \
   Name(__VA_ARGS__)                                                     \
   {                                                                     \
      typedef void (*_Eo_##Name##_func)(Eo *, void *obj_data, __VA_ARGS__); \
-     EO_FUNC_COMMON_OP(Name, );                                        \
-     EO_HOOK_CALL_PREPAREV(eo_hook_call_pre, #Name, Arguments);              \
-     _func_(call.obj, call.data, Arguments);                            \
-     EO_HOOK_CALL_PREPAREV(eo_hook_call_post, #Name, Arguments);             \
+     EO_FUNC_COMMON_OP(Name, );                                         \
+     EO_HOOK_CALL_PREPAREV(eo_hook_call_pre, #Name, Arguments);         \
+     _func_(___call.obj, ___call.data, Arguments);                      \
+     EO_HOOK_CALL_PREPAREV(eo_hook_call_post, #Name, Arguments);        \
   }
 
 // OP ID of an overriding function
@@ -576,23 +576,36 @@ EAPI Eina_Bool _eo_call_resolve(const char *func_name, const Eo_Op op, Eo_Op_Cal
   EAPI Eina_Bool _eo_do_start(const Eo *obj, const Eo_Class *cur_klass, Eina_Bool is_super, const char *file, const char *func, int line);
 
 // end of the eo_do barrier, unref the obj, move the stack pointer
-EAPI void _eo_do_end(const Eo **ojb);
+EAPI void _eo_do_end(void);
 
-#define EO_DO_CLEANUP __attribute__((cleanup(_eo_do_end)))
+// end of the eo_add. Calls finalize among others
+EAPI Eo * _eo_add_end(void);
 
 // eo object method calls batch,
 
 #define _eo_do_common(eoid, clsid, is_super, ...)                       \
-  ({                                                                    \
-       const Eo *_eoid_ EO_DO_CLEANUP = eoid;                           \
-       _eo_do_start(_eoid_, clsid, is_super, __FILE__, __FUNCTION__, __LINE__); \
+  do {                                                                  \
+       _eo_do_start(eoid, clsid, is_super, __FILE__, __FUNCTION__, __LINE__); \
        __VA_ARGS__;                                                     \
-    })
+       _eo_do_end();                                                    \
+  } while (0)
+
+#define _eo_do_common_ret(eoid, clsid, is_super, ret_tmp, func)      \
+  (                                                                     \
+       _eo_do_start(eoid, clsid, is_super, __FILE__, __FUNCTION__, __LINE__), \
+       ret_tmp = func,                                                  \
+       _eo_do_end(),                                                    \
+       ret_tmp                                                          \
+  )
 
 
 #define eo_do(eoid, ...) _eo_do_common(eoid, NULL, EINA_FALSE, __VA_ARGS__)
 
 #define eo_do_super(eoid, clsid, func) _eo_do_common(eoid, clsid, EINA_TRUE, func)
+
+#define eo_do_ret(eoid, ret_tmp, func) _eo_do_common_ret(eoid, NULL, EINA_FALSE, ret_tmp, func)
+
+#define eo_do_super_ret(eoid, clsid, ret_tmp, func) _eo_do_common_ret(eoid, clsid, EINA_TRUE, ret_tmp, func)
 
 /*****************************************************************************/
 
@@ -618,13 +631,25 @@ EAPI const Eo_Class *eo_class_get(const Eo *obj);
 EAPI void eo_error_set_internal(const Eo *obj, const char *file, int line);
 /* @endcond */
 
+#define _eo_add_common(klass, parent, is_ref, ...) \
+   ( \
+     _eo_do_start(_eo_add_internal_start(__FILE__, __LINE__, klass, parent, is_ref), \
+        klass, EINA_FALSE, __FILE__, __FUNCTION__, __LINE__), \
+     eo_constructor(), ##__VA_ARGS__, \
+     (Eo *) _eo_add_end() \
+   )
+
 /**
  * @def eo_add
- * @brief Create a new object with the default constructor.
+ * @brief Create a new object and call its constructor(If it exits).
  *
- * The object returned by this function always has at least 1 ref. If the object
- * has a parent, it returns with 1 ref, and even if it doesn't have a parent
- * it's returned with 1 ref. This is convenient in C.
+ * The object returned by this function will always have 1 ref
+ * (reference count) irrespective of whether the parent is NULL or
+ * not.
+ * If the object is created using this function, then it would
+ * automatically gets deleted when the parent object is deleted.
+ * There is no need to call eo_unref on the child. This is convenient
+ * in C.
  *
  * If you want a more "consistent" behaviour, take a look at #eo_add_ref.
  *
@@ -633,41 +658,24 @@ EAPI void eo_error_set_internal(const Eo *obj, const char *file, int line);
  * @param ... The ops to run.
  * @return An handle to the new object on success, NULL otherwise.
  */
-#define eo_add(klass, parent, ...) \
-   ({ \
-    const Eo_Class *_tmp_klass = klass; \
-    Eo *_tmp_obj = _eo_add_internal_start(__FILE__, __LINE__, _tmp_klass, parent, EINA_FALSE); \
-    eo_do(_tmp_obj, \
-           eo_constructor(); \
-           __VA_ARGS__; \
-           _tmp_obj = eo_finalize(); \
-          ); \
-    _tmp_obj; \
-    })
+#define eo_add(klass, parent, ...) _eo_add_common(klass, parent, EINA_FALSE, ##__VA_ARGS__)
 
 /**
  * @def eo_add_ref
- * @brief Create a new object with the default constructor.
+ * @brief Create a new object and call its constructor(If it exists).
  *
  * The object returned by this function has 1 ref for itself, 1 ref from the
  * parent (if exists) and possible other refs if were added during construction.
+ * If a child object is created using this, then it won't get deleted
+ * when the parent object is deleted until you manually remove the ref
+ * by calling eo_unref().
  *
  * @param klass the class of the object to create.
  * @param parent the parent to set to the object.
  * @param ... The ops to run.
  * @return An handle to the new object on success, NULL otherwise.
  */
-#define eo_add_ref(klass, parent, ...) \
-   ({ \
-    const Eo_Class *_tmp_klass = klass; \
-    Eo *_tmp_obj = _eo_add_internal_start(__FILE__, __LINE__, _tmp_klass, parent, EINA_TRUE); \
-    eo_do(_tmp_obj, \
-           eo_constructor(); \
-           __VA_ARGS__; \
-           _tmp_obj = eo_finalize(); \
-          ); \
-    _tmp_obj; \
-    })
+#define eo_add_ref(klass, parent, ...) _eo_add_common(klass, parent, EINA_TRUE, ##__VA_ARGS__)
 
 EAPI Eo * _eo_add_internal_start(const char *file, int line, const Eo_Class *klass_id, Eo *parent, Eina_Bool ref);
 

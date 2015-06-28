@@ -127,7 +127,7 @@ pc/eina.pc \
 pc/eo.pc \
 pc/eolian.pc \
 pc/efl.pc \
-pc/efl-cxx.pc \
+pc/emile.pc \
 pc/eet.pc \
 pc/evas.pc \
 pc/ecore.pc \
@@ -140,6 +140,7 @@ pc/ecore-imf.pc \
 pc/ecore-imf-evas.pc \
 pc/ecore-evas.pc \
 pc/ecore-avahi.pc \
+pc/ector.pc \
 pc/embryo.pc \
 pc/eio.pc \
 pc/eldbus.pc \
@@ -157,10 +158,12 @@ pkgconfig_DATA += \
 pc/eina-cxx.pc \
 pc/evas-cxx.pc \
 pc/ecore-cxx.pc \
+pc/efl-cxx.pc \
 pc/eolian-cxx.pc \
 pc/edje-cxx.pc \
 pc/eet-cxx.pc \
-pc/eo-cxx.pc
+pc/eo-cxx.pc \
+pc/eio-cxx.pc
 endif
 
 if HAVE_ELUA
@@ -270,6 +273,11 @@ eina_cmakeconfig_DATA = \
 cmakeconfig/EinaConfig.cmake \
 cmakeconfig/EinaConfigVersion.cmake
 
+eio_cmakeconfigdir = $(libdir)/cmake/Eio/
+eio_cmakeconfig_DATA = \
+cmakeconfig/EioConfig.cmake \
+cmakeconfig/EioConfigVersion.cmake
+
 eeze_cmakeconfigdir = $(libdir)/cmake/Eeze/
 eeze_cmakeconfig_DATA = \
 cmakeconfig/EezeConfig.cmake \
@@ -365,6 +373,11 @@ elua_cmakeconfig_DATA = \
 cmakeconfig/EluaConfig.cmake \
 cmakeconfig/EluaConfigVersion.cmake
 
+emile_cmakeconfigdir = $(libdir)/cmake/Emile
+emile_cmakeconfig_DATA = \
+cmakeconfig/EmileConfig.cmake \
+cmakeconfig/EmileConfigVersion.cmake
+
 # D-Bus services:
 
 servicedir = @dbusservicedir@
@@ -399,7 +412,7 @@ lcov-reset:
 	@lcov --zerocounters --directory $(top_builddir)
 
 lcov-report:
-	@mkdir $(top_builddir)/coverage
+	$(MKDIR_P) $(top_builddir)/coverage
 	lcov --capture --compat-libtool --no-external --output-file $(top_builddir)/coverage/coverage.info --directory $(top_builddir) --base-directory $(top_srcdir)/src/
 	lcov --remove $(top_builddir)/coverage/coverage.info '*.h' --output-file $(top_builddir)/coverage/coverage.cleaned.info
 	lcov --remove $(top_builddir)/coverage/coverage.cleaned.info '*/tests/*' --output-file $(top_builddir)/coverage/coverage.cleaned2.info
@@ -425,7 +438,7 @@ endif
 
 benchmark:
 	@$(MAKE) $(AM_MAKEFLAGS) -C src benchmark
-	@mkdir benchmark || true
+	$(MKDIR_P) benchmark
 	@cd benchmark && ../src/benchmarks/eo/eo_bench$(EXEEXT) `date +%F_%s`
 
 # examples

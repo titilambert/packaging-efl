@@ -56,6 +56,7 @@ _ecore_drm_launcher_device_flags_set(int fd, int flags)
 EAPI Eina_Bool 
 ecore_drm_launcher_connect(Ecore_Drm_Device *dev)
 {
+   EINA_SAFETY_ON_NULL_RETURN_VAL(dev, EINA_FALSE);
    /* try to connect to logind */
    if (!(logind = _ecore_drm_logind_connect(dev)))
      {
@@ -86,6 +87,7 @@ ecore_drm_launcher_connect(Ecore_Drm_Device *dev)
 EAPI void 
 ecore_drm_launcher_disconnect(Ecore_Drm_Device *dev)
 {
+   EINA_SAFETY_ON_NULL_RETURN(dev);
    if (dev->tty.switch_hdlr) ecore_event_handler_del(dev->tty.switch_hdlr);
    dev->tty.switch_hdlr = NULL;
 
@@ -138,8 +140,10 @@ _ecore_drm_launcher_device_open_no_pending(const char *device, int flags)
    if (logind)
      {
         fd = _ecore_drm_logind_device_open_no_pending(device);
-        if ((fd = _ecore_drm_launcher_device_flags_set(fd, flags)) < 0)
+        if (fd < 0) return -1;
+        if (_ecore_drm_launcher_device_flags_set(fd, flags | O_CLOEXEC) < 0)
           {
+             close(fd);
              _ecore_drm_logind_device_close(device);
              return -1;
           }
@@ -155,15 +159,13 @@ _ecore_drm_launcher_device_open_no_pending(const char *device, int flags)
           }
      }
 
-   DBG("Device opened %s", device);
    return fd;
 }
 
 void
 _ecore_drm_launcher_device_close(const char *device, int fd)
 {
-   if ((logind) && (device))
-     return _ecore_drm_logind_device_close(device);
+   if ((logind) && (device)) _ecore_drm_logind_device_close(device);
 
    close(fd);
 }

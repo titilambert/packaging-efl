@@ -468,6 +468,7 @@ typedef enum _Evas_3D_State
    EVAS_3D_STATE_SCENE_BACKGROUND_COLOR,
    EVAS_3D_STATE_SCENE_SIZE,
    EVAS_3D_STATE_SCENE_SHADOWS_ENABLED,
+   EVAS_3D_STATE_SCENE_UPDATED,
 
    EVAS_3D_STATE_TEXTURE_DATA = 1,
    EVAS_3D_STATE_TEXTURE_WRAP,
@@ -487,6 +488,8 @@ typedef enum _Evas_3D_State
    EVAS_3D_STATE_MESH_SHADE_MODE,
    EVAS_3D_STATE_MESH_FOG,
    EVAS_3D_STATE_MESH_BLENDING,
+   EVAS_3D_STATE_MESH_ALPHA_TEST,
+   EVAS_3D_STATE_MESH_COLOR_PICK,
 
    EVAS_3D_STATE_CAMERA_PROJECTION = 1,
 
@@ -499,7 +502,9 @@ typedef enum _Evas_3D_State
    EVAS_3D_STATE_LIGHT_ATTENUATION,
    EVAS_3D_STATE_LIGHT_PROJECTION,
 
-   EVAS_3D_STATE_NODE_TRANSFORM = 1,
+   EVAS_3D_STATE_NODE_TRANSFORM_POSITION = 1,
+   EVAS_3D_STATE_NODE_TRANSFORM_ORIENTATION,
+   EVAS_3D_STATE_NODE_TRANSFORM_SCALE,
    EVAS_3D_STATE_NODE_MESH_GEOMETRY,
    EVAS_3D_STATE_NODE_MESH_MATERIAL,
    EVAS_3D_STATE_NODE_MESH_FRAME,
@@ -507,8 +512,11 @@ typedef enum _Evas_3D_State
    EVAS_3D_STATE_NODE_MESH_MATERIAL_ID,
    EVAS_3D_STATE_NODE_LIGHT,
    EVAS_3D_STATE_NODE_CAMERA,
-   EVAS_3D_STATE_NODE_PARENT,
+   EVAS_3D_STATE_NODE_PARENT_POSITION,
+   EVAS_3D_STATE_NODE_PARENT_ORIENTATION,
+   EVAS_3D_STATE_NODE_PARENT_SCALE,
    EVAS_3D_STATE_NODE_MEMBER,
+   EVAS_3D_STATE_NODE_PARENT_BILLBOARD,
 } Evas_3D_State;
 
 /**
@@ -664,6 +672,32 @@ typedef enum _Evas_3D_Blend_Func
 } Evas_3D_Blend_Func;
 
 /**
+ * Comparsion functions for testing(alpha, depth, stencil) in fragment shader.
+ *
+ * @since 1.14
+ * @ingroup Evas_3D_Types
+ */
+typedef enum _Evas_3D_Comparison
+{
+   /**< Never passes.*/
+   EVAS_3D_COMPARISON_NEVER,
+   /**< Passes if the incoming value is less than the reference value.*/
+   EVAS_3D_COMPARISON_LESS,
+   /**< Passes if the incoming value is equal to the reference value.*/
+   EVAS_3D_COMPARISON_EQUAL,
+   /**< Passes if the incoming value is less than or equal to the reference value.*/
+   EVAS_3D_COMPARISON_LEQUAL,
+   /**< Passes if the incoming value is greater than the reference value.*/
+   EVAS_3D_COMPARISON_GREATER,
+   /**< Passes if the incoming value is not equal to the reference value.*/
+   EVAS_3D_COMPARISON_NOTEQUAL,
+   /**< Passes if the incoming value is greater than or equal to the reference value.*/
+   EVAS_3D_COMPARISON_GEQUAL,
+   /**< Always passes (initial value).*/
+   EVAS_3D_COMPARISON_ALWAYS,
+} Evas_3D_Comparison;
+
+/**
  * Color formats of pixel data
  *
  * @since 1.10
@@ -773,7 +807,10 @@ typedef enum _Evas_3D_Shade_Mode
    EVAS_3D_SHADE_MODE_NORMAL_MAP,
    /**< fragment color is defined by its z-coord*/
    EVAS_3D_SHADE_MODE_SHADOW_MAP_RENDER,
-
+   /**< rendering to additional frame bufer*/
+   EVAS_3D_SHADE_MODE_COLOR_PICK,
+   /**< Per-pixel parallax occlusion map shading */
+   EVAS_3D_SHADE_MODE_PARALLAX_OCCLUSION,
 } Evas_3D_Shade_Mode;
 
 /**
@@ -808,3 +845,20 @@ typedef enum _Evas_3D_Material_Attrib
 #include "canvas/evas_3d_scene.eo.h"
 
 #include "canvas/evas_3d_object.eo.h"
+
+/**
+ * @ingroup Evas_Object_VG
+ *
+ * @{
+ */
+#include "canvas/evas_vg.eo.h"
+/**
+ * @}
+ */
+
+#include "canvas/efl_vg_base.eo.h"
+#include "canvas/efl_vg_container.eo.h"
+#include "canvas/efl_vg_shape.eo.h"
+#include "canvas/efl_vg_gradient.eo.h"
+#include "canvas/efl_vg_gradient_linear.eo.h"
+#include "canvas/efl_vg_gradient_radial.eo.h"

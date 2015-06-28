@@ -7,10 +7,14 @@ void
 evas_object_inject(Evas_Object *eo_obj, Evas_Object_Protected_Data *obj, Evas *e)
 {
    Evas_Layer *lay;
+   Evas_Public_Data *evas;
 
    if (!obj) return;
    if (!e) return;
    if (obj->in_layer) return;
+   evas = eo_data_scope_get(e, EVAS_CANVAS_CLASS);
+   if (!evas) return;
+   evas_canvas_async_block(evas);
    lay = evas_layer_find(e, obj->cur->layer);
    if (!lay)
      {
@@ -174,12 +178,21 @@ _evas_object_layer_set_child(Evas_Object *eo_obj, Evas_Object *par, short l)
 
 /* public functions */
 
+EAPI void
+evas_object_layer_set(Evas_Object *obj, short l)
+{
+   eo_do((Evas_Object *)obj, efl_gfx_stack_layer_set(l));
+}
+
 EOLIAN void
-_evas_object_layer_set(Eo *eo_obj, Evas_Object_Protected_Data *obj EINA_UNUSED, short l)
+_evas_object_efl_gfx_stack_layer_set(Eo *eo_obj,
+                                     Evas_Object_Protected_Data *obj,
+                                     short l)
 {
    Evas *eo_e;
 
    if (obj->delete_me) return;
+   evas_object_async_block(obj);
    if (evas_object_intercept_call_layer_set(eo_obj, obj, l)) return;
    if (obj->smart.parent) return;
    if (obj->cur->layer == l)
@@ -231,8 +244,17 @@ _evas_object_layer_set(Eo *eo_obj, Evas_Object_Protected_Data *obj EINA_UNUSED, 
    evas_object_inform_call_restack(eo_obj);
 }
 
+EAPI short
+evas_object_layer_get(const Evas_Object *obj)
+{
+   short ret;
+
+   return eo_do_ret((Evas_Object *)obj, ret, efl_gfx_stack_layer_get());
+}
+
 EOLIAN short
-_evas_object_layer_get(Eo *eo_obj EINA_UNUSED, Evas_Object_Protected_Data *obj)
+_evas_object_efl_gfx_stack_layer_get(Eo *eo_obj EINA_UNUSED,
+                                     Evas_Object_Protected_Data *obj)
 {
    if (obj->smart.parent)
      {

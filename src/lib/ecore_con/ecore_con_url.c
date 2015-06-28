@@ -32,9 +32,9 @@
 
 #define MY_CLASS ECORE_CON_URL_CLASS
 
-// all the types, defines, enums etc. from curl that we actuall USE.
+// all the types, defines, enums etc. from curl that we actually USE.
 // we have to add to this if we use more things from curl not already
-// defined here. see culr headers to get them from
+// defined here. see curl headers to get them from
 typedef enum
 {
    CURLM_CALL_MULTI_PERFORM = -1,
@@ -68,6 +68,7 @@ typedef enum
    CINIT(CUSTOMREQUEST, OBJECTPOINT, 36),
    CINIT(VERBOSE, LONG, 41),
    CINIT(NOPROGRESS, LONG, 43),
+   CINIT(NOBODY, LONG, 44),
    CINIT(UPLOAD, LONG, 46),
    CINIT(POST, LONG, 47),
    CINIT(FOLLOWLOCATION, LONG, 52),
@@ -183,6 +184,14 @@ typedef struct
    } data;
 } CURLMsg;
 
+typedef enum _Ecore_Con_Url_Mode
+{
+   ECORE_CON_URL_MODE_AUTO = 0,
+   ECORE_CON_URL_MODE_GET = 1,
+   ECORE_CON_URL_MODE_POST = 2,
+   ECORE_CON_URL_MODE_HEAD = 3,
+} Ecore_Con_Url_Mode;
+
 typedef struct _Ecore_Con_Curl Ecore_Con_Curl;
 
 struct _Ecore_Con_Curl
@@ -276,7 +285,6 @@ static Eina_List *_fd_hd_list = NULL;
 static int _init_count = 0;
 static Ecore_Timer *_curl_timer = NULL;
 static Eina_Bool pipelining = EINA_FALSE;
-static long last_ms = -1;
 
 static Ecore_Con_Curl *_c = NULL;
 static Eina_Bool _c_fail = EINA_FALSE;
@@ -301,13 +309,17 @@ _c_init(void)
          }                                    \
     }
 #if defined(_WIN32) || defined(__CYGWIN__)
+   LOAD("libcurl-5.dll"); // try correct dll first
    LOAD("libcurl-4.dll"); // try correct dll first
    LOAD("libcurl.dll"); // try 1
    LOAD("curllib.dll"); // if fail try 2
 #elif defined(__APPLE__) && defined(__MACH__)
+   LOAD("libcurl.5.dylib"); // try 1
    LOAD("libcurl.4.dylib"); // try 1
+   LOAD("libcurl.so.5"); // if fail try 2
    LOAD("libcurl.so.4"); // if fail try 2
 #else
+   LOAD("libcurl.so.5"); // try only
    LOAD("libcurl.so.4"); // try only
 #endif
    if (!_c->mod) goto error;
@@ -345,7 +357,6 @@ _c_init(void)
      }
    _c->curl_multi_timeout(_c->_curlm, &ms);
    if ((ms >= CURL_MIN_TIMEOUT) || (ms < 0)) ms = CURL_MIN_TIMEOUT;
-   last_ms = ms;
    _curl_timer = ecore_timer_add((double)ms / 1000.0,
                                  _ecore_con_url_timer, NULL);
    ecore_timer_freeze(_curl_timer);
@@ -783,12 +794,10 @@ ecore_con_url_httpauth_set(Ecore_Con_Url *url_obj, const char *username, const c
    return EINA_FALSE;
 }
 
-#define MODE_AUTO 0
-#define MODE_GET  1
-#define MODE_POST 2
 
 static Eina_Bool
-_ecore_con_url_send(Ecore_Con_Url *url_obj, int mode, const void *data, long length, const char *content_type)
+_ecore_con_url_send(Ecore_Con_Url *url_obj, Ecore_Con_Url_Mode mode,
+                    const void *data, long length, const char *content_type)
 {
    Ecore_Con_Url_Data *url_con = eo_data_scope_get(url_obj, MY_CLASS);
    if (!eo_isa(url_obj, ECORE_CON_URL_CLASS))
@@ -810,7 +819,7 @@ _ecore_con_url_send(Ecore_Con_Url *url_obj, int mode, const void *data, long len
 
    _c->curl_slist_free_all(url_con->headers);
    url_con->headers = NULL;
-   if ((mode == MODE_POST) || (mode == MODE_AUTO))
+   if ((mode == ECORE_CON_URL_MODE_POST) || (mode == ECORE_CON_URL_MODE_AUTO))
      {
         if (url_con->post_data) free(url_con->post_data);
         url_con->post_data = NULL;
@@ -838,9 +847,11 @@ _ecore_con_url_send(Ecore_Con_Url *url_obj, int mode, const void *data, long len
         else
           _c->curl_easy_setopt(url_con->curl_easy,
                                CURLOPT_POSTFIELDSIZE, 0);
-        if (mode == MODE_POST)
+        if (mode == ECORE_CON_URL_MODE_POST)
           _c->curl_easy_setopt(url_con->curl_easy, CURLOPT_POST, 1);
      }
+   else if (mode == ECORE_CON_URL_MODE_HEAD)
+     _c->curl_easy_setopt(url_con->curl_easy, CURLOPT_NOBODY, 1L);
 
    switch (url_con->time_condition)
      {
@@ -876,13 +887,19 @@ _ecore_con_url_send(Ecore_Con_Url *url_obj, int mode, const void *data, long len
 EAPI Eina_Bool
 ecore_con_url_get(Ecore_Con_Url *url_con)
 {
-   return _ecore_con_url_send(url_con, MODE_GET, NULL, 0, NULL);
+   return _ecore_con_url_send(url_con, ECORE_CON_URL_MODE_GET, NULL, 0, NULL);
+}
+
+EAPI Eina_Bool
+ecore_con_url_head(Ecore_Con_Url *url_con)
+{
+   return _ecore_con_url_send(url_con, ECORE_CON_URL_MODE_HEAD, NULL, 0, NULL);
 }
 
 EAPI Eina_Bool
 ecore_con_url_post(Ecore_Con_Url *url_con, const void *data, long length, const char *content_type)
 {
-   return _ecore_con_url_send(url_con, MODE_POST, data, length, content_type);
+   return _ecore_con_url_send(url_con, ECORE_CON_URL_MODE_POST, data, length, content_type);
 }
 
 EAPI Eina_Bool
@@ -918,10 +935,10 @@ ecore_con_url_ftp_upload(Ecore_Con_Url *url_obj, const char *filename, const cha
    snprintf(tmp, PATH_MAX, "%s", filename);
 
    if (upload_dir)
-     snprintf(url, sizeof(url), "ftp://%s/%s/%s", url_con->url,
+     snprintf(url, sizeof(url), "%s/%s/%s", url_con->url,
               upload_dir, basename(tmp));
    else
-     snprintf(url, sizeof(url), "ftp://%s/%s", url_con->url,
+     snprintf(url, sizeof(url), "%s/%s", url_con->url,
               basename(tmp));
 
    if (!ecore_con_url_url_set(url_obj, url))
@@ -1521,7 +1538,6 @@ _ecore_con_url_curl_clear(void)
      ecore_main_fd_handler_del(fdh);
    EINA_LIST_FREE(_url_con_list, url_con)
      _ecore_con_url_multi_remove(url_con);
-   last_ms = -1;
 }
 
 static Eina_Bool
@@ -1530,28 +1546,26 @@ _ecore_con_url_do_multi_timeout(long *retms)
    long ms = 0;
    int ret;
 
-   while (!ms)
+   ret = _c->curl_multi_timeout(_c->_curlm, &ms);
+   *retms = ms;
+   if (!ret)
      {
-        ret = _c->curl_multi_timeout(_c->_curlm, &ms);
-        *retms = ms;
-        if ((last_ms > 0) && (ms < 0))
-          ERR("curl_multi_perform() timeout");
-        else if (ms <= 0)
+        if (!ms)
           {
-             last_ms = ms;
              _ecore_con_url_timer(NULL);
              DBG("multiperform is still running: timeout: %ld", ms);
-             return EINA_TRUE;
           }
-        else if ((ret <= 0) && (ms > 0)) break;
-        else
-          ERR("curl_multi_perform() failed: %s", _c->curl_multi_strerror(ret));
-        last_ms = ms;
-        _ecore_con_url_curl_clear();
-        ecore_timer_freeze(_curl_timer);
-        return EINA_FALSE;
+        return EINA_TRUE;
      }
-   return EINA_TRUE;
+   else
+     {
+         ERR("curl_multi_perform() failed: %s",
+              _c->curl_multi_strerror(ret));
+         _ecore_con_url_curl_clear();
+         ecore_timer_freeze(_curl_timer);
+
+         return EINA_FALSE;
+     }
 }
 
 static Eina_Bool
@@ -1564,7 +1578,6 @@ _ecore_con_url_fd_handler(void *data EINA_UNUSED, Ecore_Fd_Handler *fd_handler E
    EINA_LIST_FREE(_fd_hd_list, fdh)
      ecore_main_fd_handler_del(fdh);
    if (!_ecore_con_url_do_multi_timeout(&ms)) return EINA_FALSE;
-   last_ms = ms;
    if ((ms >= CURL_MIN_TIMEOUT) || (ms <= 0)) ms = CURL_MIN_TIMEOUT;
    ecore_timer_interval_set(_curl_timer, (double)ms / 1000.0);
    ecore_timer_reset(_curl_timer);
@@ -1644,7 +1657,6 @@ _ecore_con_url_timer(void *data EINA_UNUSED)
 
         _ecore_con_url_fdset();
         if (!_ecore_con_url_do_multi_timeout(&ms)) return EINA_FALSE;
-        last_ms = ms;
         DBG("multiperform is still running: %d, timeout: %ld",
             still_running, ms);
         if ((ms >= CURL_MIN_TIMEOUT) || (ms < 0)) ms = CURL_MIN_TIMEOUT;

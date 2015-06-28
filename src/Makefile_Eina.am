@@ -80,21 +80,14 @@ lib/eina/eina_inline_value.x \
 lib/eina/eina_value_util.h \
 lib/eina/eina_inline_value_util.x \
 lib/eina/eina_inline_lock_barrier.x \
+lib/eina/eina_inline_lock_posix.x \
 lib/eina/eina_tmpstr.h \
 lib/eina/eina_alloca.h \
 lib/eina/eina_cow.h \
 lib/eina/eina_inline_unicode.x \
-lib/eina/eina_thread_queue.h
-
-# Will be back for developper after 1.2.
-# lib/eina/eina_model.h
-# lib/eina/eina_object.h
-
-if HAVE_WIN32
-dist_installed_einaheaders_DATA += lib/eina/eina_inline_lock_win32.x
-else
-dist_installed_einaheaders_DATA += lib/eina/eina_inline_lock_posix.x
-endif
+lib/eina/eina_thread_queue.h \
+lib/eina/eina_matrix.h \
+lib/eina/eina_quad.h
 
 lib_eina_libeina_la_SOURCES = \
 lib/eina/eina_abi.c \
@@ -149,7 +142,9 @@ lib/eina/eina_xattr.c \
 lib/eina/eina_share_common.h \
 lib/eina/eina_private.h \
 lib/eina/eina_strbuf_common.h \
-lib/eina/eina_thread_queue.c
+lib/eina/eina_thread_queue.c \
+lib/eina/eina_matrix.c \
+lib/eina/eina_quad.c
 
 # Will be back for developper after 1.2
 # lib/eina/eina_model.c \
@@ -171,6 +166,11 @@ else
 einampchainedpooldir = $(libdir)/eina/modules/mp/chained_pool/$(MODULE_ARCH)
 einampchainedpool_LTLIBRARIES = modules/eina/mp/chained_pool/chained_pool_module.la
 
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_einampchainedpoolLTLIBRARIES = install-einampchainedpoolLTLIBRARIES
+$(install_einampchainedpoolLTLIBRARIES): install-libLTLIBRARIES
+
 modules_eina_mp_chained_pool_chained_pool_module_la_CFLAGS = $(EINA_MODULE_COMMON_CFLAGS)
 modules_eina_mp_chained_pool_chained_pool_module_la_LIBADD = @USE_EINA_LIBS@
 modules_eina_mp_chained_pool_chained_pool_module_la_DEPENDENCIES = @USE_EINA_INTERNAL_LIBS@
@@ -185,6 +185,11 @@ else
 einamponebigdir = $(libdir)/eina/modules/mp/one_big/$(MODULE_ARCH)
 einamponebig_LTLIBRARIES = modules/eina/mp/one_big/one_big_module.la
 
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_einamponebigLTLIBRARIES = install-einamponebigLTLIBRARIES
+$(install_einamponebigLTLIBRARIES): install-libLTLIBRARIES
+
 modules_eina_mp_one_big_one_big_module_la_CFLAGS = $(EINA_MODULE_COMMON_CFLAGS)
 modules_eina_mp_one_big_one_big_module_la_LIBADD = @USE_EINA_LIBS@
 modules_eina_mp_one_big_one_big_module_la_DEPENDENCIES = @USE_EINA_INTERNAL_LIBS@
@@ -198,6 +203,11 @@ lib_eina_libeina_la_SOURCES += modules/eina/mp/pass_through/eina_pass_through.c
 else
 einamppassthroughdir = $(libdir)/eina/modules/mp/pass_through/$(MODULE_ARCH)
 einamppassthrough_LTLIBRARIES = modules/eina/mp/pass_through/pass_through_module.la
+
+# Workaround for broken parallel install support in automake (relink issue)
+# http://debbugs.gnu.org/cgi/bugreport.cgi?bug=7328
+install_einamppassthroughLTLIBRARIES = install-einamppassthroughLTLIBRARIES
+$(install_einamppassthroughLTLIBRARIES): install-libLTLIBRARIES
 
 modules_eina_mp_pass_through_pass_through_module_la_CFLAGS = $(EINA_MODULE_COMMON_CFLAGS)
 modules_eina_mp_pass_through_pass_through_module_la_LIBADD = @USE_EINA_LIBS@
@@ -272,8 +282,10 @@ tests/eina/eina_test_cow.c \
 tests/eina/eina_test_barrier.c \
 tests/eina/eina_test_tmpstr.c \
 tests/eina/eina_test_trash.c \
-tests/eina/eina_test_lock.c
+tests/eina/eina_test_lock.c \
+tests/eina/eina_test_xattr.c
 # tests/eina/eina_test_model.c
+
 
 tests_eina_eina_suite_CPPFLAGS = -I$(top_builddir)/src/lib/efl \
 -DTESTS_WD=\"`pwd`\" \
